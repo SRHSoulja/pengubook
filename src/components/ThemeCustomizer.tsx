@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTheme } from '@/providers/ThemeProvider'
 
 interface Theme {
   id: string
@@ -83,28 +84,19 @@ interface ThemeCustomizerProps {
 }
 
 export default function ThemeCustomizer({ isOpen, onClose, onThemeChange }: ThemeCustomizerProps) {
-  const [selectedTheme, setSelectedTheme] = useState<Theme>(predefinedThemes[0])
+  const { currentTheme } = useTheme()
+  const [selectedTheme, setSelectedTheme] = useState<Theme>(currentTheme)
   const [customBgColor1, setCustomBgColor1] = useState('#1e1b4b')
   const [customBgColor2, setCustomBgColor2] = useState('#7c2d12')
   const [customAccent, setCustomAccent] = useState('#00ffff')
 
   useEffect(() => {
-    // Load saved theme from localStorage
-    const savedTheme = localStorage.getItem('pengubook-theme')
-    if (savedTheme) {
-      try {
-        const theme = JSON.parse(savedTheme)
-        setSelectedTheme(theme)
-      } catch (e) {
-        console.error('Failed to parse saved theme')
-      }
-    }
-  }, [])
+    setSelectedTheme(currentTheme)
+  }, [currentTheme])
 
   const applyTheme = (theme: Theme) => {
     setSelectedTheme(theme)
     onThemeChange(theme)
-    localStorage.setItem('pengubook-theme', JSON.stringify(theme))
   }
 
   const createCustomTheme = (): Theme => {

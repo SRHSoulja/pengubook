@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useTheme } from '@/providers/ThemeProvider'
 import Navbar from '@/components/Navbar'
 import TipModal from '@/components/TipModal'
 import ThemeCustomizer from '@/components/ThemeCustomizer'
@@ -9,6 +10,7 @@ import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 
 export default function Dashboard() {
   const { user, loading, isAuthenticated } = useAuth()
+  const { currentTheme, applyTheme } = useTheme()
   const [showTipModal, setShowTipModal] = useState(false)
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false)
 
@@ -34,7 +36,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 web3-grid-bg">
+    <div className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient} web3-grid-bg`}>
       <Navbar />
 
       <div className="container-responsive mobile-padding py-12">
@@ -215,9 +217,7 @@ export default function Dashboard() {
       <ThemeCustomizer
         isOpen={showThemeCustomizer}
         onClose={() => setShowThemeCustomizer(false)}
-        onThemeChange={(theme) => {
-          console.log('Theme changed:', theme)
-        }}
+        onThemeChange={applyTheme}
       />
     </div>
   )

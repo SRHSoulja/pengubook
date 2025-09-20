@@ -1,11 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/providers/AuthProvider'
+import { useTheme } from '@/providers/ThemeProvider'
 import WalletConnect from '@/components/WalletConnect'
+import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 
 export default function Home() {
-  const [currentTime, setCurrentTime] = useState('')
-  const [uptime, setUptime] = useState('')
+  const { user, loading, isAuthenticated } = useAuth()
+  const { currentTheme } = useTheme()
   const [stats, setStats] = useState({
     totalUsers: 0,
     connectedUsers: 0,
@@ -13,22 +16,12 @@ export default function Home() {
     totalTipVolume: '0',
     enabledTokens: 0
   })
-  const [logs, setLogs] = useState([
-    '[OK] Server initialized',
-    '[INFO] Wallet system ready',
-    '[OK] Database connected'
-  ])
 
   useEffect(() => {
-    const updateTime = () => {
-      setCurrentTime(new Date().toLocaleTimeString())
-    }
-
     const fetchServerStats = async () => {
       try {
         const response = await fetch('/api/system/stats')
         const data = await response.json()
-        setUptime(data.uptime)
         setStats({
           totalUsers: data.totalUsers || 0,
           connectedUsers: data.connectedUsers || 0,
@@ -36,204 +29,251 @@ export default function Home() {
           totalTipVolume: data.totalTipVolume || '0',
           enabledTokens: data.enabledTokens || 0
         })
-
-        // Update logs with real data
-        const newLogs = [
-          '[OK] Server initialized',
-          '[INFO] Wallet system ready',
-          '[OK] Database connected',
-          `[DATA] ${data.totalUsers} penguins registered`,
-          `[TIPS] ${data.totalTips} tips processed`,
-          `[TOKENS] ${data.enabledTokens} tokens enabled`
-        ]
-        setLogs(newLogs)
       } catch (error) {
         console.error('Failed to fetch server stats:', error)
       }
     }
 
-    updateTime()
     fetchServerStats()
+    const statsInterval = setInterval(fetchServerStats, 30000)
 
-    const interval = setInterval(updateTime, 1000)
-    const statsInterval = setInterval(fetchServerStats, 10000) // Update server stats every 10 seconds
-
-    return () => {
-      clearInterval(interval)
-      clearInterval(statsInterval)
-    }
+    return () => clearInterval(statsInterval)
   }, [])
+
+  // Auto-redirect authenticated users to dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      const timer = setTimeout(() => {
+        window.location.href = '/dashboard'
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [isAuthenticated])
+
+  // Show loading screen while checking auth
+  if (loading) {
+    return <PenguinLoadingScreen />
+  }
+
+  // If authenticated, redirect to dashboard or show different content
+  if (isAuthenticated) {
+    return (
+      <main className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient} web3-grid-bg flex items-center justify-center`}>
+        <div className="text-center space-y-6">
+          <div className="text-8xl animate-float">🐧</div>
+          <h1 className="text-4xl font-display font-bold text-gradient">
+            Welcome back, {user?.displayName}!
+          </h1>
+          <p className="text-xl text-gray-300">
+            Redirecting you to the colony...
+          </p>
+          <div className="animate-pulse">
+            <a href="/dashboard" className="cyber-button inline-block">
+              Enter Dashboard →
+            </a>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   return (
-    <main className="min-h-screen bg-black text-green-400 font-mono overflow-hidden">
-      {/* Matrix-style background */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-900/20 via-transparent to-cyan-900/20" />
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            radial-gradient(circle at 25% 25%, #00ff4115 0%, transparent 50%),
-            radial-gradient(circle at 75% 75%, #00ffff15 0%, transparent 50%),
-            linear-gradient(90deg, transparent 98%, #00ff4110 100%),
-            linear-gradient(0deg, transparent 98%, #00ffff10 100%)
-          `,
-          backgroundSize: '200px 200px, 300px 300px, 50px 50px, 50px 50px'
-        }} />
+    <main className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient} web3-grid-bg`}>
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 left-20 w-32 h-32 bg-emerald-400/10 rounded-full blur-xl animate-blob"></div>
+        <div className="absolute top-40 right-20 w-24 h-24 bg-purple-500/10 rounded-full blur-xl animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-1/3 w-40 h-40 bg-cyan-400/10 rounded-full blur-xl animate-blob animation-delay-4000"></div>
       </div>
 
-      <div className="relative z-10 min-h-screen flex flex-col justify-center p-8 max-w-6xl mx-auto">
+      <div className="relative z-10 min-h-screen flex flex-col justify-center mobile-padding py-12">
+        <div className="max-w-6xl mx-auto">
 
-        {/* Terminal Header */}
-        <div className="mb-8">
-          <div className="text-xs opacity-60 mb-2">root@pengubook:~$ ./init_colony.sh</div>
-          <div className="h-px bg-green-400/30 w-full mb-4" />
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-2 gap-16">
-
-          {/* Left: System Info */}
-          <div className="space-y-8">
-
-            {/* Logo/Brand */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <div className="text-4xl">🐧</div>
-                <div>
-                  <h1 className="text-4xl font-bold text-white tracking-wider">PENGUBOOK</h1>
-                  <div className="text-green-400 text-sm">v2.7.4-arctic-mainnet</div>
-                </div>
-              </div>
-              <div className="text-cyan-400 text-lg">
-                [CLASSIFIED] Social protocol for crypto-native organisms
-              </div>
+          {/* Hero Section */}
+          <div className="text-center mb-16 relative">
+            <div className="relative inline-block mb-8">
+              <div className="text-8xl mb-6 animate-float">🐧</div>
+              <div className="absolute inset-0 animate-aurora-flow opacity-30 rounded-full"></div>
             </div>
 
-            {/* System Status */}
-            <div className="border border-green-400/30 p-6 bg-black/50">
-              <div className="text-green-400 font-bold mb-4">[SYSTEM STATUS]</div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="opacity-75">BLOCKCHAIN_SYNC</span>
-                  <span className="text-green-400">[ONLINE]</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="opacity-75">NEURAL_NETWORK</span>
-                  <span className="text-green-400">[ACTIVE]</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="opacity-75">PENGUIN_COLONY</span>
-                  <span className="text-cyan-400">[{stats.connectedUsers.toLocaleString()} CONNECTED]</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="opacity-75">TIP_PROCESSING</span>
-                  <span className="text-yellow-400">[{stats.totalTips} PROCESSED]</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="opacity-75">TOKEN_REGISTRY</span>
-                  <span className="text-blue-400">[{stats.enabledTokens} ACTIVE]</span>
-                </div>
-              </div>
+            <h1 className="text-6xl md:text-7xl font-display font-bold text-gradient mb-8 leading-tight">
+              PENGUBOOK
+            </h1>
+
+            <div className="text-neon-cyan text-lg md:text-xl font-mono mb-4 animate-pulse">
+              v2.7.4-arctic-mainnet
             </div>
 
-            {/* Features */}
-            <div className="space-y-4">
-              <div className="text-green-400 font-bold">[CORE_MODULES]</div>
-              <div className="grid grid-cols-1 gap-3">
-                <div className="flex items-center space-x-3 p-3 border border-green-400/20 bg-green-400/5">
-                  <span className="text-green-400">{'>'}</span>
-                  <span className="text-white">instant_tip_protocol.exe</span>
-                  <span className="text-green-400 text-xs ml-auto">[LOADED]</span>
-                </div>
-                <div className="flex items-center space-x-3 p-3 border border-cyan-400/20 bg-cyan-400/5">
-                  <span className="text-cyan-400">{'>'}</span>
-                  <span className="text-white">quantum_wallet_bridge.so</span>
-                  <span className="text-cyan-400 text-xs ml-auto">[SECURE]</span>
-                </div>
-                <div className="flex items-center space-x-3 p-3 border border-yellow-400/20 bg-yellow-400/5">
-                  <span className="text-yellow-400">{'>'}</span>
-                  <span className="text-white">arctic_social_matrix.bin</span>
-                  <span className="text-yellow-400 text-xs ml-auto">[EXPERIMENTAL]</span>
-                </div>
-              </div>
-            </div>
+            <p className="text-2xl md:text-3xl text-white max-w-3xl mx-auto leading-relaxed mb-8">
+              The <span className="text-neon-cyan font-bold">Web3 Social Protocol</span> for
+              <span className="text-gradient"> Crypto-Native Penguins</span>
+            </p>
 
-            {/* Warning */}
-            <div className="border border-red-400/30 bg-red-400/10 p-4">
-              <div className="text-red-400 font-bold text-sm mb-2">[!] SECURITY_NOTICE</div>
-              <div className="text-red-200 text-xs opacity-90">
-                This neural interface requires Abstract Global Wallet authentication.
-                Unauthorized access to the penguin colony is strictly prohibited.
-              </div>
-            </div>
+            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+              Connect, tip, and build communities in the Antarctic metaverse.
+              Powered by Abstract Global Wallet and quantum penguin energy.
+              <span className="text-neon-cyan animate-pulse ml-2">❄️</span>
+            </p>
           </div>
 
-          {/* Right: Terminal Login */}
-          <div className="space-y-6">
+          {/* Main Content Grid */}
+          <div className="grid lg:grid-cols-2 gap-12 mb-16">
 
-            <div className="border border-green-400/30 bg-black/70 p-8">
-              <div className="space-y-6">
+            {/* Left: Features & Stats */}
+            <div className="space-y-8">
 
-                {/* Terminal prompt */}
-                <div className="space-y-2">
-                  <div className="text-green-400 text-sm">
-                    <span className="opacity-60">penguin@arctic:~$</span> ./connect_wallet.sh
+              {/* Live Stats */}
+              <div className="glass-card-strong p-8">
+                <h2 className="text-2xl font-display font-bold text-gradient mb-6 flex items-center">
+                  <span className="mr-3 text-3xl animate-float">📊</span>
+                  Colony Status
+                </h2>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="glass-card p-4 text-center hover-lift">
+                    <div className="text-3xl font-bold text-neon-cyan font-mono">
+                      {stats.totalUsers.toLocaleString()}
+                    </div>
+                    <div className="text-sm text-gray-400">Penguins</div>
                   </div>
-                  <div className="text-yellow-400 text-sm">
-                    Initializing secure quantum tunnel...
+
+                  <div className="glass-card p-4 text-center hover-lift">
+                    <div className="text-3xl font-bold text-neon-green font-mono">
+                      {stats.totalTips.toLocaleString()}
+                    </div>
+                    <div className="text-sm text-gray-400">Tips Sent</div>
                   </div>
-                  <div className="text-cyan-400 text-sm mb-4">
-                    Ready for Abstract Global Wallet authentication.
+
+                  <div className="glass-card p-4 text-center hover-lift">
+                    <div className="text-3xl font-bold text-neon-purple font-mono">
+                      {stats.connectedUsers.toLocaleString()}
+                    </div>
+                    <div className="text-sm text-gray-400">Online</div>
+                  </div>
+
+                  <div className="glass-card p-4 text-center hover-lift">
+                    <div className="text-3xl font-bold text-neon-yellow font-mono">
+                      {stats.enabledTokens}
+                    </div>
+                    <div className="text-sm text-gray-400">Tokens</div>
                   </div>
                 </div>
+              </div>
 
-                <div className="h-px bg-green-400/20 w-full" />
+              {/* Features */}
+              <div className="glass-card-strong p-8">
+                <h2 className="text-2xl font-display font-bold text-gradient mb-6 flex items-center">
+                  <span className="mr-3 text-3xl animate-float">⚡</span>
+                  Core Features
+                </h2>
 
-                {/* Login Section */}
                 <div className="space-y-4">
-                  <div className="text-center">
-                    <div className="text-6xl mb-4 animate-pulse">🐧</div>
-                    <div className="text-white text-xl font-bold">ACCESS_TERMINAL</div>
-                    <div className="text-green-400 text-sm opacity-75">Quantum wallet authentication required</div>
+                  <div className="glass-card p-4 hover-lift hover-glow group">
+                    <div className="flex items-center space-x-4">
+                      <span className="text-2xl group-hover:animate-float">💸</span>
+                      <div>
+                        <h3 className="font-display font-semibold text-white">Instant Tipping</h3>
+                        <p className="text-sm text-gray-400">Send crypto tips with quantum speed</p>
+                      </div>
+                    </div>
                   </div>
+
+                  <div className="glass-card p-4 hover-lift hover-glow group">
+                    <div className="flex items-center space-x-4">
+                      <span className="text-2xl group-hover:animate-float">🔗</span>
+                      <div>
+                        <h3 className="font-display font-semibold text-white">Wallet Bridge</h3>
+                        <p className="text-sm text-gray-400">Seamless AGW integration</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="glass-card p-4 hover-lift hover-glow group">
+                    <div className="flex items-center space-x-4">
+                      <span className="text-2xl group-hover:animate-float">🏔️</span>
+                      <div>
+                        <h3 className="font-display font-semibold text-white">Social Matrix</h3>
+                        <p className="text-sm text-gray-400">Build penguin communities</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Connection Portal */}
+            <div className="space-y-6">
+              <div className="glass-card-strong p-10 relative overflow-hidden">
+
+                {/* Decorative elements */}
+                <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-500/10 rounded-full blur-xl"></div>
+                <div className="absolute bottom-0 left-0 w-16 h-16 bg-purple-500/10 rounded-full blur-xl"></div>
+
+                <div className="relative space-y-8">
+                  <div className="text-center">
+                    <div className="text-7xl mb-6 animate-float">🐧</div>
+                    <h2 className="text-3xl font-display font-bold text-gradient mb-4">
+                      Enter the Colony
+                    </h2>
+                    <p className="text-gray-300 text-lg">
+                      Connect your Abstract Global Wallet to join the penguin social protocol
+                    </p>
+                  </div>
+
+                  <div className="h-px bg-white/20 w-full"></div>
 
                   <WalletConnect />
+
+                  <div className="h-px bg-white/20 w-full"></div>
+
+                  <div className="text-center space-y-2">
+                    <div className="text-sm text-gray-400">
+                      <span className="text-neon-cyan">Protocol:</span> Abstract Layer 2
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      <span className="text-neon-cyan">Security:</span> Quantum-resistant encryption
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      <span className="text-neon-cyan">Status:</span>
+                      <span className="text-neon-green animate-pulse ml-1">Colony Active</span>
+                    </div>
+                  </div>
                 </div>
+              </div>
 
-                <div className="h-px bg-green-400/20 w-full" />
-
-                {/* Footer info */}
-                <div className="text-xs text-green-400/60 space-y-1">
-                  <div>PROTOCOL: Abstract Layer 2</div>
-                  <div>ENCRYPTION: Quantum-resistant</div>
-                  <div>STATUS: Penguin colony awaiting your arrival...</div>
+              {/* Security Notice */}
+              <div className="glass-card bg-gradient-to-r from-orange-500/10 to-red-500/10 border-orange-400/30 p-6">
+                <div className="flex items-start space-x-3">
+                  <span className="text-2xl">🔒</span>
+                  <div>
+                    <h3 className="font-display font-semibold text-orange-300 mb-2">
+                      Secure Access Required
+                    </h3>
+                    <p className="text-sm text-orange-200/80">
+                      This penguin colony uses advanced quantum cryptography.
+                      Only authorized wallet connections are permitted to access the Arctic social matrix.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Additional terminal info */}
-            <div className="text-xs text-green-400/50 space-y-1">
-              <div>root@pengubook:/home/colony# tail -f access.log</div>
-              {logs.map((log, index) => (
-                <div key={index} className={`${
-                  log.includes('[INFO]') ? 'text-cyan-400/50' :
-                  log.includes('[WARN]') ? 'text-yellow-400/50' :
-                  'text-green-400/50'
-                }`}>
-                  {log}
-                </div>
-              ))}
-              <div className="cursor animate-pulse">_</div>
-            </div>
           </div>
-        </div>
 
-        {/* Bottom status bar */}
-        <div className="mt-12 pt-6 border-t border-green-400/20">
-          <div className="flex justify-between items-center text-xs">
-            <div className="text-green-400/60">
-              POWERED_BY: abstract_protocol | SECURED_BY: quantum_cryptography | BUILT_FOR: arctic_penguins
-            </div>
-            <div className="text-cyan-400/60">
-              uptime: {uptime} | time: {currentTime} | penguins_online: {stats.connectedUsers.toLocaleString()}
+          {/* Bottom Info */}
+          <div className="glass-card p-6 text-center">
+            <div className="flex flex-wrap justify-center items-center space-x-6 text-sm text-gray-400">
+              <div className="flex items-center space-x-2">
+                <span className="text-neon-cyan">⚡</span>
+                <span>Powered by Abstract Protocol</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-neon-purple">🔐</span>
+                <span>Quantum Cryptography</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-neon-green">🐧</span>
+                <span>Built for Arctic Penguins</span>
+              </div>
             </div>
           </div>
         </div>
