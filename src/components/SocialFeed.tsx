@@ -1,0 +1,303 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+
+interface Post {
+  id: string
+  title?: string
+  content: string
+  images: string[]
+  visibility: string
+  isPinned: boolean
+  likesCount: number
+  commentsCount: number
+  isLiked: boolean
+  createdAt: string
+  updatedAt: string
+  author: {
+    id: string
+    username: string
+    displayName: string
+    avatar?: string
+    level: number
+    profile?: {
+      profileVerified: boolean
+    }
+  }
+  community?: {
+    id: string
+    name: string
+    displayName: string
+    avatar?: string
+  }
+}
+
+interface SocialFeedProps {
+  userId?: string
+  communityId?: string
+  authorId?: string
+  limit?: number
+}
+
+export default function SocialFeed({ userId, communityId, authorId, limit = 10 }: SocialFeedProps) {
+  const [posts, setPosts] = useState<Post[]>([])
+  const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+
+  useEffect(() => {
+    fetchPosts(1, true)
+  }, [userId, communityId, authorId])
+
+  const fetchPosts = async (pageNum: number, reset = false) => {
+    try {
+      setLoading(true)
+
+      const params = new URLSearchParams()
+      if (userId) params.append('userId', userId)
+      if (communityId) params.append('communityId', communityId)
+      if (authorId) params.append('authorId', authorId)
+      params.append('page', pageNum.toString())
+      params.append('limit', limit.toString())
+
+      const response = await fetch(`/api/posts?${params}`)
+      const data = await response.json()
+
+      if (response.ok) {
+        const newPosts = data.data.posts.map((post: any) => ({
+          ...post,
+          createdAt: new Date(post.createdAt).toISOString(),
+          updatedAt: new Date(post.updatedAt).toISOString()
+        }))
+
+        if (reset) {
+          setPosts(newPosts)
+        } else {
+          setPosts(prev => [...prev, ...newPosts])
+        }
+
+        setHasMore(data.data.pagination.hasNext)
+        setPage(pageNum)
+      }
+    } catch (error) {
+      console.error('Failed to fetch posts:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const likePost = async (postId: string) => {
+    if (!userId) return
+
+    try {
+      const response = await fetch(`/api/posts/${postId}/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      })
+
+      if (response.ok) {
+        setPosts(prev => prev.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              isLiked: !post.isLiked,
+              likesCount: post.isLiked ? post.likesCount - 1 : post.likesCount + 1
+            }
+          }
+          return post
+        }))
+      }
+    } catch (error) {
+      console.error('Failed to like post:', error)
+    }
+  }
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+    if (diffInSeconds < 60) return 'Just now'
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`
+
+    return date.toLocaleDateString()
+  }
+
+  if (loading && posts.length === 0) {
+    return (
+      <div className="space-y-6">
+        {[...Array(3)].map((_, index) => (
+          <div key={index} className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 animate-pulse">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-white/20 rounded-xl"></div>
+              <div className="flex-1">
+                <div className="h-4 bg-white/20 rounded mb-2 w-1/3"></div>
+                <div className="h-3 bg-white/20 rounded w-1/4"></div>
+              </div>
+            </div>
+            <div className="space-y-2 mb-4">
+              <div className="h-4 bg-white/20 rounded"></div>
+              <div className="h-4 bg-white/20 rounded w-5/6"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (posts.length === 0) {
+    return (
+      <div className="text-center text-white py-12">
+        <div className="text-4xl mb-4">📝</div>
+        <p className="text-xl mb-2">No posts yet</p>
+        <p className="text-gray-300">Be the first to share something with the colony!</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {posts.map((post) => (
+        <div
+          key={post.id}
+          className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 hover:bg-white/15 transition-all"
+        >
+          {/* Post Header */}
+          <div className="flex items-center gap-3 mb-4">
+            <Link href={`/profile/${post.author.id}`} className="flex items-center gap-3 hover:opacity-80">
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold">
+                {post.author.avatar ? (
+                  <img
+                    src={post.author.avatar}
+                    alt={post.author.displayName}
+                    className="w-full h-full rounded-xl object-cover"
+                  />
+                ) : (
+                  post.author.displayName.charAt(0)
+                )}
+              </div>
+
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-white">{post.author.displayName}</h3>
+                  {post.author.profile?.profileVerified && (
+                    <span className="text-blue-400 text-sm">✓</span>
+                  )}
+                  <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-xs">
+                    Level {post.author.level}
+                  </span>
+                  {post.isPinned && (
+                    <span className="text-yellow-400 text-sm">📌</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <span>@{post.author.username}</span>
+                  <span>•</span>
+                  <span>{formatTimeAgo(post.createdAt)}</span>
+                  {post.community && (
+                    <>
+                      <span>•</span>
+                      <Link
+                        href={`/communities/${post.community.id}`}
+                        className="text-purple-300 hover:text-purple-200"
+                      >
+                        #{post.community.name}
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          {/* Post Content */}
+          <div className="mb-4">
+            {post.title && (
+              <h2 className="text-lg font-bold text-white mb-2">{post.title}</h2>
+            )}
+            <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">
+              {post.content}
+            </p>
+          </div>
+
+          {/* Post Images */}
+          {post.images && post.images.length > 0 && (
+            <div className="mb-4">
+              <div className={`grid gap-2 ${
+                post.images.length === 1 ? 'grid-cols-1' :
+                post.images.length === 2 ? 'grid-cols-2' :
+                'grid-cols-2 md:grid-cols-3'
+              }`}>
+                {post.images.map((image, index) => (
+                  <img
+                    key={index}
+                    src={image}
+                    alt=""
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Post Actions */}
+          <div className="flex items-center gap-6 pt-4 border-t border-white/10">
+            <button
+              onClick={() => likePost(post.id)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                post.isLiked
+                  ? 'bg-red-500/20 text-red-300'
+                  : 'bg-white/10 text-gray-300 hover:bg-white/20'
+              }`}
+            >
+              <span>{post.isLiked ? '❤️' : '🤍'}</span>
+              <span>{post.likesCount}</span>
+            </button>
+
+            <Link
+              href={`/posts/${post.id}`}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+            >
+              <span>💬</span>
+              <span>{post.commentsCount}</span>
+            </Link>
+
+            <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 transition-colors">
+              <span>🔄</span>
+              <span>Share</span>
+            </button>
+
+            <div className="flex-1"></div>
+
+            <span className="text-xs text-gray-400 capitalize">
+              {post.visibility.toLowerCase().replace('_', ' ')}
+            </span>
+          </div>
+        </div>
+      ))}
+
+      {/* Load More */}
+      {hasMore && !loading && (
+        <div className="text-center">
+          <button
+            onClick={() => fetchPosts(page + 1)}
+            className="bg-cyan-500 text-white px-6 py-3 rounded-xl hover:bg-cyan-600 transition-colors"
+          >
+            Load More Posts
+          </button>
+        </div>
+      )}
+
+      {loading && posts.length > 0 && (
+        <div className="text-center text-white py-4">
+          <div className="text-2xl mb-2">🔄</div>
+          <p>Loading more posts...</p>
+        </div>
+      )}
+    </div>
+  )
+}

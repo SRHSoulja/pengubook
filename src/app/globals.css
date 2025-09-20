@@ -1,0 +1,293 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Google Fonts for better typography */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* Enhanced Keyframes */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+@keyframes matrix-rain {
+  0% {
+    transform: translateY(-100vh);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+@keyframes hologram {
+  0%, 100% {
+    transform: translateX(0);
+    filter: hue-rotate(0deg);
+  }
+  25% {
+    transform: translateX(1px);
+    filter: hue-rotate(90deg);
+  }
+  50% {
+    transform: translateX(-1px);
+    filter: hue-rotate(180deg);
+  }
+  75% {
+    transform: translateX(1px);
+    filter: hue-rotate(270deg);
+  }
+}
+
+@keyframes cyber-glitch {
+  0%, 100% {
+    transform: translateX(0);
+    filter: hue-rotate(0deg);
+  }
+  10% {
+    transform: translateX(-2px);
+    filter: hue-rotate(90deg);
+  }
+  20% {
+    transform: translateX(2px);
+    filter: hue-rotate(180deg);
+  }
+  30% {
+    transform: translateX(0);
+    filter: hue-rotate(270deg);
+  }
+}
+
+@keyframes aurora-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Utility Classes */
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animate-matrix-rain {
+  animation: matrix-rain 3s linear infinite;
+}
+
+.animate-hologram {
+  animation: hologram 2s ease-in-out infinite;
+}
+
+.animate-cyber-glitch {
+  animation: cyber-glitch 0.3s ease-in-out infinite;
+}
+
+.animate-aurora-flow {
+  animation: aurora-flow 8s ease-in-out infinite;
+  background-size: 200% 200%;
+}
+
+/* Web3 & Crypto Aesthetic Components */
+.glass-card {
+  @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-glass;
+}
+
+.glass-card-strong {
+  @apply bg-white/15 backdrop-blur-xl border border-white/30 rounded-2xl shadow-glass-lg;
+}
+
+.neon-border {
+  @apply border-2 border-neon-cyan shadow-neon;
+}
+
+.neon-text {
+  @apply text-neon-cyan drop-shadow-[0_0_10px_rgba(0,255,255,0.8)];
+}
+
+.cyber-button {
+  @apply relative bg-gradient-to-r from-neon-cyan/20 to-neon-purple/20
+         border border-neon-cyan/50 text-neon-cyan font-bold py-2 px-6
+         rounded-lg transition-all duration-300 hover:shadow-neon
+         hover:bg-gradient-to-r hover:from-neon-cyan/30 hover:to-neon-purple/30
+         active:scale-95;
+}
+
+.cyber-button:before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent
+         -skew-x-12 transform translate-x-[-100%] transition-transform duration-700;
+}
+
+.cyber-button:hover:before {
+  @apply translate-x-[200%];
+}
+
+.web3-grid-bg {
+  background-image:
+    linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+    linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.aurora-bg {
+  background: linear-gradient(45deg,
+    rgba(0, 255, 255, 0.1) 0%,
+    rgba(138, 43, 226, 0.1) 25%,
+    rgba(255, 20, 147, 0.1) 50%,
+    rgba(0, 255, 65, 0.1) 75%,
+    rgba(255, 255, 0, 0.1) 100%
+  );
+  background-size: 200% 200%;
+}
+
+/* Advanced Typography Styles */
+.text-gradient {
+  @apply bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent;
+}
+
+.text-web3 {
+  @apply font-web3 font-bold tracking-wider text-neon-cyan;
+}
+
+.text-cyber {
+  @apply font-mono text-neon-green font-medium tracking-wide;
+}
+
+/* Interactive Elements */
+.hover-lift {
+  @apply transition-all duration-300 hover:transform hover:-translate-y-2 hover:shadow-glass-lg;
+}
+
+.hover-glow {
+  @apply transition-all duration-300 hover:shadow-neon hover:scale-105;
+}
+
+.click-scale {
+  @apply transition-transform duration-150 active:scale-95;
+}
+
+/* MySpace-style Customization Base */
+.theme-classic {
+  --bg-primary: theme(colors.blue.900);
+  --bg-secondary: theme(colors.purple.900);
+  --accent: theme(colors.cyan.400);
+}
+
+.theme-myspace-blue {
+  --bg-primary: theme(colors.myspace.blue);
+  --bg-secondary: theme(colors.blue.800);
+  --accent: theme(colors.white);
+}
+
+.theme-myspace-fire {
+  --bg-primary: theme(colors.orange.600);
+  --bg-secondary: theme(colors.red.700);
+  --accent: theme(colors.yellow.300);
+}
+
+.theme-cyber-punk {
+  --bg-primary: theme(colors.black);
+  --bg-secondary: theme(colors.gray.900);
+  --accent: theme(colors.neon.cyan);
+}
+
+.theme-aurora {
+  --bg-primary: theme(colors.purple.900);
+  --bg-secondary: theme(colors.indigo.900);
+  --accent: theme(colors.pink.400);
+}
+
+/* Responsive Design Helpers */
+.mobile-padding {
+  @apply px-4 sm:px-6 lg:px-8;
+}
+
+.container-responsive {
+  @apply max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl 2xl:max-w-6xl mx-auto;
+}
+
+/* Performance Optimizations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Accessibility Improvements */
+.focus-visible {
+  @apply focus:outline-none focus:ring-2 focus:ring-neon-cyan focus:ring-opacity-50;
+}
+
+.reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode compatible shadows */
+@media (prefers-color-scheme: dark) {
+  .shadow-glass {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  }
+
+  .shadow-glass-lg {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Navigation Styles */
+.nav-link {
+  @apply flex items-center space-x-2 px-3 py-2 rounded-lg
+         text-gray-300 hover:text-white hover:bg-white/10
+         transition-all duration-300 hover-lift focus-visible;
+}
+
+.nav-link-admin {
+  @apply flex items-center space-x-2 px-3 py-2 rounded-lg
+         text-orange-300 hover:text-orange-100 hover:bg-orange-500/10
+         transition-all duration-300 hover-lift focus-visible;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-900/50;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-neon-cyan/50 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-neon-cyan/70;
+}
