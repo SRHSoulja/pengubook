@@ -16,6 +16,16 @@ interface Theme {
 
 const predefinedThemes: Theme[] = [
   {
+    id: 'abstract-green',
+    name: 'Abstract Green',
+    description: 'The official Abstract protocol theme',
+    bgGradient: 'from-gray-900 via-green-900 to-emerald-900',
+    accentColor: 'emerald-400',
+    textColor: 'white',
+    glassTint: 'emerald-500/10',
+    emoji: '🟢'
+  },
+  {
     id: 'classic',
     name: 'Classic Arctic',
     description: 'The original PenguBook experience',

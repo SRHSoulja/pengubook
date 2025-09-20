@@ -14,14 +14,14 @@ interface Theme {
 }
 
 const defaultTheme: Theme = {
-  id: 'classic',
-  name: 'Classic Arctic',
-  description: 'The original PenguBook experience',
-  bgGradient: 'from-blue-900 via-purple-900 to-indigo-900',
-  accentColor: 'neon-cyan',
+  id: 'abstract-green',
+  name: 'Abstract Green',
+  description: 'The official Abstract protocol theme',
+  bgGradient: 'from-gray-900 via-green-900 to-emerald-900',
+  accentColor: 'emerald-400',
   textColor: 'white',
-  glassTint: 'white/10',
-  emoji: '🐧'
+  glassTint: 'emerald-500/10',
+  emoji: '🟢'
 }
 
 interface ThemeContextType {

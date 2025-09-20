@@ -2,13 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
-import { useTheme } from '@/providers/ThemeProvider'
 import WalletConnect from '@/components/WalletConnect'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 
 export default function Home() {
   const { user, loading, isAuthenticated } = useAuth()
-  const { currentTheme } = useTheme()
   const [stats, setStats] = useState({
     totalUsers: 0,
     connectedUsers: 0,
@@ -58,7 +56,7 @@ export default function Home() {
   // If authenticated, redirect to dashboard or show different content
   if (isAuthenticated) {
     return (
-      <main className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient} web3-grid-bg flex items-center justify-center`}>
+      <main className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900 web3-grid-bg flex items-center justify-center">
         <div className="text-center space-y-6">
           <div className="text-8xl animate-float">🐧</div>
           <h1 className="text-4xl font-display font-bold text-gradient">
@@ -78,12 +76,12 @@ export default function Home() {
   }
 
   return (
-    <main className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient} web3-grid-bg`}>
+    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900 web3-grid-bg">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-20 w-32 h-32 bg-emerald-400/10 rounded-full blur-xl animate-blob"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-purple-500/10 rounded-full blur-xl animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-20 left-1/3 w-40 h-40 bg-cyan-400/10 rounded-full blur-xl animate-blob animation-delay-4000"></div>
+        <div className="absolute top-40 right-20 w-24 h-24 bg-green-500/10 rounded-full blur-xl animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-1/3 w-40 h-40 bg-emerald-400/10 rounded-full blur-xl animate-blob animation-delay-4000"></div>
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col justify-center mobile-padding py-12">
@@ -96,23 +94,23 @@ export default function Home() {
               <div className="absolute inset-0 animate-aurora-flow opacity-30 rounded-full"></div>
             </div>
 
-            <h1 className="text-6xl md:text-7xl font-display font-bold text-gradient mb-8 leading-tight">
+            <h1 className="text-6xl md:text-7xl font-display font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-8 leading-tight">
               PENGUBOOK
             </h1>
 
-            <div className="text-neon-cyan text-lg md:text-xl font-mono mb-4 animate-pulse">
+            <div className="text-emerald-400 text-lg md:text-xl font-mono mb-4 opacity-80">
               v2.7.4-arctic-mainnet
             </div>
 
-            <p className="text-2xl md:text-3xl text-white max-w-3xl mx-auto leading-relaxed mb-8">
-              The <span className="text-neon-cyan font-bold">Web3 Social Protocol</span> for
-              <span className="text-gradient"> Crypto-Native Penguins</span>
+            <p className="text-2xl md:text-3xl text-gray-200 max-w-3xl mx-auto leading-relaxed mb-8">
+              The <span className="text-emerald-400 font-bold">Web3 Social Protocol</span> for
+              <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent"> Crypto-Native Penguins</span>
             </p>
 
-            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
               Connect, tip, and build communities in the Antarctic metaverse.
               Powered by Abstract Global Wallet and quantum penguin energy.
-              <span className="text-neon-cyan animate-pulse ml-2">❄️</span>
+              <span className="text-emerald-400 ml-2">❄️</span>
             </p>
           </div>
 
@@ -124,35 +122,35 @@ export default function Home() {
 
               {/* Live Stats */}
               <div className="glass-card-strong p-8">
-                <h2 className="text-2xl font-display font-bold text-gradient mb-6 flex items-center">
+                <h2 className="text-2xl font-display font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-6 flex items-center">
                   <span className="mr-3 text-3xl animate-float">📊</span>
                   Colony Status
                 </h2>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="glass-card p-4 text-center hover-lift">
-                    <div className="text-3xl font-bold text-neon-cyan font-mono">
+                    <div className="text-3xl font-bold text-emerald-400 font-mono">
                       {stats.totalUsers.toLocaleString()}
                     </div>
                     <div className="text-sm text-gray-400">Penguins</div>
                   </div>
 
                   <div className="glass-card p-4 text-center hover-lift">
-                    <div className="text-3xl font-bold text-neon-green font-mono">
+                    <div className="text-3xl font-bold text-green-400 font-mono">
                       {stats.totalTips.toLocaleString()}
                     </div>
                     <div className="text-sm text-gray-400">Tips Sent</div>
                   </div>
 
                   <div className="glass-card p-4 text-center hover-lift">
-                    <div className="text-3xl font-bold text-neon-purple font-mono">
+                    <div className="text-3xl font-bold text-teal-400 font-mono">
                       {stats.connectedUsers.toLocaleString()}
                     </div>
                     <div className="text-sm text-gray-400">Online</div>
                   </div>
 
                   <div className="glass-card p-4 text-center hover-lift">
-                    <div className="text-3xl font-bold text-neon-yellow font-mono">
+                    <div className="text-3xl font-bold text-lime-400 font-mono">
                       {stats.enabledTokens}
                     </div>
                     <div className="text-sm text-gray-400">Tokens</div>
@@ -162,37 +160,37 @@ export default function Home() {
 
               {/* Features */}
               <div className="glass-card-strong p-8">
-                <h2 className="text-2xl font-display font-bold text-gradient mb-6 flex items-center">
+                <h2 className="text-2xl font-display font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-6 flex items-center">
                   <span className="mr-3 text-3xl animate-float">⚡</span>
                   Core Features
                 </h2>
 
                 <div className="space-y-4">
-                  <div className="glass-card p-4 hover-lift hover-glow group">
+                  <div className="glass-card p-4 hover-lift group">
                     <div className="flex items-center space-x-4">
                       <span className="text-2xl group-hover:animate-float">💸</span>
                       <div>
-                        <h3 className="font-display font-semibold text-white">Instant Tipping</h3>
+                        <h3 className="font-display font-semibold text-gray-200">Instant Tipping</h3>
                         <p className="text-sm text-gray-400">Send crypto tips with quantum speed</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="glass-card p-4 hover-lift hover-glow group">
+                  <div className="glass-card p-4 hover-lift group">
                     <div className="flex items-center space-x-4">
                       <span className="text-2xl group-hover:animate-float">🔗</span>
                       <div>
-                        <h3 className="font-display font-semibold text-white">Wallet Bridge</h3>
+                        <h3 className="font-display font-semibold text-gray-200">Wallet Bridge</h3>
                         <p className="text-sm text-gray-400">Seamless AGW integration</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="glass-card p-4 hover-lift hover-glow group">
+                  <div className="glass-card p-4 hover-lift group">
                     <div className="flex items-center space-x-4">
                       <span className="text-2xl group-hover:animate-float">🏔️</span>
                       <div>
-                        <h3 className="font-display font-semibold text-white">Social Matrix</h3>
+                        <h3 className="font-display font-semibold text-gray-200">Social Matrix</h3>
                         <p className="text-sm text-gray-400">Build penguin communities</p>
                       </div>
                     </div>
