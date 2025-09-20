@@ -63,6 +63,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // Add timeout to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (initialLoad) {
+        setInitialLoad(false)
+        setLoading(false)
+      }
+    }, 2000) // 2 second timeout
+
+    return () => clearTimeout(timeout)
+  }, [initialLoad])
+
   // Update wallet address when client changes
   useEffect(() => {
     if (client !== undefined) {
@@ -121,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAuthenticated = !!(user && walletAddress)
 
   // Show loading screen during initial auth check
-  if (initialLoad || (!client && !walletAddress)) {
+  if (initialLoad && loading) {
     return <PenguinLoadingScreen />
   }
 
