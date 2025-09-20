@@ -1,12 +1,22 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
 
 export async function GET() {
   try {
+    // Skip database operations during build
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json({
+        success: false,
+        error: 'Database not available during build',
+        timestamp: new Date().toISOString()
+      })
+    }
+
+    const { PrismaClient } = await import('@prisma/client')
+    const prisma = new PrismaClient()
+
     // Test database connection
     const userCount = await prisma.user.count()
+    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,
@@ -19,7 +29,8 @@ export async function GET() {
     return NextResponse.json({
       success: false,
       error: 'Database connection failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     }, { status: 500 })
   }
 }

@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {
   try {
+    // Skip database operations during build
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json({
+        success: false,
+        error: 'Database not available during build'
+      }, { status: 503 })
+    }
+
+    const { PrismaClient } = await import('@prisma/client')
+    const prisma = new PrismaClient()
+
     const { walletAddress } = await request.json()
 
     if (!walletAddress) {
@@ -29,6 +37,8 @@ export async function POST(request: NextRequest) {
         }
       })
     }
+
+    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,
