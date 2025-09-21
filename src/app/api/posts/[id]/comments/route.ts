@@ -180,12 +180,12 @@ export async function POST(
     // Create the comment
     const newComment = await prisma.comment.create({
       data: {
-        authorId,
+        userId: authorId,
         postId,
         content
       },
       include: {
-        author: {
+        user: {
           select: {
             id: true,
             username: true,
@@ -195,11 +195,6 @@ export async function POST(
             isAdmin: true,
             discordName: true,
             twitterHandle: true
-          }
-        },
-        _count: {
-          select: {
-            likes: true
           }
         }
       }
@@ -242,11 +237,7 @@ export async function POST(
       content: newComment.content,
       createdAt: newComment.createdAt,
       updatedAt: newComment.updatedAt,
-      author: newComment.author,
-      likes: [],
-      stats: {
-        likes: newComment._count.likes
-      }
+      author: newComment.user
     }
 
     return NextResponse.json({

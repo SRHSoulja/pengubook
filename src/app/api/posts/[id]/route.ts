@@ -42,7 +42,7 @@ export async function GET(
         },
         comments: {
           include: {
-            author: {
+            user: {
               select: {
                 id: true,
                 username: true,
@@ -50,16 +50,6 @@ export async function GET(
                 avatar: true,
                 level: true,
                 isAdmin: true
-              }
-            },
-            likes: {
-              select: {
-                userId: true
-              }
-            },
-            _count: {
-              select: {
-                likes: true
               }
             }
           },
@@ -114,10 +104,7 @@ export async function GET(
         content: comment.content,
         createdAt: comment.createdAt,
         updatedAt: comment.updatedAt,
-        author: comment.author,
-        stats: {
-          likes: comment._count.likes
-        }
+        author: comment.user
       })),
       shares: post.shares,
       stats: {

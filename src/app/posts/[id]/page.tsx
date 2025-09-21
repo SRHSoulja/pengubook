@@ -48,9 +48,6 @@ interface Post {
       level: number
       isAdmin: boolean
     }
-    stats: {
-      likes: number
-    }
   }>
   shares: Array<{
     id: string
@@ -487,7 +484,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
                         <p className="text-gray-200 whitespace-pre-wrap">{comment.content}</p>
                         <div className="flex items-center gap-4 mt-2">
                           <button className="text-gray-400 hover:text-red-300 text-sm transition-colors">
-                            ❤️ {comment.stats.likes}
+                            ❤️ 0
                           </button>
                           <button className="text-gray-400 hover:text-white text-sm transition-colors">
                             Reply
