@@ -96,19 +96,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Handle OAuth session
   useEffect(() => {
     console.log('OAuth status:', oauthStatus, 'Session:', oauthSession)
-    if (oauthStatus === 'authenticated' && oauthSession?.user) {
-      const user = oauthSession.user
-      console.log('OAuth user data:', user)
-      // Use provider-specific ID for lookup
-      if (user.discordId) {
-        console.log('Fetching by Discord ID:', user.discordId)
-        fetchUserByOAuthId(user.discordId)
-      } else if (user.twitterId) {
-        console.log('Fetching by Twitter ID:', user.twitterId)
-        fetchUserByOAuthId(user.twitterId)
-      } else {
-        console.log('No Discord or Twitter ID found in session')
-      }
+    if (oauthStatus === 'authenticated' && oauthSession?.user?.id) {
+      console.log('OAuth user authenticated with NextAuth ID:', oauthSession.user.id)
+      // Create/update our user record based on NextAuth user
+      createOrUpdateOAuthUser(oauthSession.user)
     }
   }, [oauthSession, oauthStatus])
 
@@ -148,29 +139,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const fetchUserByOAuthId = async (userId: string) => {
+  const createOrUpdateOAuthUser = async (oauthUser: any) => {
     try {
-      console.log('Fetching user by OAuth ID:', userId)
+      console.log('Creating/updating OAuth user:', oauthUser)
       setLoading(true)
-      const response = await fetch(`/api/users/profile?oauthId=${userId}`)
+
+      // Check if user already exists in our system
+      const response = await fetch(`/api/users/profile?nextAuthId=${oauthUser.id}`)
       const data = await response.json()
-      console.log('OAuth profile response:', response.status, data)
 
       if (response.ok && data.user) {
-        console.log('Found OAuth user:', data.user)
+        console.log('Found existing user:', data.user)
         setUser(data.user)
-        // Store OAuth auth info for persistence
-        sessionStorage.setItem('pengubook-oauth-auth', JSON.stringify({
-          oauthId: userId,
-          timestamp: Date.now()
-        }))
       } else {
-        console.log('No OAuth user found or error:', data)
-        setUser(null)
-        sessionStorage.removeItem('pengubook-oauth-auth')
+        console.log('User not found, will be created automatically via NextAuth')
+        // Set a temporary user object with NextAuth data
+        setUser({
+          id: oauthUser.id,
+          username: oauthUser.name || '',
+          displayName: oauthUser.name || '',
+          walletAddress: '',
+          bio: '',
+          avatar: oauthUser.image || '',
+          level: 1,
+          isAdmin: false,
+          isBanned: false,
+          discordName: oauthUser.discordId ? oauthUser.name : undefined,
+          twitterHandle: oauthUser.twitterId ? oauthUser.name : undefined,
+        })
       }
+
+      // Store OAuth auth info
+      sessionStorage.setItem('pengubook-oauth-auth', JSON.stringify({
+        nextAuthId: oauthUser.id,
+        timestamp: Date.now()
+      }))
     } catch (error) {
-      console.error('Failed to fetch user by OAuth ID:', error)
+      console.error('Failed to create/update OAuth user:', error)
       setUser(null)
     } finally {
       setLoading(false)

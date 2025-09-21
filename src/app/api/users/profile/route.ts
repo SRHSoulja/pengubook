@@ -18,10 +18,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const walletAddress = searchParams.get('walletAddress')
     const oauthId = searchParams.get('oauthId')
+    const nextAuthId = searchParams.get('nextAuthId')
 
-    if (!walletAddress && !oauthId) {
+    if (!walletAddress && !oauthId && !nextAuthId) {
       return NextResponse.json(
-        { error: 'Wallet address or OAuth ID is required' },
+        { error: 'Wallet address, OAuth ID, or NextAuth ID is required' },
         { status: 400 }
       )
     }
@@ -30,6 +31,11 @@ export async function GET(request: NextRequest) {
     if (walletAddress) {
       user = await prisma.user.findUnique({
         where: { walletAddress }
+      })
+    } else if (nextAuthId) {
+      // Look up user by NextAuth ID
+      user = await prisma.user.findUnique({
+        where: { id: nextAuthId }
       })
     } else if (oauthId) {
       // Try finding by Discord ID first, then Twitter ID

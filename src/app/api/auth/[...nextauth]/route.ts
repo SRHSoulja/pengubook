@@ -27,65 +27,41 @@ const handler = NextAuth({
   callbacks: {
     async signIn({ user, account, profile }) {
       console.log('Sign in attempt:', { user, account, profile })
-
-      // Link OAuth account to existing user by provider ID
-      if (account && profile) {
-        try {
-          const { PrismaClient } = await import('@prisma/client')
-          const prisma = new PrismaClient()
-
-          // Check if user exists by provider ID
-          let existingUser = null
-          if (account.provider === 'discord') {
-            existingUser = await prisma.user.findUnique({
-              where: { discordId: account.providerAccountId }
-            })
-          } else if (account.provider === 'twitter') {
-            existingUser = await prisma.user.findUnique({
-              where: { twitterId: account.providerAccountId }
-            })
-          }
-
-          // If no user found, create new user
-          if (!existingUser) {
-            await prisma.user.create({
-              data: {
-                name: user.name,
-                image: user.image,
-                discordId: account.provider === 'discord' ? account.providerAccountId : undefined,
-                discordName: account.provider === 'discord' ? profile.username : undefined,
-                twitterId: account.provider === 'twitter' ? account.providerAccountId : undefined,
-                twitterHandle: account.provider === 'twitter' ? profile.username : undefined,
-              }
-            })
-          } else {
-            // Update existing user with OAuth info
-            await prisma.user.update({
-              where: { id: existingUser.id },
-              data: {
-                name: user.name || existingUser.name,
-                image: user.image || existingUser.image,
-                discordName: account.provider === 'discord' ? profile.username : existingUser.discordName,
-                twitterHandle: account.provider === 'twitter' ? profile.username : existingUser.twitterHandle,
-              }
-            })
-          }
-
-          await prisma.$disconnect()
-        } catch (error) {
-          console.error('Error linking OAuth account:', error)
-        }
-      }
-
+      // Let NextAuth handle user creation automatically
       return true
     },
     async session({ session, user, token }) {
       // Add user data to session
       if (session.user && user) {
         session.user.id = user.id
-        // Add provider account IDs to session for AuthProvider lookup
-        session.user.discordId = user.discordId
-        session.user.twitterId = user.twitterId
+        console.log('Session user data:', user)
+
+        // For OAuth users, we need to get the account info
+        try {
+          const { PrismaClient } = await import('@prisma/client')
+          const prisma = new PrismaClient()
+
+          const accounts = await prisma.account.findMany({
+            where: { userId: user.id }
+          })
+
+          console.log('User accounts:', accounts)
+
+          // Add provider IDs to session
+          const discordAccount = accounts.find(acc => acc.provider === 'discord')
+          const twitterAccount = accounts.find(acc => acc.provider === 'twitter')
+
+          if (discordAccount) {
+            session.user.discordId = discordAccount.providerAccountId
+          }
+          if (twitterAccount) {
+            session.user.twitterId = twitterAccount.providerAccountId
+          }
+
+          await prisma.$disconnect()
+        } catch (error) {
+          console.error('Error fetching user accounts:', error)
+        }
       }
       return session
     },
