@@ -18,16 +18,15 @@ export default function SocialAccountLinking() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const info = {
-      url: window.location.href,
       linkedParam: urlParams.get('linked'),
       sessionStatus: status,
       hasSession: !!session,
       hasUser: !!user,
-      sessionUserId: session?.user?.id,
-      userWallet: user?.walletAddress
+      sessionUserId: session?.user?.id?.slice(0, 8) + '...',
+      userWallet: user?.walletAddress?.slice(0, 8) + '...'
     }
     setDebugInfo(JSON.stringify(info, null, 2))
-    console.log('🔧 SocialAccountLinking Debug Info:', info)
+    console.log('🔧 OAuth Debug:', `Status: ${status}, Session: ${!!session}, User: ${!!user}, Linked: ${urlParams.get('linked')}`)
   }, [session, user, status])
 
   useEffect(() => {
@@ -45,14 +44,7 @@ export default function SocialAccountLinking() {
       const urlParams = new URLSearchParams(window.location.search)
       const linked = urlParams.get('linked')
 
-      console.log('🔍 OAuth callback check:', {
-        url: window.location.href,
-        linkedParam: linked,
-        hasSession: !!session,
-        hasUser: !!user,
-        sessionUser: session?.user,
-        walletUser: user
-      })
+      console.log('🔍 OAuth callback:', `linked=${linked}, session=${!!session}, user=${!!user}`)
 
       if (linked === 'true') {
         console.log('✅ Found linked=true parameter')
@@ -73,7 +65,7 @@ export default function SocialAccountLinking() {
               const walletAddress = authData.walletAddress
 
               if (walletAddress) {
-                console.log('🔍 Found stored wallet address:', walletAddress)
+                console.log('🔍 Found stored wallet:', walletAddress.slice(0, 8) + '...')
 
                 // Try linking with stored wallet address
                 const response = await fetch('/api/auth/link-social', {
@@ -107,10 +99,7 @@ export default function SocialAccountLinking() {
           return
         }
 
-        console.log('🔗 OAuth callback detected, linking accounts...', {
-          sessionUserId: session.user?.id,
-          walletAddress: user.walletAddress
-        })
+        console.log('🔗 Linking accounts:', `OAuth ID: ${session.user?.id?.slice(0, 8)}..., Wallet: ${user.walletAddress?.slice(0, 8)}...`)
 
         try {
           const response = await fetch('/api/auth/link-social', {

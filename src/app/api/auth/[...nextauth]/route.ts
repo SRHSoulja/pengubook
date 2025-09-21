@@ -26,7 +26,7 @@ const handler = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      console.log('Sign in attempt:', { user, account, profile })
+      console.log('🔑 OAuth Sign in:', `${account?.provider} - ${user.name || user.email || 'unnamed'}`)
 
       // Ensure email is null instead of empty string to avoid unique constraint issues
       if (user.email === '') {
@@ -39,7 +39,7 @@ const handler = NextAuth({
       // Add user data to session
       if (session.user && user) {
         session.user.id = user.id
-        console.log('Session user data:', user)
+        console.log('📝 Session created:', `User ID: ${user.id?.slice(0, 8)}...`)
 
         // For OAuth users, we need to get the account info
         try {
@@ -50,7 +50,7 @@ const handler = NextAuth({
             where: { userId: user.id }
           })
 
-          console.log('User accounts:', accounts)
+          console.log('💳 Accounts found:', accounts.map(acc => `${acc.provider}:${acc.providerAccountId?.slice(0, 8)}...`).join(', '))
 
           // Add provider IDs to session
           const discordAccount = accounts.find(acc => acc.provider === 'discord')
@@ -87,7 +87,7 @@ const handler = NextAuth({
   session: {
     strategy: 'database',
   },
-  debug: true, // Enable debug for both dev and production to troubleshoot
+  debug: process.env.NODE_ENV === 'development', // Only enable debug in development
 })
 
 export { handler as GET, handler as POST }
