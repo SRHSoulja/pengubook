@@ -125,6 +125,11 @@ export async function authenticateRequest(request: NextRequest): Promise<{
 
       await prisma.$disconnect()
 
+      // Check if user is admin based on environment variable
+      const adminWalletAddress = process.env.ADMIN_WALLET_ADDRESS
+      const isAdminByWallet = adminWalletAddress &&
+        user.walletAddress?.toLowerCase() === adminWalletAddress.toLowerCase()
+
       return {
         success: true,
         user: {
@@ -132,7 +137,7 @@ export async function authenticateRequest(request: NextRequest): Promise<{
           walletAddress: user.walletAddress,
           username: user.username,
           displayName: user.displayName,
-          isAdmin: user.isAdmin,
+          isAdmin: user.isAdmin || isAdminByWallet, // Admin by DB record OR by wallet address
           isBanned: user.isBanned,
           level: user.level
         }

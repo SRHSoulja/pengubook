@@ -124,7 +124,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json()
 
       if (response.ok && data.user) {
-        setUser(data.user)
+        // Check if user is admin based on environment variable
+        const adminWalletAddress = process.env.NEXT_PUBLIC_ADMIN_WALLET_ADDRESS
+        const isAdminByWallet = adminWalletAddress &&
+          address.toLowerCase() === adminWalletAddress.toLowerCase()
+
+        setUser({
+          ...data.user,
+          isAdmin: data.user.isAdmin || isAdminByWallet
+        })
         // Store auth info for persistence
         sessionStorage.setItem('pengubook-auth', JSON.stringify({
           walletAddress: address,
@@ -231,6 +239,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok && data.user) {
         console.log('Wallet user registered/found:', data.user.id.slice(0, 10) + '...')
+
+        // Check if user is admin based on environment variable
+        const adminWalletAddress = process.env.NEXT_PUBLIC_ADMIN_WALLET_ADDRESS
+        const isAdminByWallet = adminWalletAddress &&
+          walletAddress.toLowerCase() === adminWalletAddress.toLowerCase()
+
         setUser({
           id: data.user.id,
           username: data.user.username,
@@ -239,7 +253,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           bio: '',
           avatar: '',
           level: 1,
-          isAdmin: false,
+          isAdmin: isAdminByWallet || false,
           isBanned: false
         })
 
