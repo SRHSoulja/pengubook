@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/providers/AuthProvider'
 import Navbar from '@/components/Navbar'
 import SocialFeed from '@/components/SocialFeed'
 import Link from 'next/link'
@@ -21,13 +21,25 @@ export default function FeedPage() {
     if (!user || !newPost.content.trim()) return
 
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+
+      // Add authentication header if user has wallet address
+      if (user.walletAddress) {
+        headers['x-wallet-address'] = user.walletAddress
+      }
+
+      // Add user ID header as fallback
+      if (user.id) {
+        headers['x-user-id'] = user.id
+      }
+
       const response = await fetch('/api/posts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          authorId: user.id,
-          ...newPost
-        })
+        headers,
+        body: JSON.stringify(newPost),
+        credentials: 'include' // Include cookies for NextAuth
       })
 
       const data = await response.json()
@@ -37,6 +49,12 @@ export default function FeedPage() {
         // Refresh the feed
         window.location.reload()
       } else {
+        console.error('Post creation failed:', {
+          status: response.status,
+          error: data.error,
+          details: data.details,
+          user: { id: user.id, walletAddress: user.walletAddress }
+        })
         alert(data.error || 'Failed to create post')
       }
     } catch (error) {
