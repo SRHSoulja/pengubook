@@ -12,24 +12,22 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false)
   const [formData, setFormData] = useState({
     displayName: '',
+    username: '',
     bio: '',
-    interests: '',
-    discordName: '',
-    twitterHandle: ''
+    interests: ''
   })
 
   useEffect(() => {
     if (user) {
       setFormData({
         displayName: user.displayName || '',
+        username: user.username || '',
         bio: user.bio || '',
         interests: user.profile?.interests
           ? (Array.isArray(JSON.parse(user.profile.interests))
               ? JSON.parse(user.profile.interests).join(', ')
               : '')
-          : '',
-        discordName: user.discordName || '',
-        twitterHandle: user.twitterHandle || ''
+          : ''
       })
     }
   }, [user])
@@ -44,17 +42,21 @@ export default function ProfilePage() {
         body: JSON.stringify({
           walletAddress: user.walletAddress,
           displayName: formData.displayName,
+          username: formData.username,
           bio: formData.bio,
-          interests: formData.interests.split(',').map(i => i.trim()).filter(Boolean),
-          discordName: formData.discordName,
-          twitterHandle: formData.twitterHandle
+          interests: formData.interests.split(',').map(i => i.trim()).filter(Boolean)
         })
       })
 
       if (response.ok) {
         const data = await response.json()
+        console.log('Profile updated successfully:', data)
         refetchUser()
         setEditing(false)
+      } else {
+        const errorData = await response.json()
+        console.error('Failed to update profile:', errorData)
+        alert('Failed to update profile: ' + (errorData.error || 'Unknown error'))
       }
     } catch (error) {
       console.error('Failed to update profile:', error)
@@ -123,6 +125,20 @@ export default function ProfilePage() {
                     value={formData.displayName}
                     onChange={(e) => setFormData({...formData, displayName: e.target.value})}
                     className="w-full border border-gray-300 rounded px-3 py-2"
+                    placeholder="Your display name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-white mb-1">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.username}
+                    onChange={(e) => setFormData({...formData, username: e.target.value})}
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    placeholder="Your unique username"
                   />
                 </div>
 
@@ -152,31 +168,27 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-white mb-1">
-                    Discord Username
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.discordName}
-                    onChange={(e) => setFormData({...formData, discordName: e.target.value})}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                    placeholder="username#1234"
-                  />
-                </div>
+                {/* Social accounts are read-only - managed via OAuth linking */}
+                {(user.discordName || user.twitterHandle) && (
+                  <div className="bg-black/20 p-4 rounded-lg border border-white/10">
+                    <h4 className="text-sm font-medium text-gray-300 mb-2">Linked Social Accounts</h4>
+                    <p className="text-xs text-gray-400 mb-3">These are managed via the Social Account Linking in Settings</p>
 
-                <div>
-                  <label className="block text-sm font-medium text-white mb-1">
-                    X (Twitter) Handle
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.twitterHandle}
-                    onChange={(e) => setFormData({...formData, twitterHandle: e.target.value})}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                    placeholder="@username"
-                  />
-                </div>
+                    {user.discordName && (
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-300">Discord:</span>
+                        <span className="text-sm text-white bg-black/30 px-2 py-1 rounded">{user.discordName}</span>
+                      </div>
+                    )}
+
+                    {user.twitterHandle && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-300">X (Twitter):</span>
+                        <span className="text-sm text-white bg-black/30 px-2 py-1 rounded">{user.twitterHandle}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <button
                   onClick={handleSave}

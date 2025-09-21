@@ -141,7 +141,16 @@ export async function PUT(request: NextRequest) {
     const prisma = new PrismaClient()
 
     const body = await request.json()
-    const { walletAddress, displayName, bio, interests, discordName, twitterHandle } = body
+    const { walletAddress, displayName, username, bio, interests } = body
+
+    console.log('[UserProfile] Update request:', {
+      walletAddress: walletAddress?.slice(0, 10) + '...',
+      displayName,
+      username,
+      bio: bio?.slice(0, 50) + '...',
+      interests: Array.isArray(interests) ? interests.join(', ') : interests,
+      timestamp: new Date().toISOString()
+    })
 
     if (!walletAddress) {
       return NextResponse.json(
@@ -162,19 +171,80 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    // Prepare update data (excluding social accounts which are OAuth-only)
+    const updateData: any = {}
+
+    if (displayName !== undefined) updateData.displayName = displayName
+    if (username !== undefined) updateData.username = username
+    if (bio !== undefined) updateData.bio = bio
+
+    console.log('[UserProfile] Updating user with data:', {
+      updateData,
+      hasInterests: !!interests,
+      timestamp: new Date().toISOString()
+    })
+
     // Update the user
     const updatedUser = await prisma.user.update({
       where: { walletAddress },
-      data: {
-        displayName: displayName || existingUser.displayName,
-        bio: bio || existingUser.bio,
-        discordName: discordName !== undefined ? discordName : existingUser.discordName,
-        twitterHandle: twitterHandle !== undefined ? twitterHandle : existingUser.twitterHandle,
-        profile: interests ? {
-          ...existingUser.profile,
-          interests: JSON.stringify(interests)
-        } : existingUser.profile
+      data: updateData,
+      include: { profile: true }
+    })
+
+    // Handle profile interests separately if provided
+    if (interests && Array.isArray(interests) && interests.length > 0) {
+      const profileData = {
+        interests: JSON.stringify(interests)
       }
+
+      // Update or create profile
+      await prisma.profile.upsert({
+        where: { userId: updatedUser.id },
+        update: profileData,
+        create: {
+          userId: updatedUser.id,
+          ...profileData
+        }
+      })
+
+      // Fetch the updated user with profile
+      const userWithProfile = await prisma.user.findUnique({
+        where: { id: updatedUser.id },
+        include: { profile: true }
+      })
+
+      console.log('[UserProfile] Profile updated with interests:', {
+        userId: updatedUser.id.slice(0, 10) + '...',
+        interests,
+        timestamp: new Date().toISOString()
+      })
+
+      await prisma.$disconnect()
+
+      return NextResponse.json({
+        success: true,
+        user: {
+          id: userWithProfile!.id,
+          username: userWithProfile!.username,
+          displayName: userWithProfile!.displayName,
+          walletAddress: userWithProfile!.walletAddress,
+          bio: userWithProfile!.bio,
+          avatar: userWithProfile!.avatar,
+          level: userWithProfile!.level,
+          isAdmin: userWithProfile!.isAdmin,
+          isBanned: userWithProfile!.isBanned,
+          discordName: userWithProfile!.discordName,
+          twitterHandle: userWithProfile!.twitterHandle,
+          profile: userWithProfile!.profile
+        }
+      })
+    }
+
+    console.log('[UserProfile] User updated successfully:', {
+      userId: updatedUser.id.slice(0, 10) + '...',
+      username: updatedUser.username,
+      displayName: updatedUser.displayName,
+      timestamp: new Date().toISOString()
     })
 
     await prisma.$disconnect()
