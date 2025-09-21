@@ -277,7 +277,7 @@ export const PUT = withAuth(async (
       { status: 500 }
     )
   }
-}))
+})
 
 export async function DELETE(
   request: NextRequest,
