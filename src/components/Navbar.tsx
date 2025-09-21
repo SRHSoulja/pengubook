@@ -2,6 +2,7 @@
 
 import { useLoginWithAbstract, useAbstractClient } from '@abstract-foundation/agw-react'
 import { useState, useEffect } from 'react'
+import UserSearch from './UserSearch'
 
 export default function Navbar() {
   const { logout } = useLoginWithAbstract()
@@ -76,6 +77,11 @@ export default function Navbar() {
               <span className="text-xs text-neon-cyan font-mono opacity-60">v2.7.4</span>
             </div>
           </a>
+
+          {/* Search Component */}
+          <div className="hidden md:block">
+            <UserSearch />
+          </div>
 
           {/* Enhanced Navigation Links */}
           <div className="hidden md:flex items-center space-x-2">

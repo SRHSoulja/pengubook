@@ -1,0 +1,313 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { PrismaClient } from '@prisma/client'
+
+export const dynamic = 'force-dynamic'
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id: communityId } = params
+    const body = await request.json()
+    const { userId } = body
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      )
+    }
+
+    const prisma = new PrismaClient()
+
+    // Check if community exists
+    const community = await prisma.community.findUnique({
+      where: { id: communityId },
+      select: {
+        id: true,
+        name: true,
+        displayName: true,
+        visibility: true,
+        isTokenGated: true,
+        tokenGateType: true,
+        tokenContractAddress: true,
+        tokenMinAmount: true,
+        tokenIds: true,
+        tokenSymbol: true,
+        creator: {
+          select: {
+            id: true,
+            displayName: true
+          }
+        }
+      }
+    })
+
+    if (!community) {
+      await prisma.$disconnect()
+      return NextResponse.json(
+        { error: 'Community not found' },
+        { status: 404 }
+      )
+    }
+
+    // Check if user exists and is not banned
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        isBanned: true,
+        displayName: true,
+        walletAddress: true
+      }
+    })
+
+    if (!user) {
+      await prisma.$disconnect()
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      )
+    }
+
+    if (user.isBanned) {
+      await prisma.$disconnect()
+      return NextResponse.json(
+        { error: 'Banned users cannot join communities' },
+        { status: 403 }
+      )
+    }
+
+    // Check if user is already a member
+    const existingMembership = await prisma.communityMember.findUnique({
+      where: {
+        userId_communityId: {
+          userId,
+          communityId
+        }
+      }
+    })
+
+    if (existingMembership) {
+      await prisma.$disconnect()
+      return NextResponse.json(
+        { error: 'User is already a member of this community' },
+        { status: 409 }
+      )
+    }
+
+    // Check community visibility
+    if (community.visibility === 'PRIVATE') {
+      await prisma.$disconnect()
+      return NextResponse.json(
+        { error: 'This is a private community. You need an invitation to join.' },
+        { status: 403 }
+      )
+    }
+
+    // Token gating check (if enabled)
+    if (community.isTokenGated && user.walletAddress) {
+      // Note: In a real implementation, you would verify token ownership here
+      // This is a placeholder for the token verification logic
+      console.log('[Community Join] Token gating check needed:', {
+        userId,
+        communityId,
+        tokenGateType: community.tokenGateType,
+        tokenContractAddress: community.tokenContractAddress,
+        tokenMinAmount: community.tokenMinAmount,
+        walletAddress: user.walletAddress
+      })
+
+      // For now, we'll allow joining but log that token verification is needed
+      // TODO: Implement actual token ownership verification
+    }
+
+    // Create membership
+    const membership = await prisma.communityMember.create({
+      data: {
+        userId,
+        communityId,
+        role: 'MEMBER'
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            avatar: true,
+            level: true,
+            isAdmin: true
+          }
+        },
+        community: {
+          select: {
+            id: true,
+            name: true,
+            displayName: true,
+            avatar: true
+          }
+        }
+      }
+    })
+
+    // Update community member count
+    await prisma.community.update({
+      where: { id: communityId },
+      data: {
+        membersCount: {
+          increment: 1
+        }
+      }
+    })
+
+    // Create notification for community creator (if not self-joining)
+    if (community.creator.id !== userId) {
+      await prisma.notification.create({
+        data: {
+          fromUserId: userId,
+          toUserId: community.creator.id,
+          type: 'COMMUNITY_JOIN',
+          title: 'New Community Member',
+          message: `${user.displayName} joined your community "${community.displayName}"`,
+          metadata: JSON.stringify({
+            communityId,
+            communityName: community.displayName,
+            memberUserId: userId,
+            memberName: user.displayName
+          })
+        }
+      })
+    }
+
+    await prisma.$disconnect()
+
+    return NextResponse.json({
+      success: true,
+      membership: {
+        id: membership.id,
+        role: membership.role,
+        joinedAt: membership.joinedAt,
+        user: membership.user,
+        community: membership.community
+      },
+      message: `Successfully joined "${community.displayName}"`
+    }, { status: 201 })
+
+  } catch (error: any) {
+    console.error('[Community Join] POST error:', error)
+    return NextResponse.json(
+      { error: 'Failed to join community', details: error.message },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id: communityId } = params
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      )
+    }
+
+    const prisma = new PrismaClient()
+
+    // Check if community exists
+    const community = await prisma.community.findUnique({
+      where: { id: communityId },
+      select: {
+        id: true,
+        name: true,
+        displayName: true,
+        creatorId: true
+      }
+    })
+
+    if (!community) {
+      await prisma.$disconnect()
+      return NextResponse.json(
+        { error: 'Community not found' },
+        { status: 404 }
+      )
+    }
+
+    // Check if user is a member
+    const membership = await prisma.communityMember.findUnique({
+      where: {
+        userId_communityId: {
+          userId,
+          communityId
+        }
+      }
+    })
+
+    if (!membership) {
+      await prisma.$disconnect()
+      return NextResponse.json(
+        { error: 'User is not a member of this community' },
+        { status: 404 }
+      )
+    }
+
+    // Prevent community creator from leaving their own community
+    if (community.creatorId === userId) {
+      await prisma.$disconnect()
+      return NextResponse.json(
+        { error: 'Community creators cannot leave their own community. Transfer ownership or delete the community instead.' },
+        { status: 403 }
+      )
+    }
+
+    // Remove membership
+    await prisma.communityMember.delete({
+      where: {
+        userId_communityId: {
+          userId,
+          communityId
+        }
+      }
+    })
+
+    // Remove moderator status if user was a moderator
+    await prisma.communityModerator.deleteMany({
+      where: {
+        userId,
+        communityId
+      }
+    })
+
+    // Update community member count
+    await prisma.community.update({
+      where: { id: communityId },
+      data: {
+        membersCount: {
+          decrement: 1
+        }
+      }
+    })
+
+    await prisma.$disconnect()
+
+    return NextResponse.json({
+      success: true,
+      message: `Successfully left "${community.displayName}"`
+    })
+
+  } catch (error: any) {
+    console.error('[Community Leave] DELETE error:', error)
+    return NextResponse.json(
+      { error: 'Failed to leave community', details: error.message },
+      { status: 500 }
+    )
+  }
+}
