@@ -76,7 +76,7 @@ export async function PUT(request: NextRequest) {
     const prisma = new PrismaClient()
 
     const body = await request.json()
-    const { walletAddress, displayName, bio, interests } = body
+    const { walletAddress, displayName, bio, interests, discordName, twitterHandle } = body
 
     if (!walletAddress) {
       return NextResponse.json(
@@ -103,6 +103,8 @@ export async function PUT(request: NextRequest) {
       data: {
         displayName: displayName || existingUser.displayName,
         bio: bio || existingUser.bio,
+        discordName: discordName !== undefined ? discordName : existingUser.discordName,
+        twitterHandle: twitterHandle !== undefined ? twitterHandle : existingUser.twitterHandle,
         profile: interests ? {
           ...existingUser.profile,
           interests: JSON.stringify(interests)

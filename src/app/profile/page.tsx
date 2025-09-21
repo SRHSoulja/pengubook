@@ -13,7 +13,9 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     displayName: '',
     bio: '',
-    interests: ''
+    interests: '',
+    discordName: '',
+    twitterHandle: ''
   })
 
   useEffect(() => {
@@ -25,7 +27,9 @@ export default function ProfilePage() {
           ? (Array.isArray(JSON.parse(user.profile.interests))
               ? JSON.parse(user.profile.interests).join(', ')
               : '')
-          : ''
+          : '',
+        discordName: user.discordName || '',
+        twitterHandle: user.twitterHandle || ''
       })
     }
   }, [user])
@@ -41,7 +45,9 @@ export default function ProfilePage() {
           walletAddress: user.walletAddress,
           displayName: formData.displayName,
           bio: formData.bio,
-          interests: formData.interests.split(',').map(i => i.trim()).filter(Boolean)
+          interests: formData.interests.split(',').map(i => i.trim()).filter(Boolean),
+          discordName: formData.discordName,
+          twitterHandle: formData.twitterHandle
         })
       })
 
@@ -146,6 +152,32 @@ export default function ProfilePage() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-white mb-1">
+                    Discord Username
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.discordName}
+                    onChange={(e) => setFormData({...formData, discordName: e.target.value})}
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    placeholder="username#1234"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-white mb-1">
+                    X (Twitter) Handle
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.twitterHandle}
+                    onChange={(e) => setFormData({...formData, twitterHandle: e.target.value})}
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    placeholder="@username"
+                  />
+                </div>
+
                 <button
                   onClick={handleSave}
                   className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
@@ -194,6 +226,26 @@ export default function ProfilePage() {
                           {interest}
                         </span>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {(user.discordName || user.twitterHandle) && (
+                  <div>
+                    <h3 className="font-semibold text-gray-300 mb-2">Social Links</h3>
+                    <div className="space-y-2">
+                      {user.discordName && (
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-400">Discord:</span>
+                          <span className="text-white">{user.discordName}</span>
+                        </div>
+                      )}
+                      {user.twitterHandle && (
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-400">X (Twitter):</span>
+                          <span className="text-white">{user.twitterHandle}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
