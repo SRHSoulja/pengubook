@@ -164,21 +164,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('Found existing user:', data.user)
         setUser(data.user)
       } else {
-        console.log('User not found, will be created automatically via NextAuth')
-        // Set a temporary user object with NextAuth data
-        setUser({
-          id: oauthUser.id,
-          username: oauthUser.name || '',
-          displayName: oauthUser.name || '',
-          walletAddress: '',
-          bio: '',
-          avatar: oauthUser.image || '',
-          level: 1,
-          isAdmin: false,
-          isBanned: false,
-          discordName: oauthUser.discordId ? oauthUser.name : undefined,
-          twitterHandle: oauthUser.twitterId ? oauthUser.name : undefined,
+        console.log('User not found, creating OAuth user...')
+        // Call OAuth register endpoint to create the user
+        const registerResponse = await fetch('/api/auth/oauth-register', {
+          method: 'POST',
+          credentials: 'include'
         })
+
+        const registerData = await registerResponse.json()
+
+        if (registerResponse.ok && registerData.user) {
+          console.log('OAuth user created:', registerData.user.id.slice(0, 10) + '...')
+          setUser(registerData.user)
+        } else {
+          console.error('Failed to create OAuth user:', registerData.error)
+          setUser(null)
+        }
       }
 
       // Store OAuth auth info
