@@ -19,10 +19,10 @@ export interface NetworkConfig {
  */
 export const NETWORKS: Record<string, NetworkConfig> = {
   abstract_mainnet: {
-    name: 'Abstract Mainnet',
-    chainId: 11124, // Abstract Mainnet chain ID
-    rpcUrl: 'https://api.abs.xyz', // Keep original working RPC
-    blockExplorer: 'https://explorer.abs.xyz',
+    name: 'Abstract',
+    chainId: 2741, // Official Abstract Mainnet chain ID
+    rpcUrl: 'https://api.mainnet.abs.xyz', // Official Abstract mainnet RPC
+    blockExplorer: 'https://abscan.org',
     nativeCurrency: {
       name: 'ETH',
       symbol: 'ETH',

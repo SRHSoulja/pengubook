@@ -46,7 +46,7 @@ export interface NFTOwnership {
 export const BLOCKCHAIN_CONFIG = {
   // Abstract testnet configuration
   rpcUrl: process.env.ABSTRACT_RPC_URL || 'https://api.testnet.abs.xyz',
-  chainId: parseInt(process.env.ABSTRACT_CHAIN_ID || '11124'),
+  chainId: parseInt(process.env.ABSTRACT_CHAIN_ID || '2741'),
   explorerUrl: process.env.ABSTRACT_EXPLORER_URL || 'https://explorer.testnet.abs.xyz',
 
   // Supported token contracts
