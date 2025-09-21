@@ -35,7 +35,9 @@ export async function POST(request: NextRequest) {
         updateData.discordName = userName || `Discord User ${providerAccountId}`
         updateData.discordId = providerAccountId
       } else if (provider === 'twitter') {
-        updateData.twitterHandle = userName || `@TwitterUser${providerAccountId}`
+        // Clean up Twitter handle to remove @ if present and ensure proper format
+        const cleanHandle = userName ? userName.replace('@', '') : `TwitterUser${providerAccountId}`
+        updateData.twitterHandle = cleanHandle.startsWith('@') ? cleanHandle : `@${cleanHandle}`
         updateData.twitterId = providerAccountId
       }
 

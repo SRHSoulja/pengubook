@@ -20,7 +20,7 @@ const handler = NextAuth({
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: 'identify',
+          scope: 'identify email',
         },
       },
     }),
@@ -28,6 +28,11 @@ const handler = NextAuth({
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
       version: '2.0', // Use OAuth 2.0
+      authorization: {
+        params: {
+          scope: 'tweet.read users.read offline.access',
+        },
+      },
     }),
   ],
   callbacks: {
@@ -52,6 +57,7 @@ const handler = NextAuth({
         ;(session.user as any).id = token.sub // OAuth user ID
         ;(session.user as any).provider = (token.account as any).provider
         ;(session.user as any).providerAccountId = (token.account as any).providerAccountId
+        ;(session.user as any).accessToken = (token.account as any).accessToken
         console.log('📝 OAuth session:', `${(token.account as any).provider} - ${session.user.name}`)
       }
       return session

@@ -18,7 +18,7 @@ PenguBook now supports OAuth integration with Discord and X (Twitter) for verifi
 1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
 2. Create a new application or select existing one
 3. Go to **OAuth2** → **General**
-4. Add redirect URI: `https://yourdomain.com/api/auth/discord/callback`
+4. Add redirect URI: `https://yourdomain.com/api/auth/callback/discord`
 5. Copy **Client ID** and **Client Secret** to your `.env` file:
    ```
    DISCORD_CLIENT_ID=your_discord_client_id
@@ -38,7 +38,7 @@ PenguBook now supports OAuth integration with Discord and X (Twitter) for verifi
 1. Go to [Twitter Developer Portal](https://developer.twitter.com/apps)
 2. Create a new app or select existing one
 3. Go to **App Settings** → **OAuth 2.0**
-4. Add callback URI: `https://yourdomain.com/api/auth/twitter/callback`
+4. Add callback URI: `https://yourdomain.com/api/auth/callback/twitter`
 5. Enable **OAuth 2.0** with PKCE
 6. Copy **Client ID** and **Client Secret** to your `.env` file:
    ```
@@ -50,6 +50,7 @@ PenguBook now supports OAuth integration with Discord and X (Twitter) for verifi
 
 **Discord:**
 - `identify` - Get user profile information
+- `email` - Access user's email address
 
 **X (Twitter):**
 - `tweet.read` - Read user's tweets
@@ -119,8 +120,8 @@ const hasTwitter = !!socialLinks.twitter
 ## Testing
 
 1. Set up your OAuth apps with localhost callback URLs:
-   - Discord: `http://localhost:3000/api/auth/discord/callback`
-   - Twitter: `http://localhost:3000/api/auth/twitter/callback`
+   - Discord: `http://localhost:3000/api/auth/callback/discord`
+   - Twitter: `http://localhost:3000/api/auth/callback/twitter`
 
 2. Add environment variables to `.env.local`
 
