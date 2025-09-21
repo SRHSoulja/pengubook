@@ -5,8 +5,13 @@ import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 
 export const dynamic = 'force-dynamic'
 
-// Initialize gasless service
-const gaslessService = new GaslessSocialService()
+// Initialize gasless service (may be null if env vars not available)
+let gaslessService: GaslessSocialService | null = null
+try {
+  gaslessService = new GaslessSocialService()
+} catch (error) {
+  console.warn('Gasless service not available - missing environment variables')
+}
 
 export const POST = withRateLimit(10, 15 * 60 * 1000)(withAuth(async (
   request: NextRequest,
@@ -20,6 +25,14 @@ export const POST = withRateLimit(10, 15 * 60 * 1000)(withAuth(async (
       return NextResponse.json(
         { error: 'Content, signature, and postData are required' },
         { status: 400 }
+      )
+    }
+
+    // Check if gasless service is available
+    if (!gaslessService) {
+      return NextResponse.json(
+        { error: 'Gasless posting service not available' },
+        { status: 503 }
       )
     }
 

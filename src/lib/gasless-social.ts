@@ -45,15 +45,20 @@ export class GaslessSocialService {
   private socialContract: ethers.Contract
 
   constructor() {
-    this.provider = new ethers.JsonRpcProvider(process.env.ABSTRACT_RPC_URL)
-    this.wallet = new ethers.Wallet(process.env.RELAYER_PRIVATE_KEY!, this.provider)
+    // Only initialize if environment variables are available
+    if (process.env.ABSTRACT_RPC_URL && process.env.RELAYER_PRIVATE_KEY) {
+      this.provider = new ethers.JsonRpcProvider(process.env.ABSTRACT_RPC_URL)
+      this.wallet = new ethers.Wallet(process.env.RELAYER_PRIVATE_KEY, this.provider)
+    }
 
-    // Social contract for gasless operations
-    this.socialContract = new ethers.Contract(
-      process.env.SOCIAL_CONTRACT_ADDRESS!,
-      SOCIAL_CONTRACT_ABI,
-      this.wallet
-    )
+    // Social contract for gasless operations (only if wallet exists)
+    if (this.wallet && process.env.SOCIAL_CONTRACT_ADDRESS) {
+      this.socialContract = new ethers.Contract(
+        process.env.SOCIAL_CONTRACT_ADDRESS,
+        SOCIAL_CONTRACT_ABI,
+        this.wallet
+      )
+    }
   }
 
   /**
