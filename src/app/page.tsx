@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import { useTheme } from '@/providers/ThemeProvider'
 import WalletConnect from '@/components/WalletConnect'
+import OAuthLogin from '@/components/OAuthLogin'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 
 export default function Home() {
@@ -228,6 +229,14 @@ export default function Home() {
                   <div className="h-px bg-white/20 w-full"></div>
 
                   <WalletConnect />
+
+                  <div className="h-px bg-white/20 w-full"></div>
+
+                  <div className="text-center">
+                    <p className="text-sm text-gray-400 mb-4">Or connect with social accounts</p>
+                  </div>
+
+                  <OAuthLogin />
 
                   <div className="h-px bg-white/20 w-full"></div>
 

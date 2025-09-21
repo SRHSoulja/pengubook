@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     // Skip database operations during build
-    if (!process.env.DATABASE_URL) {
+    if (!process.env.DATABASE_URL || process.env.NODE_ENV === 'production' && !request.url) {
       return NextResponse.json({
         success: false,
         error: 'Database not available during build'

@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import AbstractProvider from '@/providers/AbstractProvider'
 import { AuthProvider } from '@/providers/AuthProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
+import SessionProvider from '@/providers/SessionProvider'
 import MobileBottomNav from '@/components/MobileBottomNav'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -23,14 +24,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AbstractProvider>
-          <AuthProvider>
-            <ThemeProvider>
-              {children}
-              <MobileBottomNav />
-            </ThemeProvider>
-          </AuthProvider>
-        </AbstractProvider>
+        <SessionProvider>
+          <AbstractProvider>
+            <AuthProvider>
+              <ThemeProvider>
+                {children}
+                <MobileBottomNav />
+              </ThemeProvider>
+            </AuthProvider>
+          </AbstractProvider>
+        </SessionProvider>
       </body>
     </html>
   )
