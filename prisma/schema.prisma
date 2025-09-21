@@ -53,6 +53,7 @@ model User {
   tipsGiven             Tip[]                @relation("TipFrom")
   tipsReceived          Tip[]                @relation("TipTo")
   userAchievements      UserAchievement[]
+  postEdits             PostEdit[]           @relation("PostEdits")
   accounts              Account[]
   sessions              Session[]
 }
@@ -131,6 +132,7 @@ model Post {
   author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
   reactions   Reaction[]
   shares      Share[]
+  edits       PostEdit[]
 
   @@index([authorId])
   @@index([createdAt])
@@ -456,6 +458,20 @@ model Notification {
 
   @@index([toUserId])
   @@index([createdAt])
+}
+
+model PostEdit {
+  id              String   @id @default(cuid())
+  postId          String
+  previousContent String
+  newContent      String
+  editedAt        DateTime @default(now())
+  editedBy        String
+  post            Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  editor          User     @relation("PostEdits", fields: [editedBy], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([editedAt])
 }
 
 // NextAuth.js models

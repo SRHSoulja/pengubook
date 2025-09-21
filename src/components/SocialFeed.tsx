@@ -45,6 +45,8 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
+  const [editingPost, setEditingPost] = useState<string | null>(null)
+  const [editContent, setEditContent] = useState('')
 
   useEffect(() => {
     fetchPosts(1, true)
@@ -133,6 +135,55 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
     }
   }
 
+  const startEditing = (post: Post) => {
+    setEditingPost(post.id)
+    setEditContent(post.content)
+  }
+
+  const cancelEditing = () => {
+    setEditingPost(null)
+    setEditContent('')
+  }
+
+  const saveEdit = async (postId: string) => {
+    if (!userId || !editContent.trim()) return
+
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+
+      // Add authentication headers
+      if (userId) {
+        headers['x-user-id'] = userId
+      }
+
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ content: editContent.trim() }),
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setPosts(prev => prev.map(post =>
+          post.id === postId
+            ? { ...post, content: data.post.content, updatedAt: data.post.updatedAt }
+            : post
+        ))
+        setEditingPost(null)
+        setEditContent('')
+      } else {
+        const errorData = await response.json()
+        alert(errorData.error || 'Failed to update post')
+      }
+    } catch (error) {
+      console.error('Failed to edit post:', error)
+      alert('Failed to update post')
+    }
+  }
+
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
@@ -217,6 +268,12 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
                   <span>@{post.author.username}</span>
                   <span>•</span>
                   <span>{formatTimeAgo(post.createdAt)}</span>
+                  {post.createdAt !== post.updatedAt && (
+                    <>
+                      <span>•</span>
+                      <span className="text-yellow-400">Edited</span>
+                    </>
+                  )}
                   {post.community && (
                     <>
                       <span>•</span>
@@ -231,6 +288,17 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
                 </div>
               </div>
             </Link>
+
+            {/* Edit Button for Post Owner */}
+            {userId && userId === post.author.id && (
+              <button
+                onClick={() => startEditing(post)}
+                className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                title="Edit post"
+              >
+                ✏️
+              </button>
+            )}
           </div>
 
           {/* Post Content */}
@@ -238,9 +306,36 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
             {post.title && (
               <h2 className="text-lg font-bold text-white mb-2">{post.title}</h2>
             )}
-            <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">
-              {post.content}
-            </p>
+            {editingPost === post.id ? (
+              <div className="space-y-3">
+                <textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-300 focus:outline-none focus:border-cyan-400 resize-none"
+                  placeholder="Edit your post..."
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => saveEdit(post.id)}
+                    disabled={!editContent.trim()}
+                    className="bg-green-500 hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={cancelEditing}
+                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">
+                {post.content}
+              </p>
+            )}
           </div>
 
           {/* Post Images */}

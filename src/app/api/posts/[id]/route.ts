@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { withAuth } from '@/lib/auth-middleware'
 
 export const dynamic = 'force-dynamic'
 
@@ -140,21 +141,15 @@ export async function GET(
   }
 }
 
-export async function PUT(
+export const PUT = withAuth(async (
   request: NextRequest,
+  user: any,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const { id } = params
     const body = await request.json()
-    const { userId, content, contentType, mediaUrls, visibility } = body
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
-      )
-    }
+    const { content, contentType, mediaUrls, visibility } = body
 
     const prisma = new PrismaClient()
 
@@ -163,6 +158,7 @@ export async function PUT(
       where: { id },
       select: {
         authorId: true,
+        content: true,
         createdAt: true
       }
     })
@@ -175,7 +171,7 @@ export async function PUT(
       )
     }
 
-    if (existingPost.authorId !== userId) {
+    if (existingPost.authorId !== user.id) {
       await prisma.$disconnect()
       return NextResponse.json(
         { error: 'You can only edit your own posts' },
@@ -211,6 +207,18 @@ export async function PUT(
     if (contentType !== undefined) updateData.contentType = contentType
     if (mediaUrls !== undefined) updateData.mediaUrls = JSON.stringify(mediaUrls)
     if (visibility !== undefined) updateData.visibility = visibility
+
+    // Create edit history record if content is being changed
+    if (content !== undefined && content !== existingPost.content) {
+      await prisma.postEdit.create({
+        data: {
+          postId: id,
+          previousContent: existingPost.content,
+          newContent: content,
+          editedBy: user.id
+        }
+      })
+    }
 
     const updatedPost = await prisma.post.update({
       where: { id },
@@ -269,7 +277,7 @@ export async function PUT(
       { status: 500 }
     )
   }
-}
+}))
 
 export async function DELETE(
   request: NextRequest,
