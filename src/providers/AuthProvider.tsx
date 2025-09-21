@@ -186,13 +186,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refetchUser = () => {
     if (walletAddress) {
       fetchUser(walletAddress)
-    } else if (oauthSession?.user) {
-      const user = oauthSession.user
-      if (user.discordId) {
-        fetchUserByOAuthId(user.discordId)
-      } else if (user.twitterId) {
-        fetchUserByOAuthId(user.twitterId)
+    } else if (oauthSession?.user?.id) {
+      // Try to fetch by NextAuth ID
+      fetchUserByNextAuthId(oauthSession.user.id)
+    }
+  }
+
+  const fetchUserByNextAuthId = async (nextAuthId: string) => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/users/profile?nextAuthId=${nextAuthId}`)
+      const data = await response.json()
+
+      if (response.ok && data.user) {
+        setUser(data.user)
+      } else {
+        setUser(null)
       }
+    } catch (error) {
+      console.error('Failed to fetch user by NextAuth ID:', error)
+      setUser(null)
+    } finally {
+      setLoading(false)
+      setInitialLoad(false)
     }
   }
 

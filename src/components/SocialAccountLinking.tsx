@@ -22,6 +22,45 @@ export default function SocialAccountLinking() {
     }
   }, [user, session])
 
+  // Handle OAuth callback - link accounts after successful OAuth
+  useEffect(() => {
+    const handleOAuthCallback = async () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const linked = urlParams.get('linked')
+
+      if (linked === 'true' && session && user) {
+        console.log('OAuth callback detected, linking accounts...')
+
+        try {
+          const response = await fetch('/api/auth/link-social', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              walletAddress: user.walletAddress
+            })
+          })
+
+          const data = await response.json()
+
+          if (response.ok) {
+            console.log('Accounts linked successfully:', data)
+            // Refresh user data and clear URL
+            refetchUser()
+            window.history.replaceState({}, '', window.location.pathname)
+          } else {
+            console.error('Failed to link accounts:', data.error)
+          }
+        } catch (error) {
+          console.error('Error linking accounts:', error)
+        }
+      }
+    }
+
+    handleOAuthCallback()
+  }, [session, user, refetchUser])
+
   const handleLinkAccount = async (provider: string) => {
     if (!user) {
       console.error('User must be authenticated with wallet first')
@@ -34,7 +73,7 @@ export default function SocialAccountLinking() {
       sessionStorage.setItem('linkToUserId', user.id)
 
       await signIn(provider, {
-        callbackUrl: '/dashboard?linked=true',
+        callbackUrl: '/settings?linked=true',
         redirect: true
       })
     } catch (error) {
