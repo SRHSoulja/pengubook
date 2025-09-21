@@ -123,9 +123,11 @@ model Post {
   contentType String     @default("TEXT")
   mediaUrls   String     @default("[]")
   visibility  String     @default("PUBLIC")
-  isPromoted  Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  isPromoted       Boolean    @default(false)
+  blockchainTxHash String?    // Transaction hash if on-chain
+  isOnChain        Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
   comments    Comment[]
   feedItems   FeedItem[]
   likes       Like[]
