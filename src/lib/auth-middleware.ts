@@ -76,6 +76,7 @@ export async function authenticateRequest(request: NextRequest): Promise<{
     let user
     try {
       if (userId) {
+        // First try direct ID lookup
         user = await prisma.user.findUnique({
           where: { id: userId },
           select: {
@@ -89,6 +90,37 @@ export async function authenticateRequest(request: NextRequest): Promise<{
             createdAt: true
           }
         })
+
+        // If not found and we have a NextAuth token, try looking up by OAuth account
+        if (!user) {
+          const token = await getToken({
+            req: request,
+            secret: process.env.NEXTAUTH_SECRET
+          })
+
+          if (token?.provider && token?.providerAccountId) {
+            // Look up by OAuth provider ID
+            user = await prisma.user.findFirst({
+              where: {
+                OR: [
+                  token.provider === 'discord' ? { discordId: token.providerAccountId } : {},
+                  token.provider === 'twitter' ? { twitterId: token.providerAccountId } : {},
+                  token.email ? { email: token.email } : {}
+                ].filter(condition => Object.keys(condition).length > 0)
+              },
+              select: {
+                id: true,
+                walletAddress: true,
+                username: true,
+                displayName: true,
+                isAdmin: true,
+                isBanned: true,
+                level: true,
+                createdAt: true
+              }
+            })
+          }
+        }
       } else if (walletAddress) {
         user = await prisma.user.findUnique({
           where: { walletAddress },
