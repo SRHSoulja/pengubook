@@ -184,6 +184,33 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
     }
   }
 
+  const sharePost = async (post: Post) => {
+    const postUrl = `${window.location.origin}/posts/${post.id}`
+
+    // Try native Web Share API first
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${post.author.displayName}'s Post`,
+          text: post.content.slice(0, 100) + (post.content.length > 100 ? '...' : ''),
+          url: postUrl
+        })
+        return
+      } catch (error) {
+        // User cancelled or API not available, fall back to clipboard
+      }
+    }
+
+    // Fallback to clipboard
+    try {
+      await navigator.clipboard.writeText(postUrl)
+      alert('Post link copied to clipboard!')
+    } catch (error) {
+      // Final fallback - show URL in alert
+      alert(`Share this post: ${postUrl}`)
+    }
+  }
+
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
@@ -299,6 +326,12 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
                 ✏️
               </button>
             )}
+            {/* Debug: Show user ID comparison */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="text-xs text-yellow-300 bg-black/20 p-1 rounded">
+                User: {userId} | Author: {post.author.id} | Match: {userId === post.author.id ? 'YES' : 'NO'}
+              </div>
+            )}
           </div>
 
           {/* Post Content */}
@@ -380,7 +413,10 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
               <span>{post.commentsCount}</span>
             </Link>
 
-            <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 transition-colors">
+            <button
+              onClick={() => sharePost(post)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+            >
               <span>🔄</span>
               <span>Share</span>
             </button>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/providers/AuthProvider'
 import TipButton from '@/components/TipButton'
 import FollowButton from '@/components/FollowButton'
 import FriendButton from '@/components/FriendButton'
