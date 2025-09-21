@@ -157,7 +157,8 @@ export default function SocialAccountLinking() {
                     walletAddress: walletAddress,
                     provider: (session.user as any).provider,
                     providerAccountId: (session.user as any).providerAccountId,
-                    userName: session.user?.name
+                    userName: session.user?.name,
+                    actualUsername: (session.user as any).actualUsername
                   })
                 })
 
@@ -217,7 +218,8 @@ export default function SocialAccountLinking() {
               walletAddress: user.walletAddress,
               provider: (session.user as any).provider,
               providerAccountId: (session.user as any).providerAccountId,
-              userName: session.user?.name
+              userName: session.user?.name,
+              actualUsername: (session.user as any).actualUsername
             })
           })
 

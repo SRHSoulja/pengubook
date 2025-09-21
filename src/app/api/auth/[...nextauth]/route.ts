@@ -70,6 +70,8 @@ const handler = NextAuth({
         userName: user.name,
         userEmail: user.email?.slice(0, 10) + '...',
         profileData: profile ? Object.keys(profile).join(', ') : 'none',
+        profileUsername: (profile as any)?.username || (profile as any)?.screen_name || 'none',
+        fullProfile: process.env.NODE_ENV === 'development' ? profile : 'hidden in prod',
         timestamp: new Date().toISOString()
       })
 
@@ -97,6 +99,7 @@ const handler = NextAuth({
         ;(session.user as any).provider = provider
         ;(session.user as any).providerAccountId = providerAccountId
         ;(session.user as any).accessToken = accessToken
+        ;(session.user as any).actualUsername = token.actualUsername || (token.account as any)?.actualUsername
 
         // Always log session creation for production debugging
         console.log('[NextAuth] Session callback with OAuth data:', {
@@ -121,16 +124,28 @@ const handler = NextAuth({
     async jwt({ token, user, account, profile, trigger }) {
       // Store account info in JWT for linking
       if (account) {
+        // Extract the actual username/handle based on provider
+        let actualUsername = user?.name || 'Unknown'
+        if (account.provider === 'twitter') {
+          // Twitter gives us username in profile.data.username (X API v2)
+          actualUsername = (profile as any)?.data?.username || (profile as any)?.username || (profile as any)?.screen_name || user?.name
+        } else if (account.provider === 'discord') {
+          // Discord username is in profile.username
+          actualUsername = (profile as any)?.username || user?.name
+        }
+
         // Fresh login - store the OAuth account data
         token.provider = account.provider
         token.providerAccountId = account.providerAccountId
         token.accessToken = account.access_token
+        token.actualUsername = actualUsername
 
         // Also store in nested object for backwards compatibility
         token.account = {
           provider: account.provider,
           providerAccountId: account.providerAccountId,
-          accessToken: account.access_token
+          accessToken: account.access_token,
+          actualUsername: actualUsername
         }
 
         // Always log JWT creation for production debugging
@@ -138,6 +153,8 @@ const handler = NextAuth({
           trigger,
           provider: account.provider,
           providerAccountId: account.providerAccountId?.slice(0, 10) + '...',
+          actualUsername,
+          displayName: user?.name,
           hasAccessToken: !!account.access_token,
           hasRefreshToken: !!account.refresh_token,
           scope: account.scope,

@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { walletAddress, provider, providerAccountId, userName } = body
+    const { walletAddress, provider, providerAccountId, userName, actualUsername } = body
 
     console.log('[LinkSocial] Request body:', {
       hasWalletAddress: !!walletAddress,
@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
       provider,
       providerAccountIdPrefix: providerAccountId?.slice(0, 10) + '...',
       userName,
+      actualUsername,
       allFields: Object.keys(body).join(', '),
       timestamp: new Date().toISOString()
     })
@@ -120,12 +121,27 @@ export async function POST(request: NextRequest) {
         // Now update the current user
         const updateData: any = {}
         if (provider === 'discord') {
-          updateData.discordName = userName || `Discord User ${providerAccountId}`
+          // Use actualUsername if available, fallback to userName
+          const discordUsername = actualUsername || userName || `Discord User ${providerAccountId}`
+          updateData.discordName = discordUsername
           updateData.discordId = providerAccountId
         } else if (provider === 'twitter') {
-          const cleanHandle = userName ? userName.replace('@', '') : `TwitterUser${providerAccountId}`
-          updateData.twitterHandle = cleanHandle.startsWith('@') ? cleanHandle : `@${cleanHandle}`
+          // For Twitter, use actualUsername (the @handle) if available
+          let twitterHandle = actualUsername || userName || `TwitterUser${providerAccountId}`
+
+          // Remove spaces and clean up the handle
+          twitterHandle = twitterHandle.replace(/\s+/g, '').replace('@', '')
+
+          // Ensure it starts with @
+          updateData.twitterHandle = twitterHandle.startsWith('@') ? twitterHandle : `@${twitterHandle}`
           updateData.twitterId = providerAccountId
+
+          console.log('[LinkSocial] Twitter handle processing:', {
+            originalUserName: userName,
+            actualUsername,
+            finalHandle: updateData.twitterHandle,
+            timestamp: new Date().toISOString()
+          })
         }
 
         const updatedUser = await tx.user.update({
