@@ -144,6 +144,13 @@ export async function POST(request: NextRequest) {
           })
         }
 
+        console.log('[LinkSocial] About to update user with data:', {
+          walletAddress: walletAddress.slice(0, 10) + '...',
+          updateData,
+          updateFields: Object.keys(updateData),
+          timestamp: new Date().toISOString()
+        })
+
         const updatedUser = await tx.user.update({
           where: { walletAddress },
           data: updateData
@@ -154,10 +161,34 @@ export async function POST(request: NextRequest) {
           userId: updatedUser.id.slice(0, 10) + '...',
           walletAddress: updatedUser.walletAddress.slice(0, 10) + '...',
           updatedFields: Object.keys(updateData).join(', '),
+          actualUpdatedData: {
+            discordId: updatedUser.discordId?.slice(0, 10) + '...' || null,
+            discordName: updatedUser.discordName,
+            twitterId: updatedUser.twitterId?.slice(0, 10) + '...' || null,
+            twitterHandle: updatedUser.twitterHandle
+          },
           timestamp: new Date().toISOString()
         })
 
-        return { updateData, updatedUser }
+        // Verify the update by fetching the user again
+        const verifyUser = await tx.user.findUnique({
+          where: { walletAddress },
+          select: {
+            id: true,
+            discordId: true,
+            discordName: true,
+            twitterId: true,
+            twitterHandle: true
+          }
+        })
+
+        console.log('[LinkSocial] Verification - user data after update:', {
+          provider,
+          verifyUser,
+          timestamp: new Date().toISOString()
+        })
+
+        return { updateData, updatedUser, verifyUser }
       })
 
       await prisma.$disconnect()
@@ -165,7 +196,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: 'Social account linked successfully',
-        linkedAccount: { provider, ...result.updateData }
+        linkedAccount: { provider, ...result.updateData },
+        verifiedData: result.verifyUser
       })
     } catch (dbError: any) {
       console.error('[LinkSocial] Database error:', {

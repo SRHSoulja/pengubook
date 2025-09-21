@@ -20,6 +20,13 @@ export async function GET(request: NextRequest) {
     const oauthId = searchParams.get('oauthId')
     const nextAuthId = searchParams.get('nextAuthId')
 
+    console.log('[UserProfile] Request received:', {
+      walletAddress: walletAddress?.slice(0, 10) + '...' || 'none',
+      oauthId: oauthId?.slice(0, 10) + '...' || 'none',
+      nextAuthId: nextAuthId?.slice(0, 10) + '...' || 'none',
+      timestamp: new Date().toISOString()
+    })
+
     if (!walletAddress && !oauthId && !nextAuthId) {
       return NextResponse.json(
         { error: 'Wallet address, OAuth ID, or NextAuth ID is required' },
@@ -30,13 +37,28 @@ export async function GET(request: NextRequest) {
     let user = null
     if (walletAddress) {
       user = await prisma.user.findUnique({
-        where: { walletAddress }
+        where: { walletAddress },
+        include: { profile: true }
       })
     } else if (nextAuthId) {
-      // Look up user by NextAuth ID
+      // Look up user by NextAuth ID - could be the user ID directly or from Account table
       user = await prisma.user.findUnique({
-        where: { id: nextAuthId }
+        where: { id: nextAuthId },
+        include: { profile: true }
       })
+
+      // If not found, try looking in Account table
+      if (!user) {
+        const account = await prisma.account.findFirst({
+          where: { providerAccountId: nextAuthId },
+          include: {
+            user: {
+              include: { profile: true }
+            }
+          }
+        })
+        user = account?.user || null
+      }
     } else if (oauthId) {
       // Try finding by Discord ID first, then Twitter ID
       user = await prisma.user.findFirst({
@@ -45,33 +67,54 @@ export async function GET(request: NextRequest) {
             { discordId: oauthId },
             { twitterId: oauthId }
           ]
-        }
+        },
+        include: { profile: true }
       })
     }
 
-    await prisma.$disconnect()
-
     if (!user) {
+      console.log('[UserProfile] User not found:', {
+        walletAddress: walletAddress?.slice(0, 10) + '...' || 'none',
+        nextAuthId: nextAuthId?.slice(0, 10) + '...' || 'none',
+        oauthId: oauthId?.slice(0, 10) + '...' || 'none',
+        timestamp: new Date().toISOString()
+      })
+
+      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       )
     }
 
+    console.log('[UserProfile] User found:', {
+      userId: user.id.slice(0, 10) + '...',
+      walletAddress: user.walletAddress?.slice(0, 10) + '...' || 'none',
+      hasDiscord: !!user.discordId,
+      hasTwitter: !!user.twitterId,
+      discordName: user.discordName,
+      twitterHandle: user.twitterHandle,
+      timestamp: new Date().toISOString()
+    })
+
+    await prisma.$disconnect()
+
     return NextResponse.json({
       success: true,
       user: {
         id: user.id,
-        username: user.username,
-        displayName: user.displayName,
-        walletAddress: user.walletAddress,
-        bio: user.bio,
-        avatar: user.avatar,
+        username: user.username || user.displayName || 'Unknown',
+        displayName: user.displayName || user.name || 'Unknown',
+        walletAddress: user.walletAddress || '',
+        bio: user.bio || '',
+        avatar: user.avatar || user.image || '',
         level: user.level,
         isAdmin: user.isAdmin,
         isBanned: user.isBanned,
         discordName: user.discordName,
         twitterHandle: user.twitterHandle,
+        discordId: user.discordId,
+        twitterId: user.twitterId,
         profile: user.profile
       }
     })
