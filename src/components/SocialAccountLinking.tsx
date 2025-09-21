@@ -91,12 +91,34 @@ export default function SocialAccountLinking() {
         console.log('[SocialLinking] Processing OAuth callback with linked=true')
         setLinkingInProgress(true) // Prevent multiple executions
 
+        // Wait for session to be ready
+        if (status === 'loading') {
+          console.log('[SocialLinking] Session still loading, waiting...')
+          setLinkingInProgress(false)
+          return
+        }
+
         if (!session) {
           console.error('[SocialLinking] No session found during OAuth callback:', {
             sessionStatus: status,
             timestamp: new Date().toISOString()
           })
           setLinkingInProgress(false)
+          return
+        }
+
+        // Check if OAuth data is present
+        if (!(session.user as any)?.provider || !(session.user as any)?.providerAccountId) {
+          console.error('[SocialLinking] Session missing OAuth data:', {
+            hasProvider: !!(session.user as any)?.provider,
+            hasProviderAccountId: !!(session.user as any)?.providerAccountId,
+            sessionUser: session.user,
+            timestamp: new Date().toISOString()
+          })
+          // Retry after a delay as session might still be updating
+          setTimeout(() => {
+            setLinkingInProgress(false)
+          }, 2000)
           return
         }
 

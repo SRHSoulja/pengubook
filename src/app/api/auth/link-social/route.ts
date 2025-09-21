@@ -71,6 +71,50 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString()
       })
 
+      // Check if this social account is already linked to another user
+      let existingUser = null
+      if (provider === 'discord') {
+        existingUser = await prisma.user.findFirst({
+          where: {
+            discordId: providerAccountId,
+            NOT: { id: walletUser.id }
+          }
+        })
+      } else if (provider === 'twitter') {
+        existingUser = await prisma.user.findFirst({
+          where: {
+            twitterId: providerAccountId,
+            NOT: { id: walletUser.id }
+          }
+        })
+      }
+
+      if (existingUser) {
+        console.error('[LinkSocial] Social account already linked to another user:', {
+          provider,
+          providerAccountId: providerAccountId.slice(0, 10) + '...',
+          existingUserId: existingUser.id.slice(0, 10) + '...',
+          existingWallet: existingUser.walletAddress?.slice(0, 10) + '...',
+          attemptingUserId: walletUser.id.slice(0, 10) + '...',
+          timestamp: new Date().toISOString()
+        })
+
+        // Clear the existing link first
+        if (provider === 'discord') {
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: { discordId: null, discordName: null }
+          })
+          console.log('[LinkSocial] Cleared existing Discord link from user:', existingUser.id.slice(0, 10) + '...')
+        } else if (provider === 'twitter') {
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: { twitterId: null, twitterHandle: null }
+          })
+          console.log('[LinkSocial] Cleared existing Twitter/X link from user:', existingUser.id.slice(0, 10) + '...')
+        }
+      }
+
       // Prepare update data based on provider
       const updateData: any = {}
 

@@ -86,41 +86,56 @@ const handler = NextAuth({
       return true
     },
     async session({ session, token }) {
-      // For OAuth linking, we just pass the account info in the session
-      if (token.account && session.user) {
+      // Check both direct properties and nested account object
+      const provider = token.provider || (token.account as any)?.provider
+      const providerAccountId = token.providerAccountId || (token.account as any)?.providerAccountId
+      const accessToken = token.accessToken || (token.account as any)?.accessToken
+
+      if (session.user && (provider || token.account)) {
+        // Pass OAuth info to the session
         ;(session.user as any).id = token.sub // OAuth user ID
-        ;(session.user as any).provider = (token.account as any).provider
-        ;(session.user as any).providerAccountId = (token.account as any).providerAccountId
-        ;(session.user as any).accessToken = (token.account as any).accessToken
+        ;(session.user as any).provider = provider
+        ;(session.user as any).providerAccountId = providerAccountId
+        ;(session.user as any).accessToken = accessToken
+
         // Always log session creation for production debugging
-        console.log('[NextAuth] Session callback:', {
-          provider: (token.account as any).provider,
-          providerAccountId: (token.account as any).providerAccountId?.slice(0, 10) + '...',
+        console.log('[NextAuth] Session callback with OAuth data:', {
+          provider,
+          providerAccountId: providerAccountId?.slice(0, 10) + '...',
           userName: session.user.name,
           tokenSub: token.sub?.slice(0, 10) + '...',
-          hasAccessToken: !!(token.account as any).accessToken,
+          hasAccessToken: !!accessToken,
           timestamp: new Date().toISOString()
         })
       } else {
-        console.log('[NextAuth] Session callback - No account in token:', {
+        console.log('[NextAuth] Session callback - No OAuth data:', {
           hasToken: !!token,
           hasSession: !!session,
+          hasProvider: !!provider,
           tokenKeys: token ? Object.keys(token).join(', ') : 'none',
           timestamp: new Date().toISOString()
         })
       }
       return session
     },
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account, profile, trigger }) {
       // Store account info in JWT for linking
       if (account) {
+        // Fresh login - store the OAuth account data
+        token.provider = account.provider
+        token.providerAccountId = account.providerAccountId
+        token.accessToken = account.access_token
+
+        // Also store in nested object for backwards compatibility
         token.account = {
           provider: account.provider,
           providerAccountId: account.providerAccountId,
           accessToken: account.access_token
         }
+
         // Always log JWT creation for production debugging
         console.log('[NextAuth] JWT callback with account:', {
+          trigger,
           provider: account.provider,
           providerAccountId: account.providerAccountId?.slice(0, 10) + '...',
           hasAccessToken: !!account.access_token,
@@ -128,10 +143,21 @@ const handler = NextAuth({
           scope: account.scope,
           timestamp: new Date().toISOString()
         })
+      } else if (trigger === 'signIn' && token.provider) {
+        // Preserve OAuth data on subsequent requests
+        console.log('[NextAuth] JWT callback preserving OAuth data:', {
+          trigger,
+          provider: token.provider,
+          providerAccountId: (token.providerAccountId as string)?.slice(0, 10) + '...',
+          hasAccessToken: !!token.accessToken,
+          timestamp: new Date().toISOString()
+        })
       } else {
         console.log('[NextAuth] JWT callback without account:', {
+          trigger,
           hasUser: !!user,
           hasProfile: !!profile,
+          hasStoredProvider: !!token.provider,
           tokenSub: token.sub?.slice(0, 10) + '...',
           timestamp: new Date().toISOString()
         })
