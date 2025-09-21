@@ -27,7 +27,12 @@ const handler = NextAuth({
   callbacks: {
     async signIn({ user, account, profile }) {
       console.log('Sign in attempt:', { user, account, profile })
-      // Let NextAuth handle user creation automatically
+
+      // Ensure email is null instead of empty string to avoid unique constraint issues
+      if (user.email === '') {
+        user.email = null
+      }
+
       return true
     },
     async session({ session, user, token }) {
@@ -82,7 +87,7 @@ const handler = NextAuth({
   session: {
     strategy: 'database',
   },
-  debug: process.env.NODE_ENV === 'development',
+  debug: true, // Enable debug for both dev and production to troubleshoot
 })
 
 export { handler as GET, handler as POST }
