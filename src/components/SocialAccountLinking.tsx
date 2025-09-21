@@ -12,6 +12,23 @@ export default function SocialAccountLinking() {
     discord: false,
     twitter: false
   })
+  const [debugInfo, setDebugInfo] = useState('')
+
+  // Add debug info on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const info = {
+      url: window.location.href,
+      linkedParam: urlParams.get('linked'),
+      sessionStatus: status,
+      hasSession: !!session,
+      hasUser: !!user,
+      sessionUserId: session?.user?.id,
+      userWallet: user?.walletAddress
+    }
+    setDebugInfo(JSON.stringify(info, null, 2))
+    console.log('🔧 SocialAccountLinking Debug Info:', info)
+  }, [session, user, status])
 
   useEffect(() => {
     if (user) {
@@ -28,8 +45,69 @@ export default function SocialAccountLinking() {
       const urlParams = new URLSearchParams(window.location.search)
       const linked = urlParams.get('linked')
 
-      if (linked === 'true' && session && user) {
-        console.log('OAuth callback detected, linking accounts...', {
+      console.log('🔍 OAuth callback check:', {
+        url: window.location.href,
+        linkedParam: linked,
+        hasSession: !!session,
+        hasUser: !!user,
+        sessionUser: session?.user,
+        walletUser: user
+      })
+
+      if (linked === 'true') {
+        console.log('✅ Found linked=true parameter')
+
+        if (!session) {
+          console.log('❌ No session found')
+          return
+        }
+
+        if (!user) {
+          console.log('❌ No wallet user found, checking sessionStorage...')
+
+          // Try to get wallet address from sessionStorage
+          try {
+            const storedAuth = sessionStorage.getItem('pengubook-auth')
+            if (storedAuth) {
+              const authData = JSON.parse(storedAuth)
+              const walletAddress = authData.walletAddress
+
+              if (walletAddress) {
+                console.log('🔍 Found stored wallet address:', walletAddress)
+
+                // Try linking with stored wallet address
+                const response = await fetch('/api/auth/link-social', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    walletAddress: walletAddress,
+                    oauthUserId: session.user.id
+                  })
+                })
+
+                const data = await response.json()
+
+                if (response.ok) {
+                  console.log('✅ Accounts linked successfully with stored wallet:', data)
+                  // Refresh the page to reload user data
+                  window.location.href = '/settings'
+                  return
+                } else {
+                  console.error('❌ Failed to link accounts with stored wallet:', data.error)
+                }
+              }
+            }
+          } catch (error) {
+            console.error('❌ Error accessing sessionStorage:', error)
+          }
+
+          console.log('❌ No valid wallet address found')
+          return
+        }
+
+        console.log('🔗 OAuth callback detected, linking accounts...', {
           sessionUserId: session.user?.id,
           walletAddress: user.walletAddress
         })
@@ -115,6 +193,14 @@ export default function SocialAccountLinking() {
           Connect your Discord and X accounts for verification and social features
         </p>
       </div>
+
+      {/* Debug Panel */}
+      {process.env.NODE_ENV === 'development' && debugInfo && (
+        <div className="glass-card p-4 bg-black/20">
+          <h4 className="text-sm font-semibold text-yellow-400 mb-2">Debug Info:</h4>
+          <pre className="text-xs text-gray-300 overflow-auto">{debugInfo}</pre>
+        </div>
+      )}
 
       {/* Discord Section */}
       <div className="glass-card p-6">
