@@ -14,7 +14,7 @@ export const metadata = {
   title: 'PenguBook',
   description: 'Social platform with AGW integration and Abstract token tipping',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.svg',
   },
 }
 
