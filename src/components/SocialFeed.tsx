@@ -48,6 +48,11 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
   const [editingPost, setEditingPost] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
 
+  // DEBUG: Log component mount and userId
+  useEffect(() => {
+    console.log('SocialFeed mounted with userId:', userId)
+  }, [userId])
+
   useEffect(() => {
     fetchPosts(1, true)
   }, [userId, communityId, authorId])

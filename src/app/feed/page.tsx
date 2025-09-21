@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import Navbar from '@/components/Navbar'
 import SocialFeed from '@/components/SocialFeed'
+// DEBUG: Using the SocialFeed with edit functionality
 import Link from 'next/link'
 
 export default function FeedPage() {
