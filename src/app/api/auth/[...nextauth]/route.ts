@@ -11,10 +11,33 @@ const handler = NextAuth({
   // adapter: PrismaAdapter(prisma),
   events: {
     linkAccount: ({ user, account, profile }) => {
-      // Only log in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔗 Account linked:', `${account.provider} account linked to user ${user.id?.slice(0, 8)}...`)
-      }
+      // Always log account linking in production for debugging
+      console.log('[NextAuth] Account linked event:', {
+        provider: account.provider,
+        providerAccountId: account.providerAccountId?.slice(0, 10) + '...',
+        userId: user.id?.slice(0, 10) + '...',
+        userName: user.name,
+        timestamp: new Date().toISOString()
+      })
+    },
+    signIn: ({ user, account, profile }) => {
+      // Log sign in events for debugging
+      console.log('[NextAuth] Sign in event:', {
+        provider: account?.provider || 'unknown',
+        userId: user.id?.slice(0, 10) + '...',
+        userName: user.name,
+        hasEmail: !!user.email,
+        timestamp: new Date().toISOString()
+      })
+    },
+    session: ({ session, token }) => {
+      // Log session creation for debugging
+      console.log('[NextAuth] Session event:', {
+        hasSession: !!session,
+        hasToken: !!token,
+        provider: (token as any)?.account?.provider,
+        timestamp: new Date().toISOString()
+      })
     },
   },
   providers: [
@@ -40,10 +63,15 @@ const handler = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      // Only log in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔑 OAuth Sign in:', `${account?.provider} - ${user.name || user.email || 'unnamed'}`)
-      }
+      // Always log OAuth sign in for production debugging
+      console.log('[NextAuth] SignIn callback:', {
+        provider: account?.provider,
+        providerAccountId: account?.providerAccountId?.slice(0, 10) + '...',
+        userName: user.name,
+        userEmail: user.email?.slice(0, 10) + '...',
+        profileData: profile ? Object.keys(profile).join(', ') : 'none',
+        timestamp: new Date().toISOString()
+      })
 
       // Ensure email is null instead of empty string to avoid unique constraint issues
       if (user.email === '') {
@@ -64,10 +92,22 @@ const handler = NextAuth({
         ;(session.user as any).provider = (token.account as any).provider
         ;(session.user as any).providerAccountId = (token.account as any).providerAccountId
         ;(session.user as any).accessToken = (token.account as any).accessToken
-        // Only log in development
-        if (process.env.NODE_ENV === 'development') {
-          console.log('📝 OAuth session:', `${(token.account as any).provider} - ${session.user.name}`)
-        }
+        // Always log session creation for production debugging
+        console.log('[NextAuth] Session callback:', {
+          provider: (token.account as any).provider,
+          providerAccountId: (token.account as any).providerAccountId?.slice(0, 10) + '...',
+          userName: session.user.name,
+          tokenSub: token.sub?.slice(0, 10) + '...',
+          hasAccessToken: !!(token.account as any).accessToken,
+          timestamp: new Date().toISOString()
+        })
+      } else {
+        console.log('[NextAuth] Session callback - No account in token:', {
+          hasToken: !!token,
+          hasSession: !!session,
+          tokenKeys: token ? Object.keys(token).join(', ') : 'none',
+          timestamp: new Date().toISOString()
+        })
       }
       return session
     },
@@ -79,10 +119,22 @@ const handler = NextAuth({
           providerAccountId: account.providerAccountId,
           accessToken: account.access_token
         }
-        // Only log in development
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔑 JWT created:', `${account.provider} account for linking`)
-        }
+        // Always log JWT creation for production debugging
+        console.log('[NextAuth] JWT callback with account:', {
+          provider: account.provider,
+          providerAccountId: account.providerAccountId?.slice(0, 10) + '...',
+          hasAccessToken: !!account.access_token,
+          hasRefreshToken: !!account.refresh_token,
+          scope: account.scope,
+          timestamp: new Date().toISOString()
+        })
+      } else {
+        console.log('[NextAuth] JWT callback without account:', {
+          hasUser: !!user,
+          hasProfile: !!profile,
+          tokenSub: token.sub?.slice(0, 10) + '...',
+          timestamp: new Date().toISOString()
+        })
       }
       return token
     },
@@ -94,7 +146,7 @@ const handler = NextAuth({
   session: {
     strategy: 'jwt', // Use JWT since we're not using database adapter
   },
-  debug: process.env.NODE_ENV === 'development', // Only enable debug in development
+  debug: true, // Enable debug in production temporarily for troubleshooting
 })
 
 export { handler as GET, handler as POST }

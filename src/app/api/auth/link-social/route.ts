@@ -2,10 +2,36 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 
 export async function POST(request: NextRequest) {
+  console.log('[LinkSocial] Request received:', {
+    method: 'POST',
+    headers: {
+      'content-type': request.headers.get('content-type'),
+      'user-agent': request.headers.get('user-agent')?.slice(0, 50) + '...',
+    },
+    timestamp: new Date().toISOString()
+  })
+
   try {
-    const { walletAddress, provider, providerAccountId, userName } = await request.json()
+    const body = await request.json()
+    const { walletAddress, provider, providerAccountId, userName } = body
+
+    console.log('[LinkSocial] Request body:', {
+      hasWalletAddress: !!walletAddress,
+      walletAddressPrefix: walletAddress?.slice(0, 10) + '...',
+      provider,
+      providerAccountIdPrefix: providerAccountId?.slice(0, 10) + '...',
+      userName,
+      allFields: Object.keys(body).join(', '),
+      timestamp: new Date().toISOString()
+    })
 
     if (!walletAddress || !provider || !providerAccountId) {
+      console.error('[LinkSocial] Missing required fields:', {
+        hasWalletAddress: !!walletAddress,
+        hasProvider: !!provider,
+        hasProviderAccountId: !!providerAccountId,
+        timestamp: new Date().toISOString()
+      })
       return NextResponse.json(
         { error: 'Wallet address, provider, and provider account ID are required' },
         { status: 400 }
@@ -16,17 +42,34 @@ export async function POST(request: NextRequest) {
 
     try {
       // Find the wallet user
+      console.log('[LinkSocial] Finding wallet user:', {
+        walletAddress: walletAddress.slice(0, 10) + '...',
+        timestamp: new Date().toISOString()
+      })
+
       const walletUser = await prisma.user.findUnique({
         where: { walletAddress }
       })
 
       if (!walletUser) {
+        console.error('[LinkSocial] Wallet user not found:', {
+          walletAddress: walletAddress.slice(0, 10) + '...',
+          timestamp: new Date().toISOString()
+        })
         await prisma.$disconnect()
         return NextResponse.json(
           { error: 'Wallet user not found' },
           { status: 404 }
         )
       }
+
+      console.log('[LinkSocial] Wallet user found:', {
+        userId: walletUser.id.slice(0, 10) + '...',
+        walletAddress: walletUser.walletAddress.slice(0, 10) + '...',
+        hasDiscord: !!walletUser.discordId,
+        hasTwitter: !!walletUser.twitterId,
+        timestamp: new Date().toISOString()
+      })
 
       // Prepare update data based on provider
       const updateData: any = {}
@@ -41,15 +84,33 @@ export async function POST(request: NextRequest) {
         updateData.twitterId = providerAccountId
       }
 
-      console.log('🔗 Linking social account:', `${provider} (${providerAccountId.slice(0, 8)}...) to wallet ${walletAddress.slice(0, 8)}...`)
+      console.log('[LinkSocial] Preparing update:', {
+        provider,
+        providerAccountId: providerAccountId.slice(0, 10) + '...',
+        walletAddress: walletAddress.slice(0, 10) + '...',
+        updateFields: Object.keys(updateData).join(', '),
+        updateData,
+        timestamp: new Date().toISOString()
+      })
 
       // Update the wallet user with OAuth account information
       if (Object.keys(updateData).length > 0) {
-        await prisma.user.update({
+        const updatedUser = await prisma.user.update({
           where: { walletAddress },
           data: updateData
         })
-        console.log('✅ Social account linked:', `${provider} linked to ${walletAddress.slice(0, 8)}...`)
+        console.log('[LinkSocial] Account linked successfully:', {
+          provider,
+          userId: updatedUser.id.slice(0, 10) + '...',
+          walletAddress: updatedUser.walletAddress.slice(0, 10) + '...',
+          updatedFields: Object.keys(updateData).join(', '),
+          timestamp: new Date().toISOString()
+        })
+      } else {
+        console.warn('[LinkSocial] No update data to apply:', {
+          provider,
+          timestamp: new Date().toISOString()
+        })
       }
 
       await prisma.$disconnect()
@@ -59,18 +120,30 @@ export async function POST(request: NextRequest) {
         message: 'Social account linked successfully',
         linkedAccount: { provider, ...updateData }
       })
-    } catch (error) {
-      console.error('❌ Database error:', error)
+    } catch (dbError: any) {
+      console.error('[LinkSocial] Database error:', {
+        error: dbError.message,
+        code: dbError.code,
+        meta: dbError.meta,
+        stack: dbError.stack?.split('\n').slice(0, 3).join('\n'),
+        walletAddress: walletAddress?.slice(0, 10) + '...',
+        provider,
+        timestamp: new Date().toISOString()
+      })
       await prisma.$disconnect()
       return NextResponse.json(
-        { error: 'Failed to link account' },
+        { error: 'Failed to link account', details: dbError.message },
         { status: 500 }
       )
     }
-  } catch (error) {
-    console.error('❌ Link social account error:', error)
+  } catch (error: any) {
+    console.error('[LinkSocial] Request processing error:', {
+      error: error.message,
+      stack: error.stack?.split('\n').slice(0, 3).join('\n'),
+      timestamp: new Date().toISOString()
+    })
     return NextResponse.json(
-      { error: 'Failed to link social account' },
+      { error: 'Failed to link social account', details: error.message },
       { status: 500 }
     )
   }

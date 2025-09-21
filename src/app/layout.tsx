@@ -5,6 +5,8 @@ import { AuthProvider } from '@/providers/AuthProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
 import SessionProvider from '@/providers/SessionProvider'
 import MobileBottomNav from '@/components/MobileBottomNav'
+import ErrorBoundary from '@/components/ErrorBoundary'
+import ClientErrorHandler from '@/components/ClientErrorHandler'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -24,16 +26,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SessionProvider>
-          <AbstractProvider>
-            <AuthProvider>
-              <ThemeProvider>
-                {children}
-                <MobileBottomNav />
-              </ThemeProvider>
-            </AuthProvider>
-          </AbstractProvider>
-        </SessionProvider>
+        <ErrorBoundary>
+          <ClientErrorHandler>
+            <SessionProvider>
+              <AbstractProvider>
+                <AuthProvider>
+                  <ThemeProvider>
+                    {children}
+                    <MobileBottomNav />
+                  </ThemeProvider>
+                </AuthProvider>
+              </AbstractProvider>
+            </SessionProvider>
+          </ClientErrorHandler>
+        </ErrorBoundary>
       </body>
     </html>
   )

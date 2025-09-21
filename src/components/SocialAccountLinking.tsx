@@ -20,7 +20,30 @@ export default function SocialAccountLinking() {
     const urlParams = new URLSearchParams(window.location.search)
     const linked = urlParams.get('linked')
 
-    // Only log if we have the linked parameter
+    // Always log component mount for production debugging
+    console.log('[SocialLinking] Component mounted:', {
+      url: window.location.href,
+      hasLinkedParam: !!linked,
+      linkedParam: linked,
+      sessionStatus: status,
+      hasSession: !!session,
+      hasUser: !!user,
+      sessionData: session ? {
+        userId: (session.user as any)?.id?.slice(0, 10) + '...',
+        provider: (session.user as any)?.provider,
+        providerAccountId: (session.user as any)?.providerAccountId?.slice(0, 10) + '...',
+        userName: session.user?.name
+      } : null,
+      userData: user ? {
+        userId: user.id?.slice(0, 10) + '...',
+        walletAddress: user.walletAddress?.slice(0, 10) + '...',
+        hasDiscord: !!user.discordId || !!user.discordName,
+        hasTwitter: !!user.twitterId || !!user.twitterHandle
+      } : null,
+      timestamp: new Date().toISOString()
+    })
+
+    // Set debug info for UI display in development
     if (linked) {
       const info = {
         linkedParam: linked,
@@ -31,7 +54,6 @@ export default function SocialAccountLinking() {
         userWallet: user?.walletAddress?.slice(0, 8) + '...'
       }
       setDebugInfo(JSON.stringify(info, null, 2))
-      console.log('🔧 OAuth Debug:', `Status: ${status}, Session: ${!!session}, User: ${!!user}, Linked: ${linked}`)
     }
   }, []) // Empty dependency array - only run once on mount
 
@@ -55,20 +77,39 @@ export default function SocialAccountLinking() {
         return
       }
 
-      console.log('🔍 OAuth callback:', `linked=${linked}, session=${!!session}, user=${!!user}`)
+      console.log('[SocialLinking] OAuth callback triggered:', {
+        linked,
+        hasSession: !!session,
+        sessionStatus: status,
+        hasUser: !!user,
+        linkingInProgress,
+        sessionProvider: (session?.user as any)?.provider,
+        timestamp: new Date().toISOString()
+      })
 
       if (linked === 'true') {
-        console.log('✅ Found linked=true parameter')
+        console.log('[SocialLinking] Processing OAuth callback with linked=true')
         setLinkingInProgress(true) // Prevent multiple executions
 
         if (!session) {
-          console.log('❌ No session found')
+          console.error('[SocialLinking] No session found during OAuth callback:', {
+            sessionStatus: status,
+            timestamp: new Date().toISOString()
+          })
           setLinkingInProgress(false)
           return
         }
 
+        console.log('[SocialLinking] Session found:', {
+          provider: (session.user as any)?.provider,
+          providerAccountId: (session.user as any)?.providerAccountId?.slice(0, 10) + '...',
+          userName: session.user?.name,
+          hasAccessToken: !!(session.user as any)?.accessToken,
+          timestamp: new Date().toISOString()
+        })
+
         if (!user) {
-          console.log('❌ No wallet user found, checking sessionStorage...')
+          console.warn('[SocialLinking] No wallet user found, checking sessionStorage...')
 
           // Try to get wallet address from sessionStorage
           try {
@@ -78,7 +119,11 @@ export default function SocialAccountLinking() {
               const walletAddress = authData.walletAddress
 
               if (walletAddress) {
-                console.log('🔍 Found stored wallet:', walletAddress.slice(0, 8) + '...')
+                console.log('[SocialLinking] Found stored wallet address:', {
+                  walletAddress: walletAddress.slice(0, 10) + '...',
+                  provider: (session.user as any).provider,
+                  timestamp: new Date().toISOString()
+                })
 
                 // Try linking with stored wallet address
                 const response = await fetch('/api/auth/link-social', {
@@ -97,24 +142,48 @@ export default function SocialAccountLinking() {
                 const data = await response.json()
 
                 if (response.ok) {
-                  console.log('✅ Accounts linked successfully with stored wallet:', data)
+                  console.log('[SocialLinking] Successfully linked with stored wallet:', {
+                    provider: (session.user as any).provider,
+                    walletAddress: walletAddress.slice(0, 10) + '...',
+                    response: data,
+                    timestamp: new Date().toISOString()
+                  })
                   // Refresh the page to reload user data
                   window.location.href = '/settings'
                   return
                 } else {
-                  console.error('❌ Failed to link accounts with stored wallet:', data.error)
+                  console.error('[SocialLinking] Failed to link with stored wallet:', {
+                    error: data.error,
+                    details: data.details,
+                    walletAddress: walletAddress.slice(0, 10) + '...',
+                    provider: (session.user as any).provider,
+                    timestamp: new Date().toISOString()
+                  })
                 }
               }
             }
-          } catch (error) {
-            console.error('❌ Error accessing sessionStorage:', error)
+          } catch (error: any) {
+            console.error('[SocialLinking] Error accessing sessionStorage:', {
+              error: error.message,
+              timestamp: new Date().toISOString()
+            })
           }
 
-          console.log('❌ No valid wallet address found')
+          console.error('[SocialLinking] No valid wallet address found:', {
+            hasUser: !!user,
+            hasSessionStorage: typeof sessionStorage !== 'undefined',
+            timestamp: new Date().toISOString()
+          })
           return
         }
 
-        console.log('🔗 Linking accounts:', `OAuth ID: ${(session.user as any)?.id?.slice(0, 8)}..., Wallet: ${user.walletAddress?.slice(0, 8)}...`)
+        console.log('[SocialLinking] Linking accounts with current user:', {
+          provider: (session.user as any).provider,
+          providerAccountId: (session.user as any)?.providerAccountId?.slice(0, 10) + '...',
+          walletAddress: user.walletAddress?.slice(0, 10) + '...',
+          userName: session.user?.name,
+          timestamp: new Date().toISOString()
+        })
 
         try {
           const response = await fetch('/api/auth/link-social', {
@@ -133,15 +202,32 @@ export default function SocialAccountLinking() {
           const data = await response.json()
 
           if (response.ok) {
-            console.log('Accounts linked successfully:', data)
+            console.log('[SocialLinking] Successfully linked accounts:', {
+              provider: (session.user as any).provider,
+              walletAddress: user.walletAddress?.slice(0, 10) + '...',
+              response: data,
+              timestamp: new Date().toISOString()
+            })
             // Refresh user data and clear URL
             refetchUser()
             window.history.replaceState({}, '', window.location.pathname)
           } else {
-            console.error('Failed to link accounts:', data.error)
+            console.error('[SocialLinking] Failed to link accounts:', {
+              error: data.error,
+              details: data.details,
+              status: response.status,
+              provider: (session.user as any).provider,
+              walletAddress: user.walletAddress?.slice(0, 10) + '...',
+              timestamp: new Date().toISOString()
+            })
           }
-        } catch (error) {
-          console.error('Error linking accounts:', error)
+        } catch (error: any) {
+          console.error('[SocialLinking] Error during account linking:', {
+            error: error.message,
+            stack: error.stack?.split('\n').slice(0, 3).join('\n'),
+            provider: (session.user as any)?.provider,
+            timestamp: new Date().toISOString()
+          })
         }
       }
     }
@@ -151,21 +237,45 @@ export default function SocialAccountLinking() {
 
   const handleLinkAccount = async (provider: string) => {
     if (!user) {
-      console.error('User must be authenticated with wallet first')
+      console.error('[SocialLinking] User must be authenticated with wallet first')
       return
     }
 
+    console.log('[SocialLinking] Initiating OAuth sign in:', {
+      provider,
+      userId: user.id?.slice(0, 10) + '...',
+      walletAddress: user.walletAddress?.slice(0, 10) + '...',
+      timestamp: new Date().toISOString()
+    })
+
     setLoadingProvider(provider)
     try {
-      // Store current user ID to link accounts after OAuth
+      // Store current user ID and wallet address to link accounts after OAuth
+      const authData = {
+        userId: user.id,
+        walletAddress: user.walletAddress,
+        timestamp: new Date().toISOString()
+      }
       sessionStorage.setItem('linkToUserId', user.id)
+      sessionStorage.setItem('pengubook-auth', JSON.stringify(authData))
+
+      console.log('[SocialLinking] Stored auth data in sessionStorage:', {
+        hasUserId: !!authData.userId,
+        hasWalletAddress: !!authData.walletAddress,
+        provider,
+        timestamp: authData.timestamp
+      })
 
       await signIn(provider, {
         callbackUrl: '/settings?linked=true',
         redirect: true
       })
-    } catch (error) {
-      console.error('Link account error:', error)
+    } catch (error: any) {
+      console.error('[SocialLinking] Link account error:', {
+        error: error.message,
+        provider,
+        timestamp: new Date().toISOString()
+      })
       setLoadingProvider(null)
     }
   }
