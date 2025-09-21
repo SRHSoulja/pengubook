@@ -10,7 +10,7 @@ import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 
 export default function Dashboard() {
   const { user, loading, isAuthenticated } = useAuth()
-  const { currentTheme, applyTheme, themeKey } = useTheme()
+  const { currentTheme, themeKey } = useTheme()
   const [showTipModal, setShowTipModal] = useState(false)
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false)
 
@@ -36,7 +36,13 @@ export default function Dashboard() {
   }
 
   return (
-    <div key={themeKey} className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient} transition-all duration-500`}>
+    <div
+      key={themeKey}
+      className="min-h-screen transition-all duration-500"
+      style={{
+        background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})`
+      }}
+    >
       <Navbar />
 
       <div className="container-responsive mobile-padding py-12">
@@ -217,7 +223,6 @@ export default function Dashboard() {
       <ThemeCustomizer
         isOpen={showThemeCustomizer}
         onClose={() => setShowThemeCustomizer(false)}
-        onThemeChange={applyTheme}
       />
     </div>
   )

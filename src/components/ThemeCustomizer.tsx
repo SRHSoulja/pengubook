@@ -3,123 +3,44 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '@/providers/ThemeProvider'
 
-interface Theme {
-  id: string
-  name: string
-  description: string
-  bgGradient: string
-  accentColor: string
-  textColor: string
-  glassTint: string
-  emoji: string
-}
-
-const predefinedThemes: Theme[] = [
-  {
-    id: 'abstract-green',
-    name: 'Abstract Green',
-    description: 'The official Abstract protocol theme',
-    bgGradient: 'from-gray-900 via-green-900 to-emerald-900',
-    accentColor: '#10b981',
-    textColor: 'white',
-    glassTint: 'rgba(16, 185, 129, 0.1)',
-    emoji: '🟢'
-  },
-  {
-    id: 'classic',
-    name: 'Classic Arctic',
-    description: 'The original PenguBook experience',
-    bgGradient: 'from-blue-900 via-purple-900 to-indigo-900',
-    accentColor: '#00ffff',
-    textColor: 'white',
-    glassTint: 'rgba(255, 255, 255, 0.1)',
-    emoji: '🐧'
-  },
-  {
-    id: 'cyber-punk',
-    name: 'Cyber Punk',
-    description: 'Matrix-inspired dark theme',
-    bgGradient: 'from-black via-gray-900 to-gray-800',
-    accentColor: '#00ff41',
-    textColor: '#00ff41',
-    glassTint: 'rgba(0, 255, 65, 0.1)',
-    emoji: '🤖'
-  },
-  {
-    id: 'aurora',
-    name: 'Aurora Borealis',
-    description: 'Northern lights vibes',
-    bgGradient: 'from-purple-900 via-blue-900 to-green-900',
-    accentColor: '#ff1493',
-    textColor: 'white',
-    glassTint: 'rgba(147, 51, 234, 0.1)',
-    emoji: '🌌'
-  },
-  {
-    id: 'sunset',
-    name: 'Digital Sunset',
-    description: 'Warm orange and pink tones',
-    bgGradient: 'from-orange-900 via-red-900 to-pink-900',
-    accentColor: '#ffff00',
-    textColor: 'white',
-    glassTint: 'rgba(249, 115, 22, 0.1)',
-    emoji: '🌅'
-  },
-  {
-    id: 'ocean',
-    name: 'Deep Ocean',
-    description: 'Mysterious blue depths',
-    bgGradient: 'from-blue-950 via-cyan-900 to-teal-900',
-    accentColor: '#00ffff',
-    textColor: 'white',
-    glassTint: 'rgba(6, 182, 212, 0.1)',
-    emoji: '🌊'
-  },
-  {
-    id: 'neon-city',
-    name: 'Neon City',
-    description: 'Vibrant cyberpunk aesthetics',
-    bgGradient: 'from-indigo-900 via-purple-900 to-pink-900',
-    accentColor: '#8a2be2',
-    textColor: 'white',
-    glassTint: 'rgba(236, 72, 153, 0.1)',
-    emoji: '🏙️'
-  }
-]
-
 interface ThemeCustomizerProps {
   isOpen: boolean
   onClose: () => void
-  onThemeChange: (theme: Theme) => void
 }
 
-export default function ThemeCustomizer({ isOpen, onClose, onThemeChange }: ThemeCustomizerProps) {
-  const { currentTheme } = useTheme()
-  const [selectedTheme, setSelectedTheme] = useState<Theme>(currentTheme)
-  const [customBgColor1, setCustomBgColor1] = useState('#1e1b4b')
-  const [customBgColor2, setCustomBgColor2] = useState('#7c2d12')
+export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProps) {
+  const { currentTheme, predefinedThemes, applyTheme } = useTheme()
+  const [selectedTheme, setSelectedTheme] = useState(currentTheme)
+  const [customFromColor, setCustomFromColor] = useState('#1e1b4b')
+  const [customViaColor, setCustomViaColor] = useState('#7c2d12')
+  const [customToColor, setCustomToColor] = useState('#312e81')
   const [customAccent, setCustomAccent] = useState('#00ffff')
 
   useEffect(() => {
     setSelectedTheme(currentTheme)
   }, [currentTheme])
 
-  const applyTheme = (theme: Theme) => {
+  const handleApplyTheme = (theme: typeof currentTheme) => {
     setSelectedTheme(theme)
-    onThemeChange(theme)
+    applyTheme(theme)
   }
 
-  const createCustomTheme = (): Theme => {
-    return {
+  const createCustomTheme = () => {
+    const customTheme = {
       id: 'custom',
       name: 'Custom Theme',
       description: 'Your personal creation',
-      bgGradient: 'from-gray-900 via-purple-900 to-indigo-900',
-      accentColor: customAccent,
-      textColor: 'white',
-      glassTint: `rgba(255, 255, 255, 0.1)`,
+      colors: {
+        from: customFromColor,
+        via: customViaColor,
+        to: customToColor,
+        accent: customAccent,
+        text: '#ffffff',
+        glass: 'rgba(255, 255, 255, 0.1)'
+      },
       emoji: '🎨'
     }
+    handleApplyTheme(customTheme)
   }
 
   if (!isOpen) return null
@@ -151,19 +72,30 @@ export default function ThemeCustomizer({ isOpen, onClose, onThemeChange }: Them
             {predefinedThemes.map((theme) => (
               <div
                 key={theme.id}
-                onClick={() => applyTheme(theme)}
+                onClick={() => handleApplyTheme(theme)}
                 className={`relative glass-card hover-lift click-scale cursor-pointer p-4 transition-all ${
                   selectedTheme.id === theme.id ? 'ring-2 ring-cyan-400 shadow-lg shadow-cyan-400/20' : ''
                 }`}
               >
                 {/* Theme Preview */}
-                <div className={`h-24 rounded-lg bg-gradient-to-br ${theme.bgGradient} mb-3 relative overflow-hidden`}>
-                  <div className="absolute inset-0 backdrop-blur-sm" style={{ backgroundColor: theme.glassTint }}></div>
+                <div
+                  className="h-24 rounded-lg mb-3 relative overflow-hidden"
+                  style={{
+                    background: `linear-gradient(135deg, ${theme.colors.from}, ${theme.colors.via}, ${theme.colors.to})`
+                  }}
+                >
+                  <div
+                    className="absolute inset-0 backdrop-blur-sm"
+                    style={{ backgroundColor: theme.colors.glass }}
+                  ></div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <span className="text-2xl animate-float">{theme.emoji}</span>
                   </div>
                   <div className="absolute top-2 right-2">
-                    <div className="w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: theme.accentColor }}></div>
+                    <div
+                      className="w-3 h-3 rounded-full animate-pulse"
+                      style={{ backgroundColor: theme.colors.accent }}
+                    ></div>
                   </div>
                 </div>
 
@@ -187,26 +119,37 @@ export default function ThemeCustomizer({ isOpen, onClose, onThemeChange }: Them
           <div className="border-t border-white/20 pt-6">
             <h3 className="text-lg font-display font-semibold text-white mb-4">Create Custom Theme</h3>
             <div className="glass-card p-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Background Color 1
+                    From Color
                   </label>
                   <input
                     type="color"
-                    value={customBgColor1}
-                    onChange={(e) => setCustomBgColor1(e.target.value)}
+                    value={customFromColor}
+                    onChange={(e) => setCustomFromColor(e.target.value)}
                     className="w-full h-10 rounded cursor-pointer"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Background Color 2
+                    Via Color
                   </label>
                   <input
                     type="color"
-                    value={customBgColor2}
-                    onChange={(e) => setCustomBgColor2(e.target.value)}
+                    value={customViaColor}
+                    onChange={(e) => setCustomViaColor(e.target.value)}
+                    className="w-full h-10 rounded cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    To Color
+                  </label>
+                  <input
+                    type="color"
+                    value={customToColor}
+                    onChange={(e) => setCustomToColor(e.target.value)}
                     className="w-full h-10 rounded cursor-pointer"
                   />
                 </div>
@@ -227,7 +170,7 @@ export default function ThemeCustomizer({ isOpen, onClose, onThemeChange }: Them
               <div
                 className="h-32 rounded-lg mb-4 relative overflow-hidden"
                 style={{
-                  background: `linear-gradient(135deg, ${customBgColor1}, ${customBgColor2})`
+                  background: `linear-gradient(135deg, ${customFromColor}, ${customViaColor}, ${customToColor})`
                 }}
               >
                 <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
@@ -241,7 +184,7 @@ export default function ThemeCustomizer({ isOpen, onClose, onThemeChange }: Them
               </div>
 
               <button
-                onClick={() => applyTheme(createCustomTheme())}
+                onClick={createCustomTheme}
                 className="w-full cyber-button bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-400/50 text-purple-300"
               >
                 🎨 Apply Custom Theme

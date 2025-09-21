@@ -6,26 +6,123 @@ interface Theme {
   id: string
   name: string
   description: string
-  bgGradient: string
-  accentColor: string
-  textColor: string
-  glassTint: string
+  colors: {
+    from: string
+    via: string
+    to: string
+    accent: string
+    text: string
+    glass: string
+  }
   emoji: string
 }
 
-const defaultTheme: Theme = {
-  id: 'abstract-green',
-  name: 'Abstract Green',
-  description: 'The official Abstract protocol theme',
-  bgGradient: 'from-gray-900 via-green-900 to-emerald-900',
-  accentColor: '#10b981',
-  textColor: 'white',
-  glassTint: 'rgba(16, 185, 129, 0.1)',
-  emoji: '🟢'
-}
+const predefinedThemes: Theme[] = [
+  {
+    id: 'abstract-green',
+    name: 'Abstract Green',
+    description: 'The official Abstract protocol theme',
+    colors: {
+      from: '#111827', // gray-900
+      via: '#064e3b',  // green-900
+      to: '#065f46',   // emerald-900
+      accent: '#10b981',
+      text: '#ffffff',
+      glass: 'rgba(16, 185, 129, 0.1)'
+    },
+    emoji: '🟢'
+  },
+  {
+    id: 'classic',
+    name: 'Classic Arctic',
+    description: 'The original PenguBook experience',
+    colors: {
+      from: '#1e3a8a', // blue-900
+      via: '#581c87',  // purple-900
+      to: '#312e81',   // indigo-900
+      accent: '#00ffff',
+      text: '#ffffff',
+      glass: 'rgba(255, 255, 255, 0.1)'
+    },
+    emoji: '🐧'
+  },
+  {
+    id: 'cyber-punk',
+    name: 'Cyber Punk',
+    description: 'Matrix-inspired dark theme',
+    colors: {
+      from: '#000000',
+      via: '#111827',  // gray-900
+      to: '#1f2937',   // gray-800
+      accent: '#00ff41',
+      text: '#00ff41',
+      glass: 'rgba(0, 255, 65, 0.1)'
+    },
+    emoji: '🤖'
+  },
+  {
+    id: 'aurora',
+    name: 'Aurora Borealis',
+    description: 'Northern lights vibes',
+    colors: {
+      from: '#581c87', // purple-900
+      via: '#1e3a8a',  // blue-900
+      to: '#064e3b',   // green-900
+      accent: '#ff1493',
+      text: '#ffffff',
+      glass: 'rgba(147, 51, 234, 0.1)'
+    },
+    emoji: '🌌'
+  },
+  {
+    id: 'sunset',
+    name: 'Digital Sunset',
+    description: 'Warm orange and pink tones',
+    colors: {
+      from: '#9a3412', // orange-900
+      via: '#7f1d1d',  // red-900
+      to: '#831843',   // pink-900
+      accent: '#ffff00',
+      text: '#ffffff',
+      glass: 'rgba(249, 115, 22, 0.1)'
+    },
+    emoji: '🌅'
+  },
+  {
+    id: 'ocean',
+    name: 'Deep Ocean',
+    description: 'Mysterious blue depths',
+    colors: {
+      from: '#172554', // blue-950
+      via: '#164e63',  // cyan-900
+      to: '#134e4a',   // teal-900
+      accent: '#00ffff',
+      text: '#ffffff',
+      glass: 'rgba(6, 182, 212, 0.1)'
+    },
+    emoji: '🌊'
+  },
+  {
+    id: 'neon-city',
+    name: 'Neon City',
+    description: 'Vibrant cyberpunk aesthetics',
+    colors: {
+      from: '#312e81', // indigo-900
+      via: '#581c87',  // purple-900
+      to: '#831843',   // pink-900
+      accent: '#8a2be2',
+      text: '#ffffff',
+      glass: 'rgba(236, 72, 153, 0.1)'
+    },
+    emoji: '🏙️'
+  }
+]
+
+const defaultTheme: Theme = predefinedThemes[0] // Abstract Green
 
 interface ThemeContextType {
   currentTheme: Theme
+  predefinedThemes: Theme[]
   setTheme: (theme: Theme) => void
   applyTheme: (theme: Theme) => void
   themeKey: string
@@ -33,6 +130,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType>({
   currentTheme: defaultTheme,
+  predefinedThemes,
   setTheme: () => {},
   applyTheme: () => {},
   themeKey: 'default'
@@ -48,7 +146,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (savedTheme) {
       try {
         const theme = JSON.parse(savedTheme)
-        setCurrentTheme(theme)
+        // Find the theme in predefinedThemes or use as custom
+        const foundTheme = predefinedThemes.find(t => t.id === theme.id) || theme
+        setCurrentTheme(foundTheme)
       } catch (e) {
         console.error('Failed to parse saved theme')
       }
@@ -66,16 +166,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement
 
     // Apply CSS custom properties for the theme
-    root.style.setProperty('--theme-bg-gradient', theme.bgGradient)
-    root.style.setProperty('--theme-accent-color', theme.accentColor)
-    root.style.setProperty('--theme-text-color', theme.textColor)
-    root.style.setProperty('--theme-glass-tint', theme.glassTint)
+    root.style.setProperty('--theme-from', theme.colors.from)
+    root.style.setProperty('--theme-via', theme.colors.via)
+    root.style.setProperty('--theme-to', theme.colors.to)
+    root.style.setProperty('--theme-accent', theme.colors.accent)
+    root.style.setProperty('--theme-text', theme.colors.text)
+    root.style.setProperty('--theme-glass', theme.colors.glass)
 
     // Force immediate re-render by updating a data attribute
     root.setAttribute('data-theme', theme.id)
 
-    // Update body class to force background changes immediately
-    document.body.className = `bg-gradient-to-br ${theme.bgGradient} min-h-screen transition-all duration-500`
+    // Update body with inline style for immediate effect
+    document.body.style.background = `linear-gradient(135deg, ${theme.colors.from}, ${theme.colors.via}, ${theme.colors.to})`
+    document.body.style.minHeight = '100vh'
+    document.body.style.transition = 'all 0.5s ease'
 
     // Also trigger a custom event for components to listen to
     window.dispatchEvent(new CustomEvent('themeChanged', { detail: theme }))
@@ -92,7 +196,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ThemeContext.Provider value={{ currentTheme, setTheme, applyTheme, themeKey }}>
+    <ThemeContext.Provider value={{ currentTheme, predefinedThemes, setTheme, applyTheme, themeKey }}>
       {children}
     </ThemeContext.Provider>
   )
