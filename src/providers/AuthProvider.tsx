@@ -67,17 +67,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Add timeout to prevent infinite loading
+  // Add timeout to prevent infinite loading, but consider OAuth status
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (initialLoad) {
+      if (initialLoad && oauthStatus !== 'loading') {
+        console.log('Auth timeout reached, oauth status:', oauthStatus)
         setInitialLoad(false)
         setLoading(false)
       }
-    }, 2000) // 2 second timeout
+    }, 3000) // 3 second timeout to account for OAuth
 
     return () => clearTimeout(timeout)
-  }, [initialLoad])
+  }, [initialLoad, oauthStatus])
 
   // Update wallet address when client changes
   useEffect(() => {
@@ -94,8 +95,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Handle OAuth session
   useEffect(() => {
-    if (oauthStatus === 'authenticated' && oauthSession?.user?.id) {
-      fetchUserByOAuthId(oauthSession.user.id)
+    console.log('OAuth status:', oauthStatus, 'Session:', oauthSession)
+    if (oauthStatus === 'authenticated' && oauthSession?.user) {
+      const user = oauthSession.user
+      console.log('OAuth user data:', user)
+      // Use provider-specific ID for lookup
+      if (user.discordId) {
+        console.log('Fetching by Discord ID:', user.discordId)
+        fetchUserByOAuthId(user.discordId)
+      } else if (user.twitterId) {
+        console.log('Fetching by Twitter ID:', user.twitterId)
+        fetchUserByOAuthId(user.twitterId)
+      } else {
+        console.log('No Discord or Twitter ID found in session')
+      }
     }
   }, [oauthSession, oauthStatus])
 
@@ -137,11 +150,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserByOAuthId = async (userId: string) => {
     try {
+      console.log('Fetching user by OAuth ID:', userId)
       setLoading(true)
       const response = await fetch(`/api/users/profile?oauthId=${userId}`)
       const data = await response.json()
+      console.log('OAuth profile response:', response.status, data)
 
       if (response.ok && data.user) {
+        console.log('Found OAuth user:', data.user)
         setUser(data.user)
         // Store OAuth auth info for persistence
         sessionStorage.setItem('pengubook-oauth-auth', JSON.stringify({
@@ -149,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           timestamp: Date.now()
         }))
       } else {
+        console.log('No OAuth user found or error:', data)
         setUser(null)
         sessionStorage.removeItem('pengubook-oauth-auth')
       }
@@ -164,8 +181,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refetchUser = () => {
     if (walletAddress) {
       fetchUser(walletAddress)
-    } else if (oauthSession?.user?.id) {
-      fetchUserByOAuthId(oauthSession.user.id)
+    } else if (oauthSession?.user) {
+      const user = oauthSession.user
+      if (user.discordId) {
+        fetchUserByOAuthId(user.discordId)
+      } else if (user.twitterId) {
+        fetchUserByOAuthId(user.twitterId)
+      }
     }
   }
 

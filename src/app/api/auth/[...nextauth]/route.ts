@@ -79,16 +79,21 @@ const handler = NextAuth({
 
       return true
     },
-    async session({ session, user }) {
-      // Add user ID to session
-      if (session.user) {
+    async session({ session, user, token }) {
+      // Add user data to session
+      if (session.user && user) {
         session.user.id = user.id
+        // Add provider account IDs to session for AuthProvider lookup
+        session.user.discordId = user.discordId
+        session.user.twitterId = user.twitterId
       }
       return session
     },
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id
+        token.discordId = user.discordId
+        token.twitterId = user.twitterId
       }
       return token
     },
