@@ -16,13 +16,19 @@ export default function Navbar() {
   useEffect(() => {
     if (client?.account?.address) {
       fetchUser(client.account.address)
+    }
+  }, [client?.account?.address])
+
+  // Separate effect for unread count that depends on user being loaded
+  useEffect(() => {
+    if (user?.id && client?.account?.address) {
       fetchUnreadCount()
 
       // Set up interval to check for new messages every 30 seconds
       const interval = setInterval(fetchUnreadCount, 30000)
       return () => clearInterval(interval)
     }
-  }, [client?.account?.address])
+  }, [user?.id, client?.account?.address])
 
   const fetchUser = async (walletAddress: string) => {
     try {
@@ -37,23 +43,36 @@ export default function Navbar() {
   }
 
   const fetchUnreadCount = async () => {
-    if (!client?.account?.address) return
+    // Only fetch if user is properly authenticated and registered
+    if (!client?.account?.address || !user?.id) return
 
     try {
       const response = await fetch('/api/messages/conversations', {
         headers: {
-          'x-wallet-address': client.account.address
-        }
+          'x-wallet-address': client.account.address,
+          'x-user-id': user.id
+        },
+        credentials: 'include' // Include NextAuth cookies
       })
+
+      if (!response.ok) {
+        // Don't spam console with 404s if user doesn't have messages yet
+        if (response.status !== 404) {
+          console.error('Failed to fetch conversations:', response.status)
+        }
+        return
+      }
+
       const data = await response.json()
 
-      if (response.ok && data.data) {
-        const totalUnread = data.data.reduce((total: number, conversation: any) =>
+      if (data.success && data.conversations) {
+        const totalUnread = data.conversations.reduce((total: number, conversation: any) =>
           total + (conversation.unreadCount || 0), 0)
         setUnreadCount(totalUnread)
       }
     } catch (error) {
-      console.error('Failed to fetch unread count:', error)
+      // Silently fail to avoid console spam
+      console.debug('Unread count fetch failed:', error)
     }
   }
 
