@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useTheme } from '@/providers/ThemeProvider'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 import Navbar from '@/components/Navbar'
 
 export default function ProfilePage() {
   const { user, loading: authLoading, isAuthenticated, refetchUser } = useAuth()
+  const { currentTheme } = useTheme()
   const [editing, setEditing] = useState(false)
   const [formData, setFormData] = useState({
     displayName: '',
@@ -19,8 +21,10 @@ export default function ProfilePage() {
       setFormData({
         displayName: user.displayName || '',
         bio: user.bio || '',
-        interests: Array.isArray(JSON.parse(user.profile?.interests || '[]'))
-          ? JSON.parse(user.profile.interests).join(', ')
+        interests: user.profile?.interests
+          ? (Array.isArray(JSON.parse(user.profile.interests))
+              ? JSON.parse(user.profile.interests).join(', ')
+              : '')
           : ''
       })
     }
@@ -59,7 +63,7 @@ export default function ProfilePage() {
   // Show access denied if not authenticated
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
+      <div className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient} flex items-center justify-center`}>
         <div className="text-center text-white">
           <div className="text-6xl mb-4">🐧</div>
           <h1 className="text-2xl font-bold mb-4">Profile Access Required</h1>
@@ -73,7 +77,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+    <div className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient}`}>
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">
@@ -168,11 +172,11 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {JSON.parse(user.profile?.interests || '[]').length > 0 && (
+                {user.profile?.interests && JSON.parse(user.profile.interests || '[]').length > 0 && (
                   <div>
                     <h3 className="font-semibold text-gray-300 mb-2">Interests</h3>
                     <div className="flex flex-wrap gap-2">
-                      {JSON.parse(user.profile.interests).map((interest: string, index: number) => (
+                      {JSON.parse(user.profile.interests || '[]').map((interest: string, index: number) => (
                         <span
                           key={index}
                           className="bg-purple-500/30 text-purple-200 px-3 py-1 rounded-full text-sm"
