@@ -80,18 +80,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timeout)
   }, [initialLoad, oauthStatus])
 
-  // Update wallet address when client changes
+  // Update wallet address when client changes and auto-register wallet users
   useEffect(() => {
     if (client !== undefined) {
       if (client?.account?.address) {
         setWalletAddress(client.account.address)
+        // Auto-register/login wallet user if not already authenticated
+        if (!user || user.walletAddress !== client.account.address) {
+          handleWalletLogin(client.account.address)
+        }
       } else if (!walletAddress) {
         // Only clear if we don't have a stored address
         setLoading(false)
         setInitialLoad(false)
       }
     }
-  }, [client?.account?.address, walletAddress])
+  }, [client?.account?.address, user?.walletAddress])
 
   // Handle OAuth session
   useEffect(() => {
@@ -206,6 +210,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Failed to fetch user by NextAuth ID:', error)
       setUser(null)
+    } finally {
+      setLoading(false)
+      setInitialLoad(false)
+    }
+  }
+
+  const handleWalletLogin = async (walletAddress: string) => {
+    try {
+      console.log('Auto-registering wallet user:', walletAddress.slice(0, 10) + '...')
+      setLoading(true)
+
+      const response = await fetch('/api/auth/wallet-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress })
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.user) {
+        console.log('Wallet user registered/found:', data.user.id.slice(0, 10) + '...')
+        setUser({
+          id: data.user.id,
+          username: data.user.username,
+          displayName: data.user.displayName,
+          walletAddress: data.user.walletAddress,
+          bio: '',
+          avatar: '',
+          level: 1,
+          isAdmin: false,
+          isBanned: false
+        })
+
+        // Store auth info for persistence
+        sessionStorage.setItem('pengubook-auth', JSON.stringify({
+          walletAddress,
+          timestamp: Date.now()
+        }))
+      } else {
+        console.error('Wallet login failed:', data.error)
+      }
+    } catch (error) {
+      console.error('Failed to register/login wallet user:', error)
     } finally {
       setLoading(false)
       setInitialLoad(false)
