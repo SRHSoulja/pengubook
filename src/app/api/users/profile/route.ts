@@ -61,3 +61,79 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+export async function PUT(request: NextRequest) {
+  try {
+    // Skip database operations during build
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json({
+        success: false,
+        error: 'Database not available during build'
+      }, { status: 503 })
+    }
+
+    const { PrismaClient } = await import('@prisma/client')
+    const prisma = new PrismaClient()
+
+    const body = await request.json()
+    const { walletAddress, displayName, bio, interests } = body
+
+    if (!walletAddress) {
+      return NextResponse.json(
+        { error: 'Wallet address is required' },
+        { status: 400 }
+      )
+    }
+
+    // Find the user first
+    const existingUser = await prisma.user.findUnique({
+      where: { walletAddress }
+    })
+
+    if (!existingUser) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      )
+    }
+
+    // Update the user
+    const updatedUser = await prisma.user.update({
+      where: { walletAddress },
+      data: {
+        displayName: displayName || existingUser.displayName,
+        bio: bio || existingUser.bio,
+        profile: interests ? {
+          ...existingUser.profile,
+          interests: JSON.stringify(interests)
+        } : existingUser.profile
+      }
+    })
+
+    await prisma.$disconnect()
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: updatedUser.id,
+        username: updatedUser.username,
+        displayName: updatedUser.displayName,
+        walletAddress: updatedUser.walletAddress,
+        bio: updatedUser.bio,
+        avatar: updatedUser.avatar,
+        level: updatedUser.level,
+        isAdmin: updatedUser.isAdmin,
+        isBanned: updatedUser.isBanned,
+        discordName: updatedUser.discordName,
+        twitterHandle: updatedUser.twitterHandle,
+        profile: updatedUser.profile
+      }
+    })
+  } catch (error) {
+    console.error('Profile update error:', error)
+    return NextResponse.json(
+      { error: 'Failed to update profile' },
+      { status: 500 }
+    )
+  }
+}
