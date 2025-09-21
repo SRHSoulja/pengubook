@@ -29,7 +29,10 @@ export default function SocialAccountLinking() {
       const linked = urlParams.get('linked')
 
       if (linked === 'true' && session && user) {
-        console.log('OAuth callback detected, linking accounts...')
+        console.log('OAuth callback detected, linking accounts...', {
+          sessionUserId: session.user?.id,
+          walletAddress: user.walletAddress
+        })
 
         try {
           const response = await fetch('/api/auth/link-social', {
@@ -38,7 +41,8 @@ export default function SocialAccountLinking() {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              walletAddress: user.walletAddress
+              walletAddress: user.walletAddress,
+              oauthUserId: session.user.id
             })
           })
 

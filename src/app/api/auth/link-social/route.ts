@@ -1,25 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
 import { PrismaClient } from '@prisma/client'
 
 export async function POST(request: NextRequest) {
   try {
-    const { walletAddress } = await request.json()
+    const { walletAddress, oauthUserId } = await request.json()
 
-    if (!walletAddress) {
+    if (!walletAddress || !oauthUserId) {
       return NextResponse.json(
-        { error: 'Wallet address is required' },
+        { error: 'Wallet address and OAuth user ID are required' },
         { status: 400 }
-      )
-    }
-
-    // Get the current NextAuth session
-    const session = await getServerSession()
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'No OAuth session found' },
-        { status: 401 }
       )
     }
 
@@ -32,18 +21,20 @@ export async function POST(request: NextRequest) {
       })
 
       if (!walletUser) {
+        await prisma.$disconnect()
         return NextResponse.json(
           { error: 'Wallet user not found' },
           { status: 404 }
         )
       }
 
-      // Find the OAuth accounts associated with the NextAuth session
+      // Find the OAuth user
       const oauthUser = await prisma.user.findUnique({
-        where: { id: session.user.id }
+        where: { id: oauthUserId }
       })
 
       if (!oauthUser) {
+        await prisma.$disconnect()
         return NextResponse.json(
           { error: 'OAuth user not found' },
           { status: 404 }
