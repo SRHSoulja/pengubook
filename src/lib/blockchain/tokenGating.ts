@@ -67,7 +67,9 @@ export class TokenGatingService {
         console.warn(`Using fallback RPC: ${fallbackUrl}`)
       } catch (fallbackError) {
         console.error('Fallback RPC also failed:', fallbackError)
-        throw new Error('Unable to connect to any RPC endpoint')
+        // Don't throw error - gracefully degrade functionality
+        console.warn('Token gating will be disabled due to RPC issues')
+        this.provider = null
       }
     }
   }
@@ -85,6 +87,13 @@ export class TokenGatingService {
       // Ensure provider is ready
       if (!this.provider) {
         await this.initializeProvider()
+        // If still no provider after initialization, token gating is unavailable
+        if (!this.provider) {
+          return {
+            hasAccess: true, // Gracefully allow access when token gating is down
+            error: 'Token gating service unavailable - allowing access'
+          }
+        }
       }
 
       switch (gateConfig.tokenGateType) {
