@@ -21,7 +21,7 @@ export const NETWORKS: Record<string, NetworkConfig> = {
   abstract_mainnet: {
     name: 'Abstract Mainnet',
     chainId: 11124, // Abstract Mainnet chain ID
-    rpcUrl: 'https://api.abs.xyz',
+    rpcUrl: 'https://api.abs.xyz', // Keep original working RPC
     blockExplorer: 'https://explorer.abs.xyz',
     nativeCurrency: {
       name: 'ETH',
@@ -99,6 +99,9 @@ export class RpcConfig {
     }
 
     const urls = [network.rpcUrl]
+
+    // Keep the working RPC as-is for Abstract
+    // The testing may fail but the RPC works for actual operations
 
     // Add environment-specific URLs
     if (networkName === 'abstract_mainnet' && process.env.ABSTRACT_MAINNET_RPC) {
