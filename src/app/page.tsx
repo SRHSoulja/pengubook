@@ -58,7 +58,7 @@ export default function Home() {
   // If authenticated, redirect to dashboard or show different content
   if (isAuthenticated) {
     return (
-      <main className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient} web3-grid-bg flex items-center justify-center`}>
+      <main className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient} flex items-center justify-center`}>
         <div className="text-center space-y-6">
           <div className="text-8xl animate-float">🐧</div>
           <h1 className="text-4xl font-display font-bold text-gradient">
@@ -78,7 +78,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-green-900 web3-grid-bg">
+    <main className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-green-900">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-20 w-32 h-32 bg-emerald-400/10 rounded-full blur-xl animate-blob"></div>

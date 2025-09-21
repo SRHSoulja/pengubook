@@ -62,8 +62,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     root.style.setProperty('--theme-text-color', theme.textColor)
     root.style.setProperty('--theme-glass-tint', theme.glassTint)
 
-    // Update body class for background
-    document.body.className = `bg-gradient-to-br ${theme.bgGradient} web3-grid-bg min-h-screen`
+    // Force immediate re-render by updating a data attribute
+    root.setAttribute('data-theme', theme.id)
   }
 
   const setTheme = (theme: Theme) => {

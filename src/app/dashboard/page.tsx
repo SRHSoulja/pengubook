@@ -36,7 +36,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient} web3-grid-bg`}>
+    <div className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient}`}>
       <Navbar />
 
       <div className="container-responsive mobile-padding py-12">
