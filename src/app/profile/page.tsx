@@ -63,7 +63,12 @@ export default function ProfilePage() {
   // Show access denied if not authenticated
   if (!isAuthenticated || !user) {
     return (
-      <div className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient} flex items-center justify-center`}>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{
+          background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})`
+        }}
+      >
         <div className="text-center text-white">
           <div className="text-6xl mb-4">🐧</div>
           <h1 className="text-2xl font-bold mb-4">Profile Access Required</h1>
@@ -77,7 +82,12 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient}`}>
+    <div
+      className="min-h-screen"
+      style={{
+        background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})`
+      }}
+    >
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">

@@ -58,7 +58,12 @@ export default function Home() {
   // If authenticated, redirect to dashboard or show different content
   if (isAuthenticated) {
     return (
-      <main className={`min-h-screen bg-gradient-to-br ${currentTheme.bgGradient} flex items-center justify-center`}>
+      <main
+        className="min-h-screen flex items-center justify-center"
+        style={{
+          background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})`
+        }}
+      >
         <div className="text-center space-y-6">
           <div className="text-8xl animate-float">🐧</div>
           <h1 className="text-4xl font-display font-bold text-gradient">
