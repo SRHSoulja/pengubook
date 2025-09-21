@@ -12,6 +12,11 @@ const handler = NextAuth({
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID!,
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: 'identify email',
+        },
+      },
     }),
     TwitterProvider({
       clientId: process.env.TWITTER_CLIENT_ID!,
@@ -40,8 +45,9 @@ const handler = NextAuth({
   },
   pages: {
     signIn: '/', // Redirect to home page for sign in
-    error: '/', // Redirect to home page on error
+    error: '/?error=auth', // Redirect to home page on error
   },
+  secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: 'database',
   },
