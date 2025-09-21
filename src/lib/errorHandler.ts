@@ -7,10 +7,26 @@ export function setupGlobalErrorHandlers() {
 
   // Handle unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
+    // Filter out MetaMask and other wallet extension errors
+    const errorMessage = event.reason?.message || 'Unknown error'
+    const shouldIgnore = [
+      'MetaMask',
+      'metamask',
+      'extension not found',
+      'Failed to connect to MetaMask',
+      'User rejected the request'
+    ].some(phrase => errorMessage.includes(phrase))
+
+    if (shouldIgnore) {
+      // Prevent default handling to avoid console spam
+      event.preventDefault()
+      return
+    }
+
     console.error('[GlobalError] Unhandled promise rejection:', {
       reason: event.reason,
       promise: event.promise,
-      message: event.reason?.message || 'Unknown error',
+      message: errorMessage,
       stack: event.reason?.stack?.split('\n').slice(0, 5).join('\n'),
       timestamp: new Date().toISOString()
     })
