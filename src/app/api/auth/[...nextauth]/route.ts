@@ -80,7 +80,6 @@ const handler = NextAuth({
     },
   },
   pages: {
-    signIn: '/', // Redirect to home page for sign in
     error: '/?error=auth', // Redirect to home page on error
   },
   secret: process.env.NEXTAUTH_SECRET,
