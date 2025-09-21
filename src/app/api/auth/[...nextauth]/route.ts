@@ -38,7 +38,11 @@ const handler = NextAuth({
         user.email = null
       }
 
-      // Allow OAuth sign-in - we'll handle account linking in the frontend after callback
+      // Set a unique email to avoid conflicts - we'll handle the actual linking later
+      if (!user.email) {
+        user.email = `${account?.provider}-${account?.providerAccountId}@temp.oauth`
+      }
+
       return true
     },
     async session({ session, user, token }) {
@@ -93,8 +97,6 @@ const handler = NextAuth({
     strategy: 'database',
   },
   debug: process.env.NODE_ENV === 'development', // Only enable debug in development
-  // Allow linking OAuth accounts even if they have the same email
-  allowDangerousEmailAccountLinking: true,
 })
 
 export { handler as GET, handler as POST }
