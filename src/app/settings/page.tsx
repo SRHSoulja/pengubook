@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import Navbar from '@/components/Navbar'
 import SocialAccountLinking from '@/components/SocialAccountLinking'
@@ -8,50 +7,6 @@ import Link from 'next/link'
 
 export default function SettingsPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
-  const [profileLoading, setProfileLoading] = useState(false)
-  const [profileMessage, setProfileMessage] = useState('')
-  const [username, setUsername] = useState('')
-  const [displayName, setDisplayName] = useState('')
-
-  useEffect(() => {
-    if (user) {
-      setUsername(user.username || '')
-      setDisplayName(user.displayName || '')
-    }
-  }, [user])
-
-  const handleProfileUpdate = async () => {
-    if (!user) return
-
-    setProfileLoading(true)
-    setProfileMessage('')
-
-    try {
-      const response = await fetch('/api/users/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          walletAddress: user.walletAddress,
-          username,
-          displayName,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        setProfileMessage('Profile updated successfully!')
-      } else {
-        setProfileMessage(data.error || 'Failed to update profile')
-      }
-    } catch (error) {
-      setProfileMessage('Error updating profile')
-    } finally {
-      setProfileLoading(false)
-    }
-  }
 
   if (authLoading) {
     return (
@@ -95,40 +50,32 @@ export default function SettingsPage() {
           <div className="text-center mb-8">
             <div className="text-5xl mb-4">⚙️</div>
             <h1 className="text-3xl font-bold text-white mb-2">Account Settings</h1>
-            <p className="text-gray-300">Manage your PenguBook profile and connected accounts</p>
+            <p className="text-gray-300">Manage your account and social connections</p>
           </div>
 
-          {/* Profile Info Card */}
+          {/* Account Info Card */}
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 mb-6">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-              <span className="mr-2">👤</span> Profile Information
+              <span className="mr-2">👤</span> Account Information
             </h2>
             <div className="space-y-4">
               <div>
                 <label className="text-gray-300 text-sm">Wallet Address</label>
-                <p className="text-white font-mono text-sm bg-black/20 p-2 rounded">
+                <p className="text-white font-mono text-sm bg-black/20 p-2 rounded break-all">
                   {user.walletAddress}
                 </p>
               </div>
               <div>
-                <label className="text-gray-300 text-sm mb-2 block">Username</label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-black/30 text-white placeholder-gray-400 border border-white/20 rounded-xl px-4 py-2 focus:outline-none focus:border-cyan-400"
-                  placeholder="Enter your username"
-                />
+                <label className="text-gray-300 text-sm">Username</label>
+                <p className="text-white bg-black/20 p-2 rounded">
+                  {user.username || 'Not set'}
+                </p>
               </div>
               <div>
-                <label className="text-gray-300 text-sm mb-2 block">Display Name</label>
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full bg-black/30 text-white placeholder-gray-400 border border-white/20 rounded-xl px-4 py-2 focus:outline-none focus:border-cyan-400"
-                  placeholder="Enter your display name"
-                />
+                <label className="text-gray-300 text-sm">Display Name</label>
+                <p className="text-white bg-black/20 p-2 rounded">
+                  {user.displayName || 'Not set'}
+                </p>
               </div>
               <div>
                 <label className="text-gray-300 text-sm">Level</label>
@@ -138,23 +85,18 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {profileMessage && (
-              <div className={`mt-4 p-3 rounded-xl ${
-                profileMessage.includes('success')
-                  ? 'bg-green-500/20 text-green-300 border border-green-500/30'
-                  : 'bg-red-500/20 text-red-300 border border-red-500/30'
-              }`}>
-                {profileMessage}
+            <div className="mt-4 flex items-center justify-between bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
+              <div>
+                <p className="text-blue-300 text-sm font-medium">Edit Profile Information</p>
+                <p className="text-gray-400 text-xs">Update your username, bio, and interests</p>
               </div>
-            )}
-
-            <button
-              onClick={handleProfileUpdate}
-              disabled={profileLoading}
-              className="mt-4 w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-3 rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {profileLoading ? 'Updating...' : 'Update Profile'}
-            </button>
+              <Link
+                href="/profile"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors text-sm"
+              >
+                Go to Profile
+              </Link>
+            </div>
           </div>
 
           {/* Social Accounts Card */}
