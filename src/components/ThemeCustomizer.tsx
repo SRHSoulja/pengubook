@@ -20,9 +20,9 @@ const predefinedThemes: Theme[] = [
     name: 'Abstract Green',
     description: 'The official Abstract protocol theme',
     bgGradient: 'from-gray-900 via-green-900 to-emerald-900',
-    accentColor: 'emerald-400',
+    accentColor: '#10b981',
     textColor: 'white',
-    glassTint: 'emerald-500/10',
+    glassTint: 'rgba(16, 185, 129, 0.1)',
     emoji: '🟢'
   },
   {
@@ -30,9 +30,9 @@ const predefinedThemes: Theme[] = [
     name: 'Classic Arctic',
     description: 'The original PenguBook experience',
     bgGradient: 'from-blue-900 via-purple-900 to-indigo-900',
-    accentColor: 'neon-cyan',
+    accentColor: '#00ffff',
     textColor: 'white',
-    glassTint: 'white/10',
+    glassTint: 'rgba(255, 255, 255, 0.1)',
     emoji: '🐧'
   },
   {
@@ -40,9 +40,9 @@ const predefinedThemes: Theme[] = [
     name: 'Cyber Punk',
     description: 'Matrix-inspired dark theme',
     bgGradient: 'from-black via-gray-900 to-gray-800',
-    accentColor: 'neon-green',
-    textColor: 'neon-green',
-    glassTint: 'green-500/10',
+    accentColor: '#00ff41',
+    textColor: '#00ff41',
+    glassTint: 'rgba(0, 255, 65, 0.1)',
     emoji: '🤖'
   },
   {
@@ -50,9 +50,9 @@ const predefinedThemes: Theme[] = [
     name: 'Aurora Borealis',
     description: 'Northern lights vibes',
     bgGradient: 'from-purple-900 via-blue-900 to-green-900',
-    accentColor: 'neon-pink',
+    accentColor: '#ff1493',
     textColor: 'white',
-    glassTint: 'purple-500/10',
+    glassTint: 'rgba(147, 51, 234, 0.1)',
     emoji: '🌌'
   },
   {
@@ -60,9 +60,9 @@ const predefinedThemes: Theme[] = [
     name: 'Digital Sunset',
     description: 'Warm orange and pink tones',
     bgGradient: 'from-orange-900 via-red-900 to-pink-900',
-    accentColor: 'neon-yellow',
+    accentColor: '#ffff00',
     textColor: 'white',
-    glassTint: 'orange-500/10',
+    glassTint: 'rgba(249, 115, 22, 0.1)',
     emoji: '🌅'
   },
   {
@@ -70,9 +70,9 @@ const predefinedThemes: Theme[] = [
     name: 'Deep Ocean',
     description: 'Mysterious blue depths',
     bgGradient: 'from-blue-950 via-cyan-900 to-teal-900',
-    accentColor: 'neon-cyan',
+    accentColor: '#00ffff',
     textColor: 'white',
-    glassTint: 'cyan-500/10',
+    glassTint: 'rgba(6, 182, 212, 0.1)',
     emoji: '🌊'
   },
   {
@@ -80,9 +80,9 @@ const predefinedThemes: Theme[] = [
     name: 'Neon City',
     description: 'Vibrant cyberpunk aesthetics',
     bgGradient: 'from-indigo-900 via-purple-900 to-pink-900',
-    accentColor: 'neon-purple',
+    accentColor: '#8a2be2',
     textColor: 'white',
-    glassTint: 'pink-500/10',
+    glassTint: 'rgba(236, 72, 153, 0.1)',
     emoji: '🏙️'
   }
 ]
@@ -114,10 +114,10 @@ export default function ThemeCustomizer({ isOpen, onClose, onThemeChange }: Them
       id: 'custom',
       name: 'Custom Theme',
       description: 'Your personal creation',
-      bgGradient: `from-[${customBgColor1}] to-[${customBgColor2}]`,
+      bgGradient: 'from-gray-900 via-purple-900 to-indigo-900',
       accentColor: customAccent,
       textColor: 'white',
-      glassTint: 'white/10',
+      glassTint: `rgba(255, 255, 255, 0.1)`,
       emoji: '🎨'
     }
   }
@@ -153,17 +153,17 @@ export default function ThemeCustomizer({ isOpen, onClose, onThemeChange }: Them
                 key={theme.id}
                 onClick={() => applyTheme(theme)}
                 className={`relative glass-card hover-lift click-scale cursor-pointer p-4 transition-all ${
-                  selectedTheme.id === theme.id ? 'ring-2 ring-neon-cyan shadow-neon' : ''
+                  selectedTheme.id === theme.id ? 'ring-2 ring-cyan-400 shadow-lg shadow-cyan-400/20' : ''
                 }`}
               >
                 {/* Theme Preview */}
                 <div className={`h-24 rounded-lg bg-gradient-to-br ${theme.bgGradient} mb-3 relative overflow-hidden`}>
-                  <div className={`absolute inset-0 bg-${theme.glassTint} backdrop-blur-sm`}></div>
+                  <div className="absolute inset-0 backdrop-blur-sm" style={{ backgroundColor: theme.glassTint }}></div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <span className="text-2xl animate-float">{theme.emoji}</span>
                   </div>
                   <div className="absolute top-2 right-2">
-                    <div className={`w-3 h-3 bg-${theme.accentColor} rounded-full animate-pulse`}></div>
+                    <div className="w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: theme.accentColor }}></div>
                   </div>
                 </div>
 
@@ -175,7 +175,7 @@ export default function ThemeCustomizer({ isOpen, onClose, onThemeChange }: Them
 
                 {/* Selected indicator */}
                 {selectedTheme.id === theme.id && (
-                  <div className="absolute top-2 left-2 bg-neon-cyan text-black rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                  <div className="absolute top-2 left-2 bg-cyan-400 text-black rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
                     ✓
                   </div>
                 )}

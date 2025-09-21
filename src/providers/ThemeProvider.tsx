@@ -18,9 +18,9 @@ const defaultTheme: Theme = {
   name: 'Abstract Green',
   description: 'The official Abstract protocol theme',
   bgGradient: 'from-gray-900 via-green-900 to-emerald-900',
-  accentColor: 'emerald-400',
+  accentColor: '#10b981',
   textColor: 'white',
-  glassTint: 'emerald-500/10',
+  glassTint: 'rgba(16, 185, 129, 0.1)',
   emoji: '🟢'
 }
 
@@ -64,6 +64,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (typeof window === 'undefined') return
 
     const root = document.documentElement
+
+    // Apply CSS custom properties for the theme
+    root.style.setProperty('--theme-bg-gradient', theme.bgGradient)
+    root.style.setProperty('--theme-accent-color', theme.accentColor)
+    root.style.setProperty('--theme-text-color', theme.textColor)
+    root.style.setProperty('--theme-glass-tint', theme.glassTint)
 
     // Force immediate re-render by updating a data attribute
     root.setAttribute('data-theme', theme.id)
