@@ -3,11 +3,11 @@ import { PrismaClient } from '@prisma/client'
 
 export async function POST(request: NextRequest) {
   try {
-    const { walletAddress, oauthUserId } = await request.json()
+    const { walletAddress, provider, providerAccountId, userName } = await request.json()
 
-    if (!walletAddress || !oauthUserId) {
+    if (!walletAddress || !provider || !providerAccountId) {
       return NextResponse.json(
-        { error: 'Wallet address and OAuth user ID are required' },
+        { error: 'Wallet address, provider, and provider account ID are required' },
         { status: 400 }
       )
     }
@@ -28,74 +28,47 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Find the OAuth user
-      const oauthUser = await prisma.user.findUnique({
-        where: { id: oauthUserId }
-      })
-
-      if (!oauthUser) {
-        await prisma.$disconnect()
-        return NextResponse.json(
-          { error: 'OAuth user not found' },
-          { status: 404 }
-        )
-      }
-
-      // Get the OAuth accounts
-      const accounts = await prisma.account.findMany({
-        where: { userId: oauthUser.id }
-      })
-
-      // Update the wallet user with OAuth account information
+      // Prepare update data based on provider
       const updateData: any = {}
 
-      for (const account of accounts) {
-        if (account.provider === 'discord') {
-          updateData.discordName = oauthUser.name || `Discord User ${account.providerAccountId}`
-        } else if (account.provider === 'twitter') {
-          updateData.twitterHandle = oauthUser.name || `@TwitterUser${account.providerAccountId}`
-        }
+      if (provider === 'discord') {
+        updateData.discordName = userName || `Discord User ${providerAccountId}`
+        updateData.discordId = providerAccountId
+      } else if (provider === 'twitter') {
+        updateData.twitterHandle = userName || `@TwitterUser${providerAccountId}`
+        updateData.twitterId = providerAccountId
       }
 
+      console.log('🔗 Linking social account:', `${provider} (${providerAccountId.slice(0, 8)}...) to wallet ${walletAddress.slice(0, 8)}...`)
+
+      // Update the wallet user with OAuth account information
       if (Object.keys(updateData).length > 0) {
         await prisma.user.update({
           where: { walletAddress },
           data: updateData
         })
+        console.log('✅ Social account linked:', `${provider} linked to ${walletAddress.slice(0, 8)}...`)
       }
-
-      // Clean up: Delete the temporary OAuth user and its accounts
-      await prisma.account.deleteMany({
-        where: { userId: oauthUser.id }
-      })
-
-      await prisma.session.deleteMany({
-        where: { userId: oauthUser.id }
-      })
-
-      await prisma.user.delete({
-        where: { id: oauthUser.id }
-      })
 
       await prisma.$disconnect()
 
       return NextResponse.json({
         success: true,
-        message: 'Social accounts linked successfully',
-        linkedAccounts: updateData
+        message: 'Social account linked successfully',
+        linkedAccount: { provider, ...updateData }
       })
     } catch (error) {
-      console.error('Database error:', error)
+      console.error('❌ Database error:', error)
       await prisma.$disconnect()
       return NextResponse.json(
-        { error: 'Failed to link accounts' },
+        { error: 'Failed to link account' },
         { status: 500 }
       )
     }
   } catch (error) {
-    console.error('Link social accounts error:', error)
+    console.error('❌ Link social account error:', error)
     return NextResponse.json(
-      { error: 'Failed to link social accounts' },
+      { error: 'Failed to link social account' },
       { status: 500 }
     )
   }

@@ -22,7 +22,7 @@ export default function SocialAccountLinking() {
       sessionStatus: status,
       hasSession: !!session,
       hasUser: !!user,
-      sessionUserId: session?.user?.id?.slice(0, 8) + '...',
+      sessionUserId: (session?.user as any)?.id?.slice(0, 8) + '...',
       userWallet: user?.walletAddress?.slice(0, 8) + '...'
     }
     setDebugInfo(JSON.stringify(info, null, 2))
@@ -32,8 +32,8 @@ export default function SocialAccountLinking() {
   useEffect(() => {
     if (user) {
       setLinkedAccounts({
-        discord: !!(user.discordName || session?.user?.discordId),
-        twitter: !!(user.twitterHandle || session?.user?.twitterId)
+        discord: !!(user.discordName || (session?.user as any)?.discordId),
+        twitter: !!(user.twitterHandle || (session?.user as any)?.twitterId)
       })
     }
   }, [user, session])
@@ -75,7 +75,9 @@ export default function SocialAccountLinking() {
                   },
                   body: JSON.stringify({
                     walletAddress: walletAddress,
-                    oauthUserId: session.user.id
+                    provider: (session.user as any).provider,
+                    providerAccountId: (session.user as any).providerAccountId,
+                    userName: session.user?.name
                   })
                 })
 
@@ -99,7 +101,7 @@ export default function SocialAccountLinking() {
           return
         }
 
-        console.log('🔗 Linking accounts:', `OAuth ID: ${session.user?.id?.slice(0, 8)}..., Wallet: ${user.walletAddress?.slice(0, 8)}...`)
+        console.log('🔗 Linking accounts:', `OAuth ID: ${(session.user as any)?.id?.slice(0, 8)}..., Wallet: ${user.walletAddress?.slice(0, 8)}...`)
 
         try {
           const response = await fetch('/api/auth/link-social', {
@@ -109,7 +111,9 @@ export default function SocialAccountLinking() {
             },
             body: JSON.stringify({
               walletAddress: user.walletAddress,
-              oauthUserId: session.user.id
+              provider: (session.user as any).provider,
+              providerAccountId: (session.user as any).providerAccountId,
+              userName: session.user?.name
             })
           })
 

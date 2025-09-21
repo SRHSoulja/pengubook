@@ -48,11 +48,11 @@ const handler = NextAuth({
     },
     async session({ session, token }) {
       // For OAuth linking, we just pass the account info in the session
-      if (token.account) {
-        session.user.id = token.sub // OAuth user ID
-        session.user.provider = token.account.provider
-        session.user.providerAccountId = token.account.providerAccountId
-        console.log('📝 OAuth session:', `${token.account.provider} - ${session.user.name}`)
+      if (token.account && session.user) {
+        ;(session.user as any).id = token.sub // OAuth user ID
+        ;(session.user as any).provider = (token.account as any).provider
+        ;(session.user as any).providerAccountId = (token.account as any).providerAccountId
+        console.log('📝 OAuth session:', `${(token.account as any).provider} - ${session.user.name}`)
       }
       return session
     },
