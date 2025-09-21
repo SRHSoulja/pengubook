@@ -110,7 +110,7 @@ export default function Home() {
             </p>
 
             <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-              Connect, tip, and build communities in the Antarctic metaverse.
+              Connect, tip, and build communities in the Pudgy Penguins metaverse.
               Powered by Abstract Global Wallet and quantum penguin energy.
               <span className="text-green-500 ml-2">❄️</span>
             </p>
@@ -251,7 +251,7 @@ export default function Home() {
                     </h3>
                     <p className="text-sm text-gray-400">
                       This penguin colony uses advanced quantum cryptography.
-                      Only authorized wallet connections are permitted to access the Arctic social matrix.
+                      Only authorized wallet connections are permitted to access the Pudgy Penguins social matrix.
                     </p>
                   </div>
                 </div>
@@ -272,7 +272,7 @@ export default function Home() {
               </div>
               <div className="flex items-center space-x-2">
                 <span className="text-emerald-400">🐧</span>
-                <span>Built for Arctic Penguins</span>
+                <span>Built for Pudgy Penguins</span>
               </div>
             </div>
           </div>
