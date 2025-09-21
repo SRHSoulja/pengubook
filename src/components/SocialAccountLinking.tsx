@@ -304,13 +304,57 @@ export default function SocialAccountLinking() {
     }
   }
 
-  const handleUnlinkAccount = async () => {
-    setLoadingProvider('unlink')
+  const handleUnlinkAccount = async (provider: string) => {
+    if (!user) {
+      console.error('[SocialLinking] User must be authenticated to unlink accounts')
+      return
+    }
+
+    console.log('[SocialLinking] Initiating unlink for provider:', {
+      provider,
+      userId: user.id?.slice(0, 10) + '...',
+      walletAddress: user.walletAddress?.slice(0, 10) + '...',
+      timestamp: new Date().toISOString()
+    })
+
+    setLoadingProvider(`unlink-${provider}`)
     try {
-      await signOut({ callbackUrl: '/dashboard?unlinked=true' })
-      refetchUser()
-    } catch (error) {
-      console.error('Unlink account error:', error)
+      const response = await fetch('/api/auth/unlink-social', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          walletAddress: user.walletAddress,
+          provider: provider
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        console.log('[SocialLinking] Successfully unlinked account:', {
+          provider,
+          response: data,
+          timestamp: new Date().toISOString()
+        })
+        // Refresh user data to show updated links
+        refetchUser()
+      } else {
+        console.error('[SocialLinking] Failed to unlink account:', {
+          error: data.error,
+          details: data.details,
+          provider,
+          timestamp: new Date().toISOString()
+        })
+      }
+    } catch (error: any) {
+      console.error('[SocialLinking] Unlink account error:', {
+        error: error.message,
+        provider,
+        timestamp: new Date().toISOString()
+      })
+    } finally {
       setLoadingProvider(null)
     }
   }
@@ -363,11 +407,11 @@ export default function SocialAccountLinking() {
 
           {linkedAccounts.discord ? (
             <button
-              onClick={handleUnlinkAccount}
+              onClick={() => handleUnlinkAccount('discord')}
               disabled={loadingProvider !== null}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm rounded-lg transition-colors"
             >
-              {loadingProvider === 'unlink' ? 'Unlinking...' : 'Unlink'}
+              {loadingProvider === 'unlink-discord' ? 'Unlinking...' : 'Unlink'}
             </button>
           ) : (
             <button
@@ -402,11 +446,11 @@ export default function SocialAccountLinking() {
 
           {linkedAccounts.twitter ? (
             <button
-              onClick={handleUnlinkAccount}
+              onClick={() => handleUnlinkAccount('twitter')}
               disabled={loadingProvider !== null}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm rounded-lg transition-colors"
             >
-              {loadingProvider === 'unlink' ? 'Unlinking...' : 'Unlink'}
+              {loadingProvider === 'unlink-twitter' ? 'Unlinking...' : 'Unlink'}
             </button>
           ) : (
             <button
