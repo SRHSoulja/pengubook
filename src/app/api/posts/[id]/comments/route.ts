@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { withAuth, withRateLimit } from '@/lib/auth-middleware'
+import { awardXP } from '@/lib/leveling'
 
 export const dynamic = 'force-dynamic'
 
@@ -219,6 +221,18 @@ export async function POST(
           })
         }
       })
+    }
+
+    // Award XP for creating a comment
+    try {
+      const xpResult = await awardXP(authorId, 'COMMENT_POSTED', prisma)
+      console.log(`[Comments] User ${authorId} earned ${xpResult.xpGained} XP for posting a comment`)
+      if (xpResult.leveledUp) {
+        console.log(`[Comments] User ${authorId} leveled up from ${xpResult.oldLevel} to ${xpResult.newLevel}!`)
+      }
+    } catch (xpError) {
+      console.error('[Comments] Failed to award XP:', xpError)
+      // Don't fail the comment creation if XP fails
     }
 
     await prisma.$disconnect()

@@ -222,7 +222,7 @@ export async function POST(request: NextRequest) {
     if (!creator.isAdmin && creator.level < 5) {
       await prisma.$disconnect()
       return NextResponse.json(
-        { error: 'You must be at least level 5 to create a community' },
+        { error: 'You must be at least level 5 to create a community. Visit /levels to see how to level up!' },
         { status: 403 }
       )
     }

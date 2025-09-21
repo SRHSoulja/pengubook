@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
+import { awardXP } from '@/lib/leveling'
 
 export const dynamic = 'force-dynamic'
 
@@ -176,6 +177,18 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
         postsCount: 1
       }
     })
+
+    // Award XP for creating a post
+    try {
+      const xpResult = await awardXP(authorId, 'POST_CREATED', prisma)
+      console.log(`[Posts] User ${authorId} earned ${xpResult.xpGained} XP for creating a post`)
+      if (xpResult.leveledUp) {
+        console.log(`[Posts] User ${authorId} leveled up from ${xpResult.oldLevel} to ${xpResult.newLevel}!`)
+      }
+    } catch (xpError) {
+      console.error('[Posts] Failed to award XP:', xpError)
+      // Don't fail the post creation if XP fails
+    }
 
     await prisma.$disconnect()
 

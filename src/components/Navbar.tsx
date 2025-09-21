@@ -137,6 +137,10 @@ export default function Navbar() {
               <span className="text-lg group-hover:animate-float">👤</span>
               <span className="font-medium">Profile</span>
             </a>
+            <a href="/levels" className="nav-link group">
+              <span className="text-lg group-hover:animate-float">⭐</span>
+              <span className="font-medium">Levels</span>
+            </a>
             <a href="/settings" className="nav-link group">
               <span className="text-lg group-hover:animate-float">⚙️</span>
               <span className="font-medium">Settings</span>
