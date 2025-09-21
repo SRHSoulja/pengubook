@@ -17,17 +17,31 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const walletAddress = searchParams.get('walletAddress')
+    const oauthId = searchParams.get('oauthId')
 
-    if (!walletAddress) {
+    if (!walletAddress && !oauthId) {
       return NextResponse.json(
-        { error: 'Wallet address is required' },
+        { error: 'Wallet address or OAuth ID is required' },
         { status: 400 }
       )
     }
 
-    const user = await prisma.user.findUnique({
-      where: { walletAddress }
-    })
+    let user = null
+    if (walletAddress) {
+      user = await prisma.user.findUnique({
+        where: { walletAddress }
+      })
+    } else if (oauthId) {
+      // Try finding by Discord ID first, then Twitter ID
+      user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { discordId: oauthId },
+            { twitterId: oauthId }
+          ]
+        }
+      })
+    }
 
     await prisma.$disconnect()
 
