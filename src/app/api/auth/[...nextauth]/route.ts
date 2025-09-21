@@ -8,6 +8,11 @@ const prisma = new PrismaClient()
 
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
+  events: {
+    linkAccount: ({ user, account, profile }) => {
+      console.log('🔗 Account linked:', `${account.provider} account linked to user ${user.id?.slice(0, 8)}...`)
+    },
+  },
   providers: [
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID!,
@@ -33,6 +38,7 @@ const handler = NextAuth({
         user.email = null
       }
 
+      // Allow OAuth sign-in - we'll handle account linking in the frontend after callback
       return true
     },
     async session({ session, user, token }) {
@@ -87,6 +93,8 @@ const handler = NextAuth({
     strategy: 'database',
   },
   debug: process.env.NODE_ENV === 'development', // Only enable debug in development
+  // Allow linking OAuth accounts even if they have the same email
+  allowDangerousEmailAccountLinking: true,
 })
 
 export { handler as GET, handler as POST }
