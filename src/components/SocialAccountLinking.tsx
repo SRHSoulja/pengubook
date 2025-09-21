@@ -13,21 +13,27 @@ export default function SocialAccountLinking() {
     twitter: false
   })
   const [debugInfo, setDebugInfo] = useState('')
+  const [linkingInProgress, setLinkingInProgress] = useState(false)
 
-  // Add debug info on mount
+  // Add debug info on mount (only once)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
-    const info = {
-      linkedParam: urlParams.get('linked'),
-      sessionStatus: status,
-      hasSession: !!session,
-      hasUser: !!user,
-      sessionUserId: (session?.user as any)?.id?.slice(0, 8) + '...',
-      userWallet: user?.walletAddress?.slice(0, 8) + '...'
+    const linked = urlParams.get('linked')
+
+    // Only log if we have the linked parameter
+    if (linked) {
+      const info = {
+        linkedParam: linked,
+        sessionStatus: status,
+        hasSession: !!session,
+        hasUser: !!user,
+        sessionUserId: (session?.user as any)?.id?.slice(0, 8) + '...',
+        userWallet: user?.walletAddress?.slice(0, 8) + '...'
+      }
+      setDebugInfo(JSON.stringify(info, null, 2))
+      console.log('🔧 OAuth Debug:', `Status: ${status}, Session: ${!!session}, User: ${!!user}, Linked: ${linked}`)
     }
-    setDebugInfo(JSON.stringify(info, null, 2))
-    console.log('🔧 OAuth Debug:', `Status: ${status}, Session: ${!!session}, User: ${!!user}, Linked: ${urlParams.get('linked')}`)
-  }, [session, user, status])
+  }, []) // Empty dependency array - only run once on mount
 
   useEffect(() => {
     if (user) {
@@ -44,13 +50,20 @@ export default function SocialAccountLinking() {
       const urlParams = new URLSearchParams(window.location.search)
       const linked = urlParams.get('linked')
 
+      // Only proceed if we have the linked parameter and not already linking
+      if (linked !== 'true' || linkingInProgress) {
+        return
+      }
+
       console.log('🔍 OAuth callback:', `linked=${linked}, session=${!!session}, user=${!!user}`)
 
       if (linked === 'true') {
         console.log('✅ Found linked=true parameter')
+        setLinkingInProgress(true) // Prevent multiple executions
 
         if (!session) {
           console.log('❌ No session found')
+          setLinkingInProgress(false)
           return
         }
 
@@ -134,7 +147,7 @@ export default function SocialAccountLinking() {
     }
 
     handleOAuthCallback()
-  }, [session, user, refetchUser])
+  }, [session, user, refetchUser, linkingInProgress])
 
   const handleLinkAccount = async (provider: string) => {
     if (!user) {

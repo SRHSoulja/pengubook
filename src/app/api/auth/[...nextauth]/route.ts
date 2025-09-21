@@ -11,7 +11,10 @@ const handler = NextAuth({
   // adapter: PrismaAdapter(prisma),
   events: {
     linkAccount: ({ user, account, profile }) => {
-      console.log('🔗 Account linked:', `${account.provider} account linked to user ${user.id?.slice(0, 8)}...`)
+      // Only log in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔗 Account linked:', `${account.provider} account linked to user ${user.id?.slice(0, 8)}...`)
+      }
     },
   },
   providers: [
@@ -37,7 +40,10 @@ const handler = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      console.log('🔑 OAuth Sign in:', `${account?.provider} - ${user.name || user.email || 'unnamed'}`)
+      // Only log in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔑 OAuth Sign in:', `${account?.provider} - ${user.name || user.email || 'unnamed'}`)
+      }
 
       // Ensure email is null instead of empty string to avoid unique constraint issues
       if (user.email === '') {
@@ -58,7 +64,10 @@ const handler = NextAuth({
         ;(session.user as any).provider = (token.account as any).provider
         ;(session.user as any).providerAccountId = (token.account as any).providerAccountId
         ;(session.user as any).accessToken = (token.account as any).accessToken
-        console.log('📝 OAuth session:', `${(token.account as any).provider} - ${session.user.name}`)
+        // Only log in development
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📝 OAuth session:', `${(token.account as any).provider} - ${session.user.name}`)
+        }
       }
       return session
     },
@@ -70,7 +79,10 @@ const handler = NextAuth({
           providerAccountId: account.providerAccountId,
           accessToken: account.access_token
         }
-        console.log('🔑 JWT created:', `${account.provider} account for linking`)
+        // Only log in development
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔑 JWT created:', `${account.provider} account for linking`)
+        }
       }
       return token
     },
