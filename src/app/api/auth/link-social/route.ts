@@ -71,78 +71,68 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString()
       })
 
-      // Check if this social account is already linked to another user
-      let existingUser = null
-      if (provider === 'discord') {
-        existingUser = await prisma.user.findFirst({
-          where: {
-            discordId: providerAccountId,
-            NOT: { id: walletUser.id }
-          }
-        })
-      } else if (provider === 'twitter') {
-        existingUser = await prisma.user.findFirst({
-          where: {
-            twitterId: providerAccountId,
-            NOT: { id: walletUser.id }
-          }
-        })
-      }
-
-      if (existingUser) {
-        console.error('[LinkSocial] Social account already linked to another user:', {
-          provider,
-          providerAccountId: providerAccountId.slice(0, 10) + '...',
-          existingUserId: existingUser.id.slice(0, 10) + '...',
-          existingWallet: existingUser.walletAddress?.slice(0, 10) + '...',
-          attemptingUserId: walletUser.id.slice(0, 10) + '...',
-          timestamp: new Date().toISOString()
-        })
-
-        // Clear the existing link first
+      // Use a transaction to handle potential conflicts atomically
+      const result = await prisma.$transaction(async (tx) => {
+        // Check if this social account is already linked to another user
+        let existingUser = null
         if (provider === 'discord') {
-          await prisma.user.update({
-            where: { id: existingUser.id },
-            data: { discordId: null, discordName: null }
+          existingUser = await tx.user.findFirst({
+            where: {
+              discordId: providerAccountId,
+              NOT: { id: walletUser.id }
+            }
           })
-          console.log('[LinkSocial] Cleared existing Discord link from user:', existingUser.id.slice(0, 10) + '...')
         } else if (provider === 'twitter') {
-          await prisma.user.update({
-            where: { id: existingUser.id },
-            data: { twitterId: null, twitterHandle: null }
+          existingUser = await tx.user.findFirst({
+            where: {
+              twitterId: providerAccountId,
+              NOT: { id: walletUser.id }
+            }
           })
-          console.log('[LinkSocial] Cleared existing Twitter/X link from user:', existingUser.id.slice(0, 10) + '...')
         }
-      }
 
-      // Prepare update data based on provider
-      const updateData: any = {}
+        if (existingUser) {
+          console.log('[LinkSocial] Social account already linked, unlinking from old user:', {
+            provider,
+            providerAccountId: providerAccountId.slice(0, 10) + '...',
+            existingUserId: existingUser.id.slice(0, 10) + '...',
+            existingWallet: existingUser.walletAddress?.slice(0, 10) + '...',
+            newUserId: walletUser.id.slice(0, 10) + '...',
+            timestamp: new Date().toISOString()
+          })
 
-      if (provider === 'discord') {
-        updateData.discordName = userName || `Discord User ${providerAccountId}`
-        updateData.discordId = providerAccountId
-      } else if (provider === 'twitter') {
-        // Clean up Twitter handle to remove @ if present and ensure proper format
-        const cleanHandle = userName ? userName.replace('@', '') : `TwitterUser${providerAccountId}`
-        updateData.twitterHandle = cleanHandle.startsWith('@') ? cleanHandle : `@${cleanHandle}`
-        updateData.twitterId = providerAccountId
-      }
+          // Clear the existing link first
+          if (provider === 'discord') {
+            await tx.user.update({
+              where: { id: existingUser.id },
+              data: { discordId: null, discordName: null }
+            })
+            console.log('[LinkSocial] Cleared existing Discord link from user:', existingUser.id.slice(0, 10) + '...')
+          } else if (provider === 'twitter') {
+            await tx.user.update({
+              where: { id: existingUser.id },
+              data: { twitterId: null, twitterHandle: null }
+            })
+            console.log('[LinkSocial] Cleared existing Twitter/X link from user:', existingUser.id.slice(0, 10) + '...')
+          }
+        }
 
-      console.log('[LinkSocial] Preparing update:', {
-        provider,
-        providerAccountId: providerAccountId.slice(0, 10) + '...',
-        walletAddress: walletAddress.slice(0, 10) + '...',
-        updateFields: Object.keys(updateData).join(', '),
-        updateData,
-        timestamp: new Date().toISOString()
-      })
+        // Now update the current user
+        const updateData: any = {}
+        if (provider === 'discord') {
+          updateData.discordName = userName || `Discord User ${providerAccountId}`
+          updateData.discordId = providerAccountId
+        } else if (provider === 'twitter') {
+          const cleanHandle = userName ? userName.replace('@', '') : `TwitterUser${providerAccountId}`
+          updateData.twitterHandle = cleanHandle.startsWith('@') ? cleanHandle : `@${cleanHandle}`
+          updateData.twitterId = providerAccountId
+        }
 
-      // Update the wallet user with OAuth account information
-      if (Object.keys(updateData).length > 0) {
-        const updatedUser = await prisma.user.update({
+        const updatedUser = await tx.user.update({
           where: { walletAddress },
           data: updateData
         })
+
         console.log('[LinkSocial] Account linked successfully:', {
           provider,
           userId: updatedUser.id.slice(0, 10) + '...',
@@ -150,19 +140,16 @@ export async function POST(request: NextRequest) {
           updatedFields: Object.keys(updateData).join(', '),
           timestamp: new Date().toISOString()
         })
-      } else {
-        console.warn('[LinkSocial] No update data to apply:', {
-          provider,
-          timestamp: new Date().toISOString()
-        })
-      }
+
+        return { updateData, updatedUser }
+      })
 
       await prisma.$disconnect()
 
       return NextResponse.json({
         success: true,
         message: 'Social account linked successfully',
-        linkedAccount: { provider, ...updateData }
+        linkedAccount: { provider, ...result.updateData }
       })
     } catch (dbError: any) {
       console.error('[LinkSocial] Database error:', {
