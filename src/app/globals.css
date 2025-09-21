@@ -191,23 +191,32 @@
   @apply transition-transform duration-150 active:scale-95;
 }
 
-/* MySpace-style Customization Base */
+/* Theme System CSS Variables */
+:root {
+  --theme-bg-gradient: theme(colors.gray.900) theme(colors.green.900) theme(colors.emerald.900);
+  --theme-accent-color: theme(colors.emerald.400);
+  --theme-text-color: theme(colors.white);
+  --theme-glass-tint: theme(colors.emerald.500) / 0.1;
+}
+
+/* Dynamic theme classes using CSS variables */
+.theme-bg {
+  background: linear-gradient(135deg, var(--theme-bg-gradient));
+}
+
+.theme-accent {
+  color: var(--theme-accent-color);
+}
+
+.theme-text {
+  color: var(--theme-text-color);
+}
+
+/* Legacy theme classes */
 .theme-classic {
   --bg-primary: theme(colors.blue.900);
   --bg-secondary: theme(colors.purple.900);
   --accent: theme(colors.cyan.400);
-}
-
-.theme-myspace-blue {
-  --bg-primary: theme(colors.myspace.blue);
-  --bg-secondary: theme(colors.blue.800);
-  --accent: theme(colors.white);
-}
-
-.theme-myspace-fire {
-  --bg-primary: theme(colors.orange.600);
-  --bg-secondary: theme(colors.red.700);
-  --accent: theme(colors.yellow.300);
 }
 
 .theme-cyber-punk {

@@ -28,16 +28,19 @@ interface ThemeContextType {
   currentTheme: Theme
   setTheme: (theme: Theme) => void
   applyTheme: (theme: Theme) => void
+  themeKey: string
 }
 
 const ThemeContext = createContext<ThemeContextType>({
   currentTheme: defaultTheme,
   setTheme: () => {},
-  applyTheme: () => {}
+  applyTheme: () => {},
+  themeKey: 'default'
 })
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [currentTheme, setCurrentTheme] = useState<Theme>(defaultTheme)
+  const [themeKey, setThemeKey] = useState<string>('default')
 
   // Load saved theme on mount
   useEffect(() => {
@@ -46,30 +49,36 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       try {
         const theme = JSON.parse(savedTheme)
         setCurrentTheme(theme)
-        applyThemeToDOM(theme)
       } catch (e) {
         console.error('Failed to parse saved theme')
       }
     }
   }, [])
 
-  const applyThemeToDOM = (theme: Theme) => {
-    const root = document.documentElement
+  // Apply theme whenever currentTheme changes
+  useEffect(() => {
+    applyThemeToDOM(currentTheme)
+  }, [currentTheme])
 
-    // Apply CSS custom properties for theme
-    root.style.setProperty('--theme-bg-gradient', theme.bgGradient)
-    root.style.setProperty('--theme-accent-color', theme.accentColor)
-    root.style.setProperty('--theme-text-color', theme.textColor)
-    root.style.setProperty('--theme-glass-tint', theme.glassTint)
+  const applyThemeToDOM = (theme: Theme) => {
+    if (typeof window === 'undefined') return
+
+    const root = document.documentElement
 
     // Force immediate re-render by updating a data attribute
     root.setAttribute('data-theme', theme.id)
+
+    // Update body class to force background changes immediately
+    document.body.className = `bg-gradient-to-br ${theme.bgGradient} min-h-screen transition-all duration-500`
+
+    // Also trigger a custom event for components to listen to
+    window.dispatchEvent(new CustomEvent('themeChanged', { detail: theme }))
   }
 
   const setTheme = (theme: Theme) => {
     setCurrentTheme(theme)
+    setThemeKey(`${theme.id}-${Date.now()}`) // Force re-render
     localStorage.setItem('pengubook-theme', JSON.stringify(theme))
-    applyThemeToDOM(theme)
   }
 
   const applyTheme = (theme: Theme) => {
@@ -77,7 +86,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ThemeContext.Provider value={{ currentTheme, setTheme, applyTheme }}>
+    <ThemeContext.Provider value={{ currentTheme, setTheme, applyTheme, themeKey }}>
       {children}
     </ThemeContext.Provider>
   )
