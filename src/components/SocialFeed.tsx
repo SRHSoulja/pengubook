@@ -65,10 +65,29 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
       const data = await response.json()
 
       if (response.ok) {
-        const newPosts = data.data.posts.map((post: any) => ({
-          ...post,
+        const newPosts = (data.posts || []).map((post: any) => ({
+          id: post.id,
+          title: post.title,
+          content: post.content,
+          images: post.mediaUrls || [],
+          visibility: post.visibility,
+          isPinned: post.isPromoted || false,
+          likesCount: post.stats?.likes || 0,
+          commentsCount: post.stats?.comments || 0,
+          isLiked: false, // TODO: Implement user-specific like status
           createdAt: new Date(post.createdAt).toISOString(),
-          updatedAt: new Date(post.updatedAt).toISOString()
+          updatedAt: new Date(post.updatedAt).toISOString(),
+          author: {
+            id: post.author.id,
+            username: post.author.username,
+            displayName: post.author.displayName,
+            avatar: post.author.avatar,
+            level: post.author.level,
+            profile: {
+              profileVerified: post.author.isAdmin || false
+            }
+          },
+          community: post.community
         }))
 
         if (reset) {
@@ -77,7 +96,7 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
           setPosts(prev => [...prev, ...newPosts])
         }
 
-        setHasMore(data.data.pagination.hasNext)
+        setHasMore(data.pagination?.hasMore || false)
         setPage(pageNum)
       }
     } catch (error) {

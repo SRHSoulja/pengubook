@@ -21,9 +21,16 @@ export default function UserManager() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/admin/users')
+      const response = await fetch('/api/admin/users', {
+        credentials: 'include' // Include NextAuth cookies
+      })
       const data = await response.json()
-      setUsers(data)
+
+      if (response.ok && data.success) {
+        setUsers(data.users)
+      } else {
+        console.error('Failed to fetch users:', data.error)
+      }
     } catch (error) {
       console.error('Failed to fetch users:', error)
     } finally {
@@ -33,14 +40,18 @@ export default function UserManager() {
 
   const toggleBan = async (userId: string, currentBanStatus: boolean) => {
     try {
-      const response = await fetch(`/api/admin/users/${userId}/ban`, {
-        method: 'PATCH',
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isBanned: !currentBanStatus })
+        body: JSON.stringify({ isBanned: !currentBanStatus }),
+        credentials: 'include'
       })
 
       if (response.ok) {
         await fetchUsers() // Refresh the list
+      } else {
+        const data = await response.json()
+        console.error('Failed to update user ban status:', data.error)
       }
     } catch (error) {
       console.error('Failed to update user ban status:', error)
