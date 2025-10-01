@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { filterContent } from '@/lib/content-filter'
 
 export const dynamic = 'force-dynamic'
 
@@ -84,6 +85,9 @@ export async function GET(request: NextRequest) {
             username: true,
             displayName: true,
             avatar: true,
+            avatarSource: true,
+            discordAvatar: true,
+            twitterAvatar: true,
             level: true,
             isAdmin: true,
             discordName: true,
@@ -195,38 +199,88 @@ export async function GET(request: NextRequest) {
 
     const likedPostIds = new Set(userLikes.map(like => like.postId))
 
+    // Check which posts the current user has bookmarked
+    const userBookmarks = await prisma.bookmark.findMany({
+      where: {
+        userId,
+        postId: {
+          in: posts.map(p => p.id)
+        }
+      },
+      select: { postId: true }
+    })
+
+    const bookmarkedPostIds = new Set(userBookmarks.map(bookmark => bookmark.postId))
+
+    // Get user's muted phrases for content filtering
+    const mutedPhrases = await prisma.mutedPhrase.findMany({
+      where: {
+        userId,
+        // Exclude expired phrases
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: new Date() } }
+        ]
+      }
+    })
+
     await prisma.$disconnect()
 
-    const formattedPosts = posts.map(post => ({
-      id: post.id,
-      content: post.content,
-      contentType: post.contentType,
-      mediaUrls: JSON.parse(post.mediaUrls || '[]'),
-      visibility: post.visibility,
-      isPromoted: post.isPromoted,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-      author: {
-        ...post.author,
-        profileVerified: post.author.profile?.profileVerified || false
-      },
-      likes: post.likes.map(like => ({
-        userId: like.userId,
-        createdAt: like.createdAt,
-        user: like.user
-      })),
-      comments: post.comments,
-      shares: post.shares,
-      stats: {
-        likes: post._count.likes,
-        comments: post._count.comments,
-        shares: post._count.shares
-      },
-      userInteractions: {
-        hasLiked: likedPostIds.has(post.id),
-        hasShared: post.shares.some(share => share.userId === userId)
+    const formattedPosts = posts.map(post => {
+      // Check if post content should be filtered
+      const postFilter = filterContent({ content: post.content, type: 'post' }, mutedPhrases)
+
+      // Filter comments based on muted phrases
+      const filteredComments = post.comments.map(comment => {
+        const commentFilter = filterContent({ content: comment.content, type: 'comment' }, mutedPhrases)
+
+        return {
+          ...comment,
+          contentFilter: {
+            shouldHide: commentFilter.shouldHide,
+            shouldWarn: commentFilter.shouldWarn,
+            matchedPhrases: commentFilter.matchedPhrases
+          }
+        }
+      }).filter(comment => !comment.contentFilter.shouldHide) // Remove hidden comments
+
+      return {
+        id: post.id,
+        content: post.content,
+        contentType: post.contentType,
+        mediaUrls: JSON.parse(post.mediaUrls || '[]'),
+        visibility: post.visibility,
+        isPromoted: post.isPromoted,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        author: {
+          ...post.author,
+          profileVerified: post.author.profile?.profileVerified || false
+        },
+        likes: post.likes.map(like => ({
+          userId: like.userId,
+          createdAt: like.createdAt,
+          user: like.user
+        })),
+        comments: filteredComments,
+        shares: post.shares,
+        stats: {
+          likes: post._count.likes,
+          comments: post._count.comments,
+          shares: post._count.shares
+        },
+        userInteractions: {
+          hasLiked: likedPostIds.has(post.id),
+          hasShared: post.shares.some(share => share.userId === userId),
+          hasBookmarked: bookmarkedPostIds.has(post.id)
+        },
+        contentFilter: {
+          shouldHide: postFilter.shouldHide,
+          shouldWarn: postFilter.shouldWarn,
+          matchedPhrases: postFilter.matchedPhrases
+        }
       }
-    }))
+    }).filter(post => !post.contentFilter.shouldHide) // Remove hidden posts from feed
 
     return NextResponse.json({
       success: true,

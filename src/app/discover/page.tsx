@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import Navbar from '@/components/Navbar'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
+import UserActions from '@/components/UserActions'
+import TrendingHashtags from '@/components/TrendingHashtags'
+import HashtagSearch from '@/components/HashtagSearch'
 import Link from 'next/link'
 
 interface UserSuggestion {
@@ -50,7 +53,7 @@ export default function DiscoverPage() {
   const [suggestedUsers, setSuggestedUsers] = useState<UserSuggestion[]>([])
   const [suggestedCommunities, setSuggestedCommunities] = useState<CommunityRecommendation[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'users' | 'communities'>('users')
+  const [activeTab, setActiveTab] = useState<'users' | 'communities' | 'hashtags'>('users')
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -78,58 +81,6 @@ export default function DiscoverPage() {
     }
   }
 
-  const followUser = async (userId: string) => {
-    if (!user) return
-
-    try {
-      const response = await fetch('/api/social/follow', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          followerId: user.id,
-          followingId: userId
-        })
-      })
-
-      const data = await response.json()
-      if (response.ok) {
-        // Update the user in suggestions to show followed state
-        setSuggestedUsers(prev => prev.filter(suggestion => suggestion.user.id !== userId))
-      } else {
-        alert(data.error || 'Failed to follow user')
-      }
-    } catch (error) {
-      console.error('Error following user:', error)
-      alert('Failed to follow user')
-    }
-  }
-
-  const sendFriendRequest = async (userId: string) => {
-    if (!user) return
-
-    try {
-      const response = await fetch('/api/social/friends', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          initiatorId: user.id,
-          receiverId: userId
-        })
-      })
-
-      const data = await response.json()
-      if (response.ok) {
-        alert(data.message)
-      } else {
-        alert(data.error || 'Failed to send friend request')
-      }
-    } catch (error) {
-      console.error('Error sending friend request:', error)
-      alert('Failed to send friend request')
-    }
-  }
 
   const joinCommunity = async (communityId: string) => {
     if (!user) return
@@ -212,6 +163,16 @@ export default function DiscoverPage() {
               }`}
             >
               🏔️ Recommended Communities
+            </button>
+            <button
+              onClick={() => setActiveTab('hashtags')}
+              className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all ${
+                activeTab === 'hashtags'
+                  ? 'bg-orange-500 text-white shadow-lg'
+                  : 'text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              🔥 Trending Tags
             </button>
           </div>
 
@@ -301,24 +262,13 @@ export default function DiscoverPage() {
                             >
                               View Profile
                             </Link>
-                            <button
-                              onClick={() => followUser(suggestion.user.id)}
-                              className="bg-cyan-500 text-white px-4 py-2 rounded-lg hover:bg-cyan-600 transition-colors text-sm"
-                            >
-                              Follow
-                            </button>
-                            <button
-                              onClick={() => sendFriendRequest(suggestion.user.id)}
-                              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm"
-                            >
-                              Add Friend
-                            </button>
-                            <Link
-                              href={`/messages/new?userId=${suggestion.user.id}`}
-                              className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors text-sm text-center"
-                            >
-                              Message
-                            </Link>
+                            <div className="flex flex-col gap-2">
+                              <UserActions
+                                targetUserId={suggestion.user.id}
+                                targetUser={suggestion.user}
+                                compact={true}
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -416,6 +366,32 @@ export default function DiscoverPage() {
                     ))
                   )}
                 </>
+              )}
+
+              {activeTab === 'hashtags' && (
+                <div className="space-y-6">
+                  {/* Hashtag Search */}
+                  <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                      <span className="mr-2">🔍</span>
+                      Search Hashtags
+                    </h3>
+                    <HashtagSearch
+                      placeholder="Search for hashtags..."
+                      onHashtagSelect={(hashtag) => {
+                        window.location.href = `/search?q=%23${hashtag}`
+                      }}
+                    />
+                  </div>
+
+                  {/* Trending Hashtags */}
+                  <TrendingHashtags
+                    limit={15}
+                    onHashtagClick={(hashtag) => {
+                      window.location.href = `/search?q=%23${hashtag}`
+                    }}
+                  />
+                </div>
               )}
             </div>
           )}

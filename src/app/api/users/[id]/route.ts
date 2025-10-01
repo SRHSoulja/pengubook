@@ -12,8 +12,13 @@ export async function GET(
 
     const prisma = new PrismaClient()
 
-    const user = await prisma.user.findUnique({
-      where: { id },
+    // Check if id is a wallet address (starts with 0x and is 42 chars)
+    const isWalletAddress = /^0x[a-fA-F0-9]{40}$/.test(id)
+
+    const user = await prisma.user.findFirst({
+      where: isWalletAddress
+        ? { walletAddress: id.toLowerCase() }
+        : { id },
       include: {
         profile: true,
         _count: {

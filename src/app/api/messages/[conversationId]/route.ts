@@ -65,6 +65,9 @@ export const GET = withRateLimit(120, 60 * 1000)(withAuth(async (request: NextRe
             username: true,
             displayName: true,
             avatar: true,
+            avatarSource: true,
+            discordAvatar: true,
+            twitterAvatar: true,
             level: true,
             isAdmin: true
           }
@@ -76,7 +79,10 @@ export const GET = withRateLimit(120, 60 * 1000)(withAuth(async (request: NextRe
                 id: true,
                 username: true,
                 displayName: true,
-                avatar: true
+                avatar: true,
+                avatarSource: true,
+                discordAvatar: true,
+                twitterAvatar: true
               }
             }
           }
@@ -229,13 +235,7 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
         toUserId: participantId,
         type: 'MESSAGE',
         title: conversation.isGroup ? `New message in ${conversation.groupName}` : 'New message',
-        message: `${user.displayName}: ${content.length > 50 ? content.substring(0, 50) + '...' : content}`,
-        metadata: JSON.stringify({
-          conversationId,
-          messageId: message.id,
-          isGroup: conversation.isGroup,
-          groupName: conversation.groupName
-        })
+        content: `${user.displayName}: ${content.length > 50 ? content.substring(0, 50) + '...' : content}`
       }))
 
       await prisma.notification.createMany({

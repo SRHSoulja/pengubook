@@ -2,14 +2,45 @@
 
 import { useAuth } from '@/providers/AuthProvider'
 import Navbar from '@/components/Navbar'
-import TokenManager from '@/components/admin/TokenManager'
+import TokenBlacklistManager from '@/components/admin/TokenBlacklistManager'
+import TokenVerificationManager from '@/components/admin/TokenVerificationManager'
 import UserManager from '@/components/admin/UserManager'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 export default function AdminPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const [activeTab, setActiveTab] = useState('overview')
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    verifiedTokens: 0,
+    blacklistedTokens: 0,
+    pendingReports: 0,
+    recentUsers: 0,
+    loading: true
+  })
+
+  useEffect(() => {
+    if (user?.isAdmin && activeTab === 'overview') {
+      fetchStats()
+    }
+  }, [user, activeTab])
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/admin/stats')
+      if (response.ok) {
+        const data = await response.json()
+        setStats({
+          ...data,
+          loading: false
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+      setStats(prev => ({ ...prev, loading: false }))
+    }
+  }
 
   if (authLoading) {
     return (
@@ -64,7 +95,9 @@ export default function AdminPage() {
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: '📊' },
-    { id: 'tokens', name: 'Token Management', icon: '🪙' },
+    { id: 'reports', name: 'Token Reports', icon: '⚠️' },
+    { id: 'blacklist', name: 'Blacklist', icon: '🚫' },
+    { id: 'verified', name: 'Verification', icon: '✓' },
     { id: 'users', name: 'User Management', icon: '👥' },
     { id: 'analytics', name: 'Analytics', icon: '📈' }
   ]
@@ -115,15 +148,21 @@ export default function AdminPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-300">Total Users</span>
-                      <span className="text-white font-bold">1,247</span>
+                      <span className="text-white font-bold">
+                        {stats.loading ? '...' : stats.totalUsers.toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-300">Active Tokens</span>
-                      <span className="text-white font-bold">8</span>
+                      <span className="text-gray-300">Verified Tokens</span>
+                      <span className="text-white font-bold">
+                        {stats.loading ? '...' : stats.verifiedTokens}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-300">Total Tips</span>
-                      <span className="text-white font-bold">542</span>
+                      <span className="text-gray-300">Blacklisted Tokens</span>
+                      <span className="text-white font-bold text-red-400">
+                        {stats.loading ? '...' : stats.blacklistedTokens}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -134,9 +173,15 @@ export default function AdminPage() {
                     <span className="text-2xl">🔥</span>
                   </div>
                   <div className="space-y-3 text-sm">
-                    <div className="text-gray-300">5 new users registered today</div>
-                    <div className="text-gray-300">12 tips sent in last hour</div>
-                    <div className="text-gray-300">3 communities created this week</div>
+                    <div className="text-gray-300">
+                      {stats.loading ? '...' : stats.recentUsers} new {stats.recentUsers === 1 ? 'user' : 'users'} registered today
+                    </div>
+                    <div className="text-gray-300">
+                      {stats.loading ? '...' : stats.pendingReports} pending scam {stats.pendingReports === 1 ? 'report' : 'reports'}
+                    </div>
+                    <div className="text-gray-300">
+                      {stats.loading ? '...' : stats.verifiedTokens} verified {stats.verifiedTokens === 1 ? 'token' : 'tokens'}
+                    </div>
                   </div>
                 </div>
 
@@ -147,10 +192,16 @@ export default function AdminPage() {
                   </div>
                   <div className="space-y-3">
                     <button
-                      onClick={() => setActiveTab('tokens')}
-                      className="w-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 py-2 rounded-lg hover:bg-cyan-500/30 transition-colors text-sm"
+                      onClick={() => setActiveTab('reports')}
+                      className="w-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/50 py-2 rounded-lg hover:bg-yellow-500/30 transition-colors text-sm"
                     >
-                      Manage Tokens
+                      Review Reports
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('verified')}
+                      className="w-full bg-blue-500/20 text-blue-300 border border-blue-500/50 py-2 rounded-lg hover:bg-blue-500/30 transition-colors text-sm"
+                    >
+                      Verify Tokens
                     </button>
                     <button
                       onClick={() => setActiveTab('users')}
@@ -163,7 +214,15 @@ export default function AdminPage() {
               </div>
             )}
 
-            {activeTab === 'tokens' && <TokenManager />}
+            {activeTab === 'reports' && (
+              <TokenBlacklistManager initialTab="reports" />
+            )}
+
+            {activeTab === 'blacklist' && (
+              <TokenBlacklistManager initialTab="blacklist" />
+            )}
+
+            {activeTab === 'verified' && <TokenVerificationManager />}
 
             {activeTab === 'users' && <UserManager />}
 

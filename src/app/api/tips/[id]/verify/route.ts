@@ -75,14 +75,8 @@ export const POST = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: N
     // 5. Check if transaction is successful
 
     const updateData: any = {
-      status,
-      updatedAt: new Date()
+      status
     }
-
-    // Add blockchain data if provided
-    if (blockNumber) updateData.blockNumber = blockNumber
-    if (gasUsed) updateData.gasUsed = gasUsed
-    if (blockTimestamp) updateData.blockTimestamp = new Date(blockTimestamp * 1000)
 
     // Update tip status
     const updatedTip = await prisma.tip.update({
@@ -138,15 +132,11 @@ export const POST = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: N
         where: {
           fromUserId: tip.fromUserId,
           toUserId: tip.toUserId,
-          type: 'TIP',
-          metadata: {
-            contains: `"tipId":"${tipId}"`
-          }
+          type: 'TIP'
         },
         data: {
           title: 'Tip Failed',
-          message: `Tip of ${tip.amount} ${tip.token.symbol} could not be processed`,
-          updatedAt: new Date()
+          content: `Tip of ${tip.amount} ${tip.token.symbol} could not be processed`
         }
       })
     } else if (status === 'COMPLETED') {
@@ -155,15 +145,11 @@ export const POST = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: N
         where: {
           fromUserId: tip.fromUserId,
           toUserId: tip.toUserId,
-          type: 'TIP',
-          metadata: {
-            contains: `"tipId":"${tipId}"`
-          }
+          type: 'TIP'
         },
         data: {
           title: 'Tip Confirmed',
-          message: `${tip.fromUser.displayName} sent you ${tip.amount} ${tip.token.symbol}${tip.message ? `: "${tip.message}"` : ''} - Transaction confirmed!`,
-          updatedAt: new Date()
+          content: `${tip.fromUser.displayName} sent you ${tip.amount} ${tip.token.symbol}${tip.message ? `: "${tip.message}"` : ''} - Transaction confirmed!`
         }
       })
     }

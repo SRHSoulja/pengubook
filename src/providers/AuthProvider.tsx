@@ -12,11 +12,14 @@ interface User {
   walletAddress: string
   bio?: string
   avatar?: string
+  avatarSource?: string
   level: number
   isAdmin: boolean
   isBanned: boolean
   discordName?: string
+  discordAvatar?: string
   twitterHandle?: string
+  twitterAvatar?: string
   profile?: any
 }
 

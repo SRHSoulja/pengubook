@@ -122,6 +122,11 @@ export interface Post {
     comments: number
     shares: number
   }
+  contentFilter?: {
+    shouldHide: boolean
+    shouldWarn: boolean
+    matchedPhrases: string[]
+  }
 }
 
 export interface Comment {
@@ -139,6 +144,11 @@ export interface Comment {
   parent?: Comment
   replies?: Comment[]
   likes?: Like[]
+  contentFilter?: {
+    shouldHide: boolean
+    shouldWarn: boolean
+    matchedPhrases: string[]
+  }
 }
 
 export interface Like {

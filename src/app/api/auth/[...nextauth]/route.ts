@@ -92,6 +92,7 @@ const handler = NextAuth({
       const provider = token.provider || (token.account as any)?.provider
       const providerAccountId = token.providerAccountId || (token.account as any)?.providerAccountId
       const accessToken = token.accessToken || (token.account as any)?.accessToken
+      const avatarUrl = token.avatarUrl || (token.account as any)?.avatarUrl
 
       if (session.user && (provider || token.account)) {
         // Pass OAuth info to the session
@@ -100,6 +101,7 @@ const handler = NextAuth({
         ;(session.user as any).providerAccountId = providerAccountId
         ;(session.user as any).accessToken = accessToken
         ;(session.user as any).actualUsername = token.actualUsername || (token.account as any)?.actualUsername
+        ;(session.user as any).avatarUrl = avatarUrl
 
         // Always log session creation for production debugging
         console.log('[NextAuth] Session callback with OAuth data:', {
@@ -126,12 +128,18 @@ const handler = NextAuth({
       if (account) {
         // Extract the actual username/handle based on provider
         let actualUsername = user?.name || 'Unknown'
+        let avatarUrl = user?.image || ''
+
         if (account.provider === 'twitter') {
           // Twitter gives us username in profile.data.username (X API v2)
           actualUsername = (profile as any)?.data?.username || (profile as any)?.username || (profile as any)?.screen_name || user?.name
+          // Twitter profile image (X API v2)
+          avatarUrl = (profile as any)?.data?.profile_image_url || user?.image || ''
         } else if (account.provider === 'discord') {
           // Discord username is in profile.username
           actualUsername = (profile as any)?.username || user?.name
+          // Discord avatar URL
+          avatarUrl = (profile as any)?.image_url || user?.image || ''
         }
 
         // Fresh login - store the OAuth account data
@@ -139,13 +147,15 @@ const handler = NextAuth({
         token.providerAccountId = account.providerAccountId
         token.accessToken = account.access_token
         token.actualUsername = actualUsername
+        token.avatarUrl = avatarUrl
 
         // Also store in nested object for backwards compatibility
         token.account = {
           provider: account.provider,
           providerAccountId: account.providerAccountId,
           accessToken: account.access_token,
-          actualUsername: actualUsername
+          actualUsername: actualUsername,
+          avatarUrl: avatarUrl
         }
 
         // Always log JWT creation for production debugging
@@ -155,6 +165,18 @@ const handler = NextAuth({
           providerAccountId: account.providerAccountId?.slice(0, 10) + '...',
           actualUsername,
           displayName: user?.name,
+          avatarUrl,
+          userImage: user?.image,
+          profileData: profile ? {
+            discord: account.provider === 'discord' ? {
+              avatar: (profile as any)?.avatar,
+              image_url: (profile as any)?.image_url
+            } : null,
+            twitter: account.provider === 'twitter' ? {
+              profile_image_url: (profile as any)?.data?.profile_image_url,
+              profile_image: (profile as any)?.profile_image_url
+            } : null
+          } : null,
           hasAccessToken: !!account.access_token,
           hasRefreshToken: !!account.refresh_token,
           scope: account.scope,

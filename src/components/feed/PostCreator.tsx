@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { PostType, Visibility, PostCreateRequest } from '@/types'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
+import GiphyPicker from '@/components/GiphyPicker'
 
 interface PostCreatorProps {
   onPostCreated?: (post: any) => void
@@ -17,6 +18,7 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
   const [mediaUrls, setMediaUrls] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [mediaInput, setMediaInput] = useState('')
+  const [showGiphyPicker, setShowGiphyPicker] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,6 +86,14 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
     }
   }
 
+  const handleGifSelect = (gifUrl: string) => {
+    setMediaUrls([...mediaUrls, gifUrl])
+    setShowGiphyPicker(false)
+    if (contentType === 'TEXT') {
+      setContentType('IMAGE')
+    }
+  }
+
   return (
     <div className={`bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 ${className}`}>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -138,6 +148,13 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
                 className="bg-cyan-500 text-white px-4 py-2 rounded-lg hover:bg-cyan-600 transition-colors"
               >
                 Add
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowGiphyPicker(true)}
+                className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2"
+              >
+                🎭 GIF
               </button>
             </div>
           </div>
@@ -197,6 +214,13 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
           </button>
         </div>
       </form>
+
+      {/* Giphy Picker Modal */}
+      <GiphyPicker
+        isOpen={showGiphyPicker}
+        onClose={() => setShowGiphyPicker(false)}
+        onSelect={handleGifSelect}
+      />
     </div>
   )
 }

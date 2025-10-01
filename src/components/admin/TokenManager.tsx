@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAbstractClient } from '@abstract-foundation/agw-react'
 
 interface Token {
   id: string
@@ -13,11 +14,14 @@ interface Token {
 }
 
 export default function TokenManager() {
+  const { data: client } = useAbstractClient()
   const [tokens, setTokens] = useState<Token[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingToken, setEditingToken] = useState<Token | null>(null)
   const [newToken, setNewToken] = useState({
     name: '',
     symbol: '',
@@ -57,6 +61,7 @@ export default function TokenManager() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-wallet-address': client?.account?.address || ''
         },
         body: JSON.stringify(newToken)
       })
@@ -88,6 +93,7 @@ export default function TokenManager() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'x-wallet-address': client?.account?.address || ''
         },
         body: JSON.stringify({ isEnabled: !token.isEnabled })
       })
@@ -114,7 +120,10 @@ export default function TokenManager() {
 
     try {
       const response = await fetch(`/api/tokens/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'x-wallet-address': client?.account?.address || ''
+        }
       })
 
       const data = await response.json()
@@ -127,6 +136,48 @@ export default function TokenManager() {
     } catch (err) {
       setError('Error removing token')
       console.error('Error removing token:', err)
+    }
+  }
+
+  const openEditModal = (token: Token) => {
+    setEditingToken(token)
+    setShowEditModal(true)
+  }
+
+  const handleUpdateToken = async () => {
+    if (!editingToken) return
+
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/tokens/${editingToken.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': client?.account?.address || ''
+        },
+        body: JSON.stringify({
+          name: editingToken.name,
+          logoUrl: editingToken.logoUrl
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setTokens(tokens.map(t =>
+          t.id === editingToken.id ? { ...t, name: editingToken.name, logoUrl: editingToken.logoUrl } : t
+        ))
+        setShowEditModal(false)
+        setEditingToken(null)
+        setError('')
+      } else {
+        setError(data.error || 'Failed to update token')
+      }
+    } catch (err) {
+      setError('Error updating token')
+      console.error('Error updating token:', err)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -174,12 +225,20 @@ export default function TokenManager() {
                 <tr key={token.id} className="border-b border-white/10">
                   <td className="py-3">
                     {token.logoUrl ? (
-                      <img src={token.logoUrl} alt={token.symbol} className="w-8 h-8 rounded-full" />
-                    ) : (
-                      <div className="w-8 h-8 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                        {token.symbol.charAt(0)}
-                      </div>
-                    )}
+                      <img
+                        src={token.logoUrl}
+                        alt={token.symbol}
+                        className="w-8 h-8 rounded-full"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                          target.nextElementSibling?.classList.remove('hidden')
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-8 h-8 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold ${token.logoUrl ? 'hidden' : ''}`}>
+                      {token.symbol.charAt(0)}
+                    </div>
                   </td>
                   <td className="py-3 text-white">{token.name}</td>
                   <td className="py-3 text-cyan-400 font-bold">{token.symbol}</td>
@@ -196,7 +255,15 @@ export default function TokenManager() {
                       {token.isEnabled ? 'Enabled' : 'Disabled'}
                     </span>
                   </td>
-                  <td className="py-3 space-x-2">
+                  <td className="py-3">
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => openEditModal(token)}
+                      disabled={loading}
+                      className="px-3 py-1 bg-blue-500/20 text-blue-300 border border-blue-500/50 rounded text-sm hover:bg-blue-500/30 transition-colors"
+                    >
+                      Edit
+                    </button>
                     <button
                       onClick={() => toggleTokenStatus(token.id)}
                       disabled={loading}
@@ -215,6 +282,7 @@ export default function TokenManager() {
                     >
                       Remove
                     </button>
+                  </div>
                   </td>
                 </tr>
               ))}
@@ -312,6 +380,65 @@ export default function TokenManager() {
                 className="flex-1 bg-cyan-500 text-white py-2 rounded-lg hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? 'Adding...' : 'Add Token'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && editingToken && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-black/90 backdrop-blur-lg border border-white/20 rounded-2xl p-6 w-96 max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-white">Edit Token</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-300">Token Name</label>
+                <input
+                  type="text"
+                  value={editingToken.name}
+                  onChange={(e) => setEditingToken({...editingToken, name: e.target.value})}
+                  className="w-full bg-black/30 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400"
+                  placeholder="e.g., Dai Stablecoin"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-300">Logo URL (Optional)</label>
+                <input
+                  type="url"
+                  value={editingToken.logoUrl || ''}
+                  onChange={(e) => setEditingToken({...editingToken, logoUrl: e.target.value})}
+                  className="w-full bg-black/30 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400"
+                  placeholder="https://example.com/logo.png"
+                />
+              </div>
+
+              <div className="text-xs text-gray-400">
+                <p><strong>Symbol:</strong> {editingToken.symbol}</p>
+                <p><strong>Contract:</strong> {editingToken.contractAddress}</p>
+                <p><strong>Decimals:</strong> {editingToken.decimals}</p>
+              </div>
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowEditModal(false)
+                  setEditingToken(null)
+                  setError('')
+                }}
+                className="flex-1 bg-gray-500/20 text-gray-300 border border-gray-500/50 py-2 rounded-lg hover:bg-gray-500/30 transition-colors"
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateToken}
+                disabled={!editingToken.name || loading}
+                className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? 'Updating...' : 'Update Token'}
               </button>
             </div>
           </div>

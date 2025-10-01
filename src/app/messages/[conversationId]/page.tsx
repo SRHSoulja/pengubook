@@ -2,15 +2,18 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useWebSocket } from '@/hooks/useWebSocket'
 import Navbar from '@/components/Navbar'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
+import GiphyPicker from '@/components/GiphyPicker'
+import { getEffectiveAvatar, getAvatarFallback } from '@/lib/avatar-utils'
 import Link from 'next/link'
 
 interface Message {
   id: string
   content: string
   messageType: string
-  mediaUrls: string
+  mediaUrls: string[]
   createdAt: string
   sender: {
     id: string
@@ -30,7 +33,22 @@ export default function ConversationPage({ params }: ConversationPageProps) {
   const [loading, setLoading] = useState(true)
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
+  const [showGiphyPicker, setShowGiphyPicker] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Initialize WebSocket for real-time messaging
+  const {
+    isConnected,
+    sendMessage: sendWebSocketMessage,
+    startTyping,
+    stopTyping,
+    typingUsers,
+    onlineUsers,
+    joinConversation
+  } = useWebSocket({
+    autoConnect: true,
+    conversationId: params.conversationId
+  })
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -41,6 +59,38 @@ export default function ConversationPage({ params }: ConversationPageProps) {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Listen for real-time message events
+  useEffect(() => {
+    const handleNewMessage = (event: CustomEvent) => {
+      const { conversationId, message } = event.detail
+      if (conversationId === params.conversationId) {
+        setMessages(prev => [...(prev || []), message])
+      }
+    }
+
+    const handleMessagesRead = (event: CustomEvent) => {
+      const { conversationId, messageIds } = event.detail
+      if (conversationId === params.conversationId) {
+        setMessages(prev =>
+          (prev || []).map(msg =>
+            messageIds.includes(msg.id)
+              ? { ...msg, isRead: true }
+              : msg
+          )
+        )
+      }
+    }
+
+    // Add event listeners
+    window.addEventListener('new-message', handleNewMessage as EventListener)
+    window.addEventListener('messages-read', handleMessagesRead as EventListener)
+
+    return () => {
+      window.removeEventListener('new-message', handleNewMessage as EventListener)
+      window.removeEventListener('messages-read', handleMessagesRead as EventListener)
+    }
+  }, [params.conversationId])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -58,7 +108,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
 
       const result = await response.json()
       if (result.success) {
-        setMessages(result.data)
+        setMessages(result.messages || [])
       } else {
         console.error('Failed to fetch messages:', result.error)
       }
@@ -69,31 +119,40 @@ export default function ConversationPage({ params }: ConversationPageProps) {
     }
   }
 
-  const sendMessage = async (e: React.FormEvent) => {
+  const sendMessage = async (e: React.FormEvent, messageType = 'TEXT', mediaUrls: string[] = []) => {
     e.preventDefault()
-    if (!newMessage.trim() || !user?.walletAddress || sending) return
+    if ((!newMessage.trim() && mediaUrls.length === 0) || sending) return
 
     setSending(true)
 
     try {
-      const response = await fetch(`/api/messages/${params.conversationId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': user.walletAddress
-        },
-        body: JSON.stringify({
-          content: newMessage.trim()
-        })
-      })
-
-      const result = await response.json()
-      if (result.success) {
-        setMessages(prev => [...prev, result.data])
+      if (isConnected) {
+        // Use WebSocket for real-time messaging
+        sendWebSocketMessage(params.conversationId, newMessage.trim(), messageType, mediaUrls)
         setNewMessage('')
       } else {
-        console.error('Failed to send message:', result.error)
-        alert('Failed to send message')
+        // Fallback to HTTP if WebSocket not connected
+        const response = await fetch(`/api/messages/${params.conversationId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-wallet-address': user.walletAddress
+          },
+          body: JSON.stringify({
+            content: newMessage.trim() || 'GIF',
+            messageType,
+            mediaUrls
+          })
+        })
+
+        const result = await response.json()
+        if (result.success) {
+          setMessages(prev => [...(prev || []), result.message])
+          setNewMessage('')
+        } else {
+          console.error('Failed to send message:', result.error)
+          alert('Failed to send message')
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error)
@@ -101,6 +160,11 @@ export default function ConversationPage({ params }: ConversationPageProps) {
     } finally {
       setSending(false)
     }
+  }
+
+  const handleGifSelect = (gifUrl: string) => {
+    sendMessage({ preventDefault: () => {} } as React.FormEvent, 'GIF', [gifUrl])
+    setShowGiphyPicker(false)
   }
 
   const formatMessageTime = (dateString: string) => {
@@ -147,7 +211,15 @@ export default function ConversationPage({ params }: ConversationPageProps) {
             >
               ← Back to Messages
             </Link>
-            <h1 className="text-2xl font-bold text-white">Conversation</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold text-white">Conversation</h1>
+              <div className="flex items-center space-x-2">
+                <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
+                <span className="text-sm text-gray-300">
+                  {isConnected ? 'Connected' : 'Offline'}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Messages Container */}
@@ -159,13 +231,13 @@ export default function ConversationPage({ params }: ConversationPageProps) {
                   <div className="text-4xl mb-4">🔄</div>
                   <p>Loading messages...</p>
                 </div>
-              ) : messages.length === 0 ? (
+              ) : !messages || messages.length === 0 ? (
                 <div className="text-center text-white py-12">
                   <div className="text-4xl mb-4">💬</div>
                   <p>No messages yet. Start the conversation!</p>
                 </div>
               ) : (
-                messages.map((message) => (
+                (messages || []).map((message) => (
                   <div
                     key={message.id}
                     className={`flex ${message.sender.id === user?.id ? 'justify-end' : 'justify-start'}`}
@@ -181,21 +253,38 @@ export default function ConversationPage({ params }: ConversationPageProps) {
                         {message.sender.id !== user?.id && (
                           <div className="flex items-center space-x-2 mb-2">
                             <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-xs font-bold text-white">
-                              {message.sender.avatar ? (
+                              {getEffectiveAvatar(message.sender) ? (
                                 <img
-                                  src={message.sender.avatar}
-                                  alt={message.sender.displayName}
+                                  src={getEffectiveAvatar(message.sender)!}
+                                  alt={message.sender.displayName || message.sender.username}
                                   className="w-full h-full rounded-full object-cover"
                                 />
                               ) : (
-                                message.sender.displayName.charAt(0)
+                                getAvatarFallback(message.sender)
                               )}
                             </div>
-                            <span className="text-xs font-medium">{message.sender.displayName}</span>
+                            <span className="text-xs font-medium">{message.sender.displayName || message.sender.username}</span>
                           </div>
                         )}
 
-                        <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                        {message.messageType === 'GIF' && message.mediaUrls?.length > 0 ? (
+                          <div className="space-y-2">
+                            {message.mediaUrls.map((url: string, index: number) => (
+                              <img
+                                key={index}
+                                src={url}
+                                alt="GIF"
+                                className="max-w-xs rounded-lg"
+                                style={{ maxHeight: '200px', width: 'auto' }}
+                              />
+                            ))}
+                            {message.content && message.content !== 'GIF' && (
+                              <p className="whitespace-pre-wrap break-words text-sm mt-2">{message.content}</p>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                        )}
 
                         <div className={`text-xs mt-2 ${message.sender.id === user?.id ? 'text-cyan-100' : 'text-gray-300'}`}>
                           {formatMessageTime(message.createdAt)}
@@ -205,15 +294,52 @@ export default function ConversationPage({ params }: ConversationPageProps) {
                   </div>
                 ))
               )}
+
+              {/* Typing Indicators */}
+              {typingUsers.length > 0 && (
+                <div className="flex items-center space-x-2 text-gray-300 text-sm italic px-4 py-2">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                  <span>Someone is typing...</span>
+                </div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
 
             {/* Message Input */}
-            <form onSubmit={sendMessage} className="flex space-x-4 border-t border-white/10 pt-4">
+            <form onSubmit={sendMessage} className="flex space-x-2 border-t border-white/10 pt-4">
+              <button
+                type="button"
+                onClick={() => setShowGiphyPicker(true)}
+                className="px-4 py-3 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition-colors flex-shrink-0"
+                disabled={sending}
+              >
+                🎭
+              </button>
               <input
                 type="text"
                 value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
+                onChange={(e) => {
+                  setNewMessage(e.target.value)
+                  if (isConnected && e.target.value.trim()) {
+                    startTyping(params.conversationId)
+                  }
+                }}
+                onBlur={() => {
+                  if (isConnected) {
+                    stopTyping(params.conversationId)
+                  }
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    sendMessage(e as any)
+                  }
+                }}
                 placeholder="Type your message..."
                 className="flex-1 bg-white/10 text-white placeholder-gray-300 rounded-xl px-4 py-3 border border-white/20 outline-none focus:border-cyan-400"
                 maxLength={1000}
@@ -234,6 +360,13 @@ export default function ConversationPage({ params }: ConversationPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Giphy Picker Modal */}
+      <GiphyPicker
+        isOpen={showGiphyPicker}
+        onSelect={handleGifSelect}
+        onClose={() => setShowGiphyPicker(false)}
+      />
     </div>
   )
 }

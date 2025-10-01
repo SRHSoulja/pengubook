@@ -300,14 +300,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
         toUserId: validToUserId,
         type: 'TIP',
         title: 'New Tip Received',
-        message: `${user.displayName} sent you ${validAmount} ${token.symbol}${validMessage ? `: "${validMessage}"` : ''}`,
-        metadata: JSON.stringify({
-          tipId: newTip.id,
-          amount: validAmount,
-          tokenSymbol: token.symbol,
-          transactionHash: validTxHash,
-          message: validMessage
-        })
+        content: `${user.displayName} sent you ${validAmount} ${token.symbol}${validMessage ? `: "${validMessage}"` : ''}`
       }
     })
 

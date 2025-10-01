@@ -4,31 +4,29 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import Navbar from '@/components/Navbar'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
+import { getEffectiveAvatar, getAvatarFallback } from '@/lib/avatar-utils'
 import Link from 'next/link'
 
 interface Conversation {
   id: string
-  participants: string
-  isGroup: boolean
-  groupName?: string
-  groupAvatar?: string
-  groupDescription?: string
-  createdBy?: string
-  adminIds: string[]
-  lastMessageAt: string | null
-  createdAt: string
+  participants: {
+    id: string
+    username: string
+    displayName: string
+    avatar: string | null
+  }[]
   otherParticipants: {
     id: string
     username: string
     displayName: string
     avatar: string | null
   }[]
-  allParticipants: {
-    id: string
-    username: string
-    displayName: string
-    avatar: string | null
-  }[]
+  isGroup: boolean
+  groupName?: string
+  groupAvatar?: string
+  groupDescription?: string
+  createdBy?: string
+  adminIds: string[]
   lastMessage: {
     id: string
     content: string
@@ -39,10 +37,10 @@ interface Conversation {
       displayName: string
     }
   } | null
+  lastMessageAt: string | null
   unreadCount: number
-  displayName: string
-  displayAvatar?: string
-  memberCount: number
+  createdAt: string
+  updatedAt: string
 }
 
 export default function MessagesPage() {
@@ -103,14 +101,14 @@ export default function MessagesPage() {
           'Authorization': `Bearer ${sessionToken}`,
           'x-wallet-address': user.walletAddress
         },
-        body: JSON.stringify({ targetUserId })
+        body: JSON.stringify({ participantIds: [targetUserId] })
       })
 
       const result = await response.json()
       if (result.success) {
         fetchConversations() // Refresh conversations list
         // Navigate to the conversation
-        window.location.href = `/messages/${result.data.id}`
+        window.location.href = `/messages/${result.conversation.id}`
       }
     } catch (error) {
       console.error('Error starting conversation:', error)
@@ -201,10 +199,10 @@ export default function MessagesPage() {
                         <div className="relative w-14 h-14 flex-shrink-0">
                           {conversation.isGroup ? (
                             <div className="w-14 h-14 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl flex items-center justify-center text-xl font-bold text-white">
-                              {conversation.displayAvatar ? (
+                              {conversation.groupAvatar ? (
                                 <img
-                                  src={conversation.displayAvatar}
-                                  alt={conversation.displayName}
+                                  src={conversation.groupAvatar}
+                                  alt={conversation.groupName || 'Group'}
                                   className="w-full h-full rounded-xl object-cover"
                                 />
                               ) : (
@@ -213,21 +211,21 @@ export default function MessagesPage() {
                             </div>
                           ) : (
                             <div className="w-14 h-14 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-xl font-bold text-white">
-                              {conversation.displayAvatar ? (
+                              {getEffectiveAvatar(conversation.otherParticipants[0]) ? (
                                 <img
-                                  src={conversation.displayAvatar}
-                                  alt={conversation.displayName}
+                                  src={getEffectiveAvatar(conversation.otherParticipants[0])!}
+                                  alt={conversation.otherParticipants[0]?.displayName || conversation.otherParticipants[0]?.username}
                                   className="w-full h-full rounded-xl object-cover"
                                 />
                               ) : (
-                                conversation.displayName?.charAt(0) || '🐧'
+                                getAvatarFallback(conversation.otherParticipants[0])
                               )}
                             </div>
                           )}
                           {/* Group indicator */}
                           {conversation.isGroup && (
                             <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-xs">
-                              {conversation.memberCount}
+                              {conversation.participants.length}
                             </div>
                           )}
                         </div>
@@ -237,7 +235,9 @@ export default function MessagesPage() {
                           <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-2">
                               <h3 className="text-lg font-bold text-white truncate">
-                                {conversation.displayName}
+                                {conversation.isGroup
+                                  ? conversation.groupName
+                                  : conversation.otherParticipants[0]?.displayName || conversation.otherParticipants[0]?.username || 'Unknown User'}
                               </h3>
                               {conversation.isGroup && (
                                 <span className="text-purple-300 text-xs">GROUP</span>
@@ -252,7 +252,7 @@ export default function MessagesPage() {
 
                           <p className="text-gray-300 text-sm mb-2">
                             {conversation.isGroup
-                              ? `${conversation.memberCount} members`
+                              ? `${conversation.participants.length} members`
                               : `@${conversation.otherParticipants.map(p => p.username).join(', ')}`
                             }
                           </p>

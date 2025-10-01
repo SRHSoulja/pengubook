@@ -108,11 +108,14 @@ export async function GET(request: NextRequest) {
         walletAddress: user.walletAddress || '',
         bio: user.bio || '',
         avatar: user.avatar || user.image || '',
+        avatarSource: user.avatarSource || 'default',
         level: user.level,
         isAdmin: user.isAdmin,
         isBanned: user.isBanned,
         discordName: user.discordName,
+        discordAvatar: user.discordAvatar,
         twitterHandle: user.twitterHandle,
+        twitterAvatar: user.twitterAvatar,
         discordId: user.discordId,
         twitterId: user.twitterId,
         profile: user.profile
@@ -141,7 +144,7 @@ export async function PUT(request: NextRequest) {
     const prisma = new PrismaClient()
 
     const body = await request.json()
-    const { walletAddress, displayName, username, bio, interests } = body
+    const { walletAddress, displayName, username, bio, interests, avatarSource } = body
 
     console.log('[UserProfile] Update request:', {
       walletAddress: walletAddress?.slice(0, 10) + '...',
@@ -177,6 +180,7 @@ export async function PUT(request: NextRequest) {
     if (displayName !== undefined) updateData.displayName = displayName
     if (username !== undefined) updateData.username = username
     if (bio !== undefined) updateData.bio = bio
+    if (avatarSource !== undefined) updateData.avatarSource = avatarSource
 
     console.log('[UserProfile] Updating user with data:', {
       updateData,
@@ -230,11 +234,14 @@ export async function PUT(request: NextRequest) {
           walletAddress: userWithProfile!.walletAddress,
           bio: userWithProfile!.bio,
           avatar: userWithProfile!.avatar,
+          avatarSource: userWithProfile!.avatarSource || 'default',
           level: userWithProfile!.level,
           isAdmin: userWithProfile!.isAdmin,
           isBanned: userWithProfile!.isBanned,
           discordName: userWithProfile!.discordName,
+          discordAvatar: userWithProfile!.discordAvatar,
           twitterHandle: userWithProfile!.twitterHandle,
+          twitterAvatar: userWithProfile!.twitterAvatar,
           profile: userWithProfile!.profile
         }
       })
@@ -258,11 +265,14 @@ export async function PUT(request: NextRequest) {
         walletAddress: updatedUser.walletAddress,
         bio: updatedUser.bio,
         avatar: updatedUser.avatar,
+        avatarSource: updatedUser.avatarSource || 'default',
         level: updatedUser.level,
         isAdmin: updatedUser.isAdmin,
         isBanned: updatedUser.isBanned,
         discordName: updatedUser.discordName,
+        discordAvatar: updatedUser.discordAvatar,
         twitterHandle: updatedUser.twitterHandle,
+        twitterAvatar: updatedUser.twitterAvatar,
         profile: updatedUser.profile
       }
     })

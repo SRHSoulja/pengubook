@@ -1,7 +1,101 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { detectMediaType, getYouTubeEmbedUrl, isYouTubeUrl, getGiphyEmbedUrl, isGiphyUrl } from '@/lib/media-utils'
+
+// Function to extract URLs from content
+function extractUrlsFromContent(content: string): string[] {
+  const urlRegex = /(https?:\/\/[^\s]+)/g
+  const matches = content.match(urlRegex)
+  return matches || []
+}
+
+// Function to render content with YouTube and Giphy embeds
+function renderContentWithEmbeds(content: string): JSX.Element {
+  const urls = extractUrlsFromContent(content)
+  const mediaUrls = urls.filter(url => isYouTubeUrl(url) || isGiphyUrl(url))
+
+  if (mediaUrls.length === 0) {
+    return (
+      <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">
+        {content}
+      </p>
+    )
+  }
+
+  // Split content and embed media
+  let remainingContent = content
+  const elements: JSX.Element[] = []
+
+  mediaUrls.forEach((url, index) => {
+    const urlIndex = remainingContent.indexOf(url)
+    if (urlIndex !== -1) {
+      // Add text before the URL
+      if (urlIndex > 0) {
+        const textBefore = remainingContent.substring(0, urlIndex)
+        elements.push(
+          <p key={`text-before-${index}`} className="text-gray-200 whitespace-pre-wrap leading-relaxed">
+            {textBefore}
+          </p>
+        )
+      }
+
+      // Add YouTube embed
+      if (isYouTubeUrl(url)) {
+        const embedUrl = getYouTubeEmbedUrl(url)
+        if (embedUrl) {
+          elements.push(
+            <div key={`youtube-${index}`} className="my-4">
+              <iframe
+                src={embedUrl}
+                width="100%"
+                height="315"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="rounded-lg"
+              ></iframe>
+            </div>
+          )
+        }
+      }
+
+      // Add Giphy embed
+      else if (isGiphyUrl(url)) {
+        const embedUrl = getGiphyEmbedUrl(url)
+        if (embedUrl) {
+          elements.push(
+            <div key={`giphy-${index}`} className="my-4">
+              <iframe
+                src={embedUrl}
+                width="100%"
+                height="270"
+                frameBorder="0"
+                className="rounded-lg"
+                allowFullScreen
+              ></iframe>
+            </div>
+          )
+        }
+      }
+
+      // Update remaining content
+      remainingContent = remainingContent.substring(urlIndex + url.length)
+    }
+  })
+
+  // Add any remaining text
+  if (remainingContent.trim()) {
+    elements.push(
+      <p key="remaining-text" className="text-gray-200 whitespace-pre-wrap leading-relaxed">
+        {remainingContent}
+      </p>
+    )
+  }
+
+  return <div>{elements}</div>
+}
 
 interface Post {
   id: string
@@ -12,7 +106,9 @@ interface Post {
   isPinned: boolean
   likesCount: number
   commentsCount: number
+  sharesCount: number
   isLiked: boolean
+  isShared: boolean
   createdAt: string
   updatedAt: string
   author: {
@@ -33,6 +129,20 @@ interface Post {
   }
 }
 
+interface PostEdit {
+  id: string
+  previousContent: string
+  newContent: string
+  editedAt: string
+  editor: {
+    id: string
+    username: string
+    displayName: string
+    avatar: string
+    isAdmin: boolean
+  }
+}
+
 interface SocialFeedProps {
   userId?: string
   communityId?: string
@@ -47,6 +157,12 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
   const [hasMore, setHasMore] = useState(true)
   const [editingPost, setEditingPost] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
+  const [viewingHistory, setViewingHistory] = useState<string | null>(null)
+  const [editHistory, setEditHistory] = useState<PostEdit[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
+  const [showShareMenu, setShowShareMenu] = useState<string | null>(null)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const shareMenuRef = useRef<HTMLDivElement>(null)
 
   // DEBUG: Log component mount and userId
   useEffect(() => {
@@ -56,6 +172,37 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
   useEffect(() => {
     fetchPosts(1, true)
   }, [userId, communityId, authorId])
+
+  // Load current user for X integration
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      if (userId) {
+        try {
+          const response = await fetch(`/api/users/${userId}`)
+          const result = await response.json()
+          if (result.success) {
+            setCurrentUser(result.user)
+          }
+        } catch (error) {
+          console.error('Error loading current user:', error)
+        }
+      }
+    }
+    loadCurrentUser()
+  }, [userId])
+
+  // Handle click outside to close share menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+        setShowShareMenu(null)
+      }
+    }
+    if (showShareMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showShareMenu])
 
   const fetchPosts = async (pageNum: number, reset = false) => {
     try {
@@ -81,7 +228,9 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
           isPinned: post.isPromoted || false,
           likesCount: post.stats?.likes || 0,
           commentsCount: post.stats?.comments || 0,
+          sharesCount: post.stats?.shares || 0,
           isLiked: false, // TODO: Implement user-specific like status
+          isShared: userId ? (post.shares || []).some((share: any) => share.userId === userId) : false,
           createdAt: new Date(post.createdAt).toISOString(),
           updatedAt: new Date(post.updatedAt).toISOString(),
           author: {
@@ -189,31 +338,95 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
     }
   }
 
-  const sharePost = async (post: Post) => {
-    const postUrl = `${window.location.origin}/posts/${post.id}`
+  const handleShare = async (postId: string) => {
+    if (!userId) return
 
-    // Try native Web Share API first
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${post.author.displayName}'s Post`,
-          text: post.content.slice(0, 100) + (post.content.length > 100 ? '...' : ''),
-          url: postUrl
-        })
-        return
-      } catch (error) {
-        // User cancelled or API not available, fall back to clipboard
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
       }
-    }
 
-    // Fallback to clipboard
+      // Add authentication headers
+      if (userId) {
+        headers['x-user-id'] = userId
+      }
+
+      const response = await fetch(`/api/posts/${postId}/interactions`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ action: 'share' }),
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Post shared successfully:', data)
+        alert('Post shared successfully!')
+
+        // Update local state to reflect the share
+        setPosts(prev => prev.map(post =>
+          post.id === postId
+            ? { ...post, isShared: true, sharesCount: post.sharesCount + 1 }
+            : post
+        ))
+      } else {
+        const errorData = await response.json()
+        alert(errorData.error || 'Failed to share post')
+      }
+    } catch (error) {
+      console.error('Failed to share post:', error)
+      alert('Failed to share post')
+    } finally {
+      setShowShareMenu(null)
+    }
+  }
+
+  const handleShareToX = (post: Post) => {
+    const postUrl = `${window.location.origin}/posts/${post.id}`
+    const text = `Check out this post by ${post.author.displayName}: "${post.content.slice(0, 100)}${post.content.length > 100 ? '...' : ''}"
+
+via @PenguBook`
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(postUrl)}`
+    window.open(twitterUrl, '_blank', 'width=550,height=420')
+    setShowShareMenu(null)
+  }
+
+  const handleCopyLink = async (post: Post) => {
+    const postUrl = `${window.location.origin}/posts/${post.id}`
     try {
       await navigator.clipboard.writeText(postUrl)
-      alert('Post link copied to clipboard!')
+      alert('Link copied to clipboard!')
     } catch (error) {
-      // Final fallback - show URL in alert
       alert(`Share this post: ${postUrl}`)
+    } finally {
+      setShowShareMenu(null)
     }
+  }
+
+  const viewEditHistory = async (postId: string) => {
+    setLoadingHistory(true)
+    setViewingHistory(postId)
+
+    try {
+      const response = await fetch(`/api/posts/${postId}/edits`)
+      if (response.ok) {
+        const data = await response.json()
+        setEditHistory(data.edits || [])
+      } else {
+        console.error('Failed to fetch edit history')
+        setEditHistory([])
+      }
+    } catch (error) {
+      console.error('Error fetching edit history:', error)
+      setEditHistory([])
+    } finally {
+      setLoadingHistory(false)
+    }
+  }
+
+  const closeEditHistory = () => {
+    setViewingHistory(null)
+    setEditHistory([])
   }
 
   const formatTimeAgo = (dateString: string) => {
@@ -321,16 +534,28 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
               </div>
             </Link>
 
-            {/* Edit Button for Post Owner */}
-            {userId && userId === post.author.id && (
+            {/* Post Actions */}
+            <div className="flex items-center gap-2">
+              {/* Edit History - Available for all posts */}
               <button
-                onClick={() => startEditing(post)}
-                className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
-                title="Edit post"
+                onClick={() => viewEditHistory(post.id)}
+                className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                title="View edit history"
               >
-                ✏️
+                📝
               </button>
-            )}
+
+              {/* Edit Button for Post Owner */}
+              {userId && userId === post.author.id && (
+                <button
+                  onClick={() => startEditing(post)}
+                  className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                  title="Edit post"
+                >
+                  ✏️
+                </button>
+              )}
+            </div>
             {/* Debug: Show user ID comparison */}
             {process.env.NODE_ENV === 'development' && (
               <div className="text-xs text-yellow-300 bg-black/20 p-1 rounded">
@@ -370,9 +595,7 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
                 </div>
               </div>
             ) : (
-              <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">
-                {post.content}
-              </p>
+              renderContentWithEmbeds(post.content)
             )}
           </div>
 
@@ -389,7 +612,8 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
                     key={index}
                     src={image}
                     alt=""
-                    className="w-full h-48 object-cover rounded-lg"
+                    className="w-full max-w-md mx-auto rounded-lg"
+                    style={{ height: 'auto' }}
                   />
                 ))}
               </div>
@@ -418,13 +642,97 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
               <span>{post.commentsCount}</span>
             </Link>
 
-            <button
-              onClick={() => sharePost(post)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
-            >
-              <span>🔄</span>
-              <span>Share</span>
-            </button>
+            {/* Share button with dropdown */}
+            <div className="relative" ref={showShareMenu === post.id ? shareMenuRef : null}>
+              <button
+                onClick={() => setShowShareMenu(showShareMenu === post.id ? null : post.id)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                  post.isShared
+                    ? 'bg-green-500/20 text-green-300'
+                    : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                }`}
+              >
+                <span>🔄</span>
+                <span>{post.sharesCount}</span>
+              </button>
+
+              {/* Share dropdown menu */}
+              {showShareMenu === post.id && (
+                <div className="absolute bottom-full left-0 mb-2 w-64 bg-gray-900/95 backdrop-blur-lg rounded-lg border border-white/20 shadow-xl z-[9999]">
+                  <div className="p-3 space-y-2">
+
+                    {/* Internal share */}
+                    <button
+                      onClick={() => handleShare(post.id)}
+                      disabled={post.isShared}
+                      className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all ${
+                        post.isShared
+                          ? 'bg-green-500/20 text-green-300 cursor-not-allowed'
+                          : 'hover:bg-white/10 text-white'
+                      }`}
+                    >
+                      <span className="text-lg">📤</span>
+                      <div className="text-left">
+                        <div className="font-medium">
+                          {post.isShared ? 'Already Shared' : 'Share Internally'}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {post.isShared ? 'You shared this post' : 'Share within PenguBook'}
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Share to X (Twitter) - only if user has linked X account */}
+                    {currentUser?.twitterHandle && (
+                      <button
+                        onClick={() => handleShareToX(post)}
+                        className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white/10 text-white transition-all"
+                      >
+                        <span className="text-lg">🐦</span>
+                        <div className="text-left">
+                          <div className="font-medium">Share to X</div>
+                          <div className="text-xs text-gray-400">Share to @{currentUser.twitterHandle}</div>
+                        </div>
+                      </button>
+                    )}
+
+                    {/* Copy link */}
+                    <button
+                      onClick={() => handleCopyLink(post)}
+                      className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white/10 text-white transition-all"
+                    >
+                      <span className="text-lg">🔗</span>
+                      <div className="text-left">
+                        <div className="font-medium">Copy Link</div>
+                        <div className="text-xs text-gray-400">Copy post URL to clipboard</div>
+                      </div>
+                    </button>
+
+                    {/* Share via Web Share API (if supported) */}
+                    {typeof navigator !== 'undefined' && navigator.share && (
+                      <button
+                        onClick={() => {
+                          const postUrl = `${window.location.origin}/posts/${post.id}`
+                          navigator.share({
+                            title: `Post by ${post.author.displayName}`,
+                            text: post.content,
+                            url: postUrl
+                          })
+                          setShowShareMenu(null)
+                        }}
+                        className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white/10 text-white transition-all"
+                      >
+                        <span className="text-lg">📱</span>
+                        <div className="text-left">
+                          <div className="font-medium">More Options</div>
+                          <div className="text-xs text-gray-400">Use system share menu</div>
+                        </div>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="flex-1"></div>
 
@@ -451,6 +759,74 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
         <div className="text-center text-white py-4">
           <div className="text-2xl mb-2">🔄</div>
           <p>Loading more posts...</p>
+        </div>
+      )}
+
+      {/* Edit History Modal */}
+      {viewingHistory && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div className="p-6 border-b border-white/20">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-white">📝 Edit History</h3>
+                <button
+                  onClick={closeEditHistory}
+                  className="text-gray-400 hover:text-white text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 max-h-96 overflow-y-auto">
+              {loadingHistory ? (
+                <div className="text-center text-white">
+                  <div className="text-2xl mb-2">⏳</div>
+                  <p>Loading edit history...</p>
+                </div>
+              ) : editHistory.length > 0 ? (
+                <div className="space-y-4">
+                  {editHistory.map((edit, index) => (
+                    <div key={edit.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-400">Edit #{editHistory.length - index}</span>
+                          <span className="text-xs text-gray-500">•</span>
+                          <span className="text-sm text-gray-400">
+                            {new Date(edit.editedAt).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          by {edit.editor.displayName}
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div>
+                          <div className="text-xs text-red-300 mb-1">- Previous:</div>
+                          <div className="bg-red-500/10 border border-red-500/20 rounded p-2 text-sm text-gray-200">
+                            {edit.previousContent}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-green-300 mb-1">+ New:</div>
+                          <div className="bg-green-500/10 border border-green-500/20 rounded p-2 text-sm text-gray-200">
+                            {edit.newContent}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-gray-400 py-8">
+                  <div className="text-4xl mb-4">📝</div>
+                  <p>No edit history</p>
+                  <p className="text-sm">This post hasn't been edited yet</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

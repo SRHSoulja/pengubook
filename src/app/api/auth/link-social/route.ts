@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { walletAddress, provider, providerAccountId, userName, actualUsername } = body
+    const { walletAddress, provider, providerAccountId, userName, actualUsername, avatarUrl } = body
 
     console.log('[LinkSocial] Request body:', {
       hasWalletAddress: !!walletAddress,
@@ -125,6 +125,9 @@ export async function POST(request: NextRequest) {
           const discordUsername = actualUsername || userName || `Discord User ${providerAccountId}`
           updateData.discordName = discordUsername
           updateData.discordId = providerAccountId
+          if (avatarUrl) {
+            updateData.discordAvatar = avatarUrl
+          }
         } else if (provider === 'twitter') {
           // For Twitter, use actualUsername (the @handle) if available
           let twitterHandle = actualUsername || userName || `TwitterUser${providerAccountId}`
@@ -135,11 +138,15 @@ export async function POST(request: NextRequest) {
           // Ensure it starts with @
           updateData.twitterHandle = twitterHandle.startsWith('@') ? twitterHandle : `@${twitterHandle}`
           updateData.twitterId = providerAccountId
+          if (avatarUrl) {
+            updateData.twitterAvatar = avatarUrl
+          }
 
           console.log('[LinkSocial] Twitter handle processing:', {
             originalUserName: userName,
             actualUsername,
             finalHandle: updateData.twitterHandle,
+            avatarUrl,
             timestamp: new Date().toISOString()
           })
         }

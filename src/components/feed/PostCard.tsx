@@ -1,9 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Post, PostInteractionRequest } from '@/types'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
 import TipButton from '@/components/TipButton'
+import BookmarkButton from '@/components/BookmarkButton'
+import ReportButton from '@/components/ReportButton'
+import FilteredContent from '@/components/FilteredContent'
+import { detectMediaType, getYouTubeEmbedUrl, isYouTubeUrl, getGiphyEmbedUrl, isGiphyUrl } from '@/lib/media-utils'
+import { getEffectiveAvatar, getAvatarFallback } from '@/lib/avatar-utils'
 
 interface PostCardProps {
   post: Post
@@ -12,10 +17,112 @@ interface PostCardProps {
   className?: string
 }
 
+function extractUrlsFromContent(content: string): string[] {
+  const urlRegex = /(https?:\/\/[^\s]+)/g
+  const matches = content.match(urlRegex)
+  return matches || []
+}
+
+function renderContentWithEmbeds(content: string): JSX.Element {
+  // Client-side only debug - UPDATED
+  if (typeof window !== 'undefined') {
+    console.log('🎬 CLIENT-SIDE: RENDER CONTENT WITH EMBEDS CALLED:', content)
+  }
+
+  const urls = extractUrlsFromContent(content)
+
+  if (typeof window !== 'undefined') {
+    console.log('🔗 CLIENT-SIDE: URLs extracted:', urls)
+  }
+
+  const mediaUrls = urls.filter(url => isYouTubeUrl(url) || isGiphyUrl(url))
+
+  if (mediaUrls.length === 0) {
+    return (
+      <p className="text-white text-lg leading-relaxed whitespace-pre-wrap">
+        {content}
+      </p>
+    )
+  }
+
+  // Split content and embed media
+  let remainingContent = content
+  const elements: JSX.Element[] = []
+
+  mediaUrls.forEach((url, index) => {
+    const urlIndex = remainingContent.indexOf(url)
+    if (urlIndex !== -1) {
+      // Add text before the URL
+      if (urlIndex > 0) {
+        const textBefore = remainingContent.substring(0, urlIndex)
+        elements.push(
+          <p key={`text-${index}`} className="text-white text-lg leading-relaxed whitespace-pre-wrap">
+            {textBefore}
+          </p>
+        )
+      }
+
+      // Add YouTube embed
+      if (isYouTubeUrl(url)) {
+        const embedUrl = getYouTubeEmbedUrl(url)
+        if (embedUrl) {
+          elements.push(
+            <div key={`youtube-${index}`} className="w-full aspect-video my-4">
+              <iframe
+                src={embedUrl}
+                className="w-full h-full rounded-lg"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={`YouTube video ${index + 1}`}
+              />
+            </div>
+          )
+        }
+      }
+
+      // Add Giphy embed
+      else if (isGiphyUrl(url)) {
+        const embedUrl = getGiphyEmbedUrl(url)
+        if (embedUrl) {
+          elements.push(
+            <div key={`giphy-${index}`} className="w-full my-4">
+              <iframe
+                src={embedUrl}
+                width="100%"
+                height="270"
+                className="rounded-lg"
+                allowFullScreen
+                title={`Giphy ${index + 1}`}
+              />
+            </div>
+          )
+        }
+      }
+
+      // Update remaining content
+      remainingContent = remainingContent.substring(urlIndex + url.length)
+    }
+  })
+
+  // Add any remaining text
+  if (remainingContent.trim()) {
+    elements.push(
+      <p key="text-end" className="text-white text-lg leading-relaxed whitespace-pre-wrap">
+        {remainingContent}
+      </p>
+    )
+  }
+
+  return <div>{elements}</div>
+}
+
 export default function PostCard({ post, currentUserId, onPostUpdate, className = '' }: PostCardProps) {
   const { data: client } = useAbstractClient()
   const [isShared, setIsShared] = useState(
     currentUserId ? post.shares?.some(share => share.userId === currentUserId) : false
+  )
+  const [isBookmarked, setIsBookmarked] = useState(
+    currentUserId ? (post as any).userInteractions?.hasBookmarked || false : false
   )
   const [commentsCount, setCommentsCount] = useState(post._count?.comments || 0)
   const [sharesCount, setSharesCount] = useState(post._count?.shares || 0)
@@ -25,6 +132,9 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
   const [newComment, setNewComment] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [isInteracting, setIsInteracting] = useState<string | null>(null)
+  const [showShareMenu, setShowShareMenu] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const shareMenuRef = useRef<HTMLDivElement>(null)
 
   const formatDate = (date: Date | string) => {
     const postDate = new Date(date)
@@ -69,7 +179,7 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
     }
   }
 
-  // Load initial reactions
+  // Load initial reactions and current user
   useEffect(() => {
     const loadReactions = async () => {
       try {
@@ -83,8 +193,37 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
       }
     }
 
+    const loadCurrentUser = async () => {
+      if (client?.account?.address) {
+        try {
+          const response = await fetch(`/api/users/profile?walletAddress=${client.account.address}`)
+          const result = await response.json()
+          if (result.success) {
+            setCurrentUser(result.user)
+          }
+        } catch (error) {
+          console.error('Error loading current user:', error)
+        }
+      }
+    }
+
     loadReactions()
-  }, [post.id])
+    loadCurrentUser()
+  }, [post.id, client?.account?.address])
+
+  // Handle click outside to close share menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+        setShowShareMenu(false)
+      }
+    }
+
+    if (showShareMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showShareMenu])
 
   const handleReaction = async (reactionType: string) => {
     if (!client?.account?.address || isInteracting) return
@@ -142,12 +281,42 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
       if (result.success) {
         setIsShared(true)
         setSharesCount(prev => prev + 1)
+        setShowShareMenu(false)
       }
     } catch (error) {
       console.error('Error sharing post:', error)
     } finally {
       setIsInteracting(null)
     }
+  }
+
+  const handleShareToX = () => {
+    const postUrl = `${window.location.origin}/posts/${post.id}`
+    const text = `Check out this post by ${post.author.displayName}: "${post.content.slice(0, 100)}${post.content.length > 100 ? '...' : ''}"
+
+via @PenguBook`
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(postUrl)}`
+    window.open(twitterUrl, '_blank', 'width=550,height=420')
+    setShowShareMenu(false)
+  }
+
+  const handleCopyLink = async () => {
+    const postUrl = `${window.location.origin}/posts/${post.id}`
+    try {
+      await navigator.clipboard.writeText(postUrl)
+      alert('Link copied to clipboard!')
+    } catch (error) {
+      console.error('Failed to copy link:', error)
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = postUrl
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      alert('Link copied to clipboard!')
+    }
+    setShowShareMenu(false)
   }
 
   const handleAddComment = async (e: React.FormEvent) => {
@@ -187,8 +356,8 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
       <div className="flex items-start space-x-4 mb-4">
         <div className="flex-shrink-0 relative">
           <div className="w-12 h-12 bg-gradient-to-r from-neon-cyan to-neon-purple rounded-full flex items-center justify-center overflow-hidden border-2 border-white/20 hover:border-neon-cyan/50 transition-colors">
-            {post.author.avatar ? (
-              <img src={post.author.avatar} alt={post.author.displayName} className="w-full h-full object-cover" />
+            {getEffectiveAvatar(post.author) ? (
+              <img src={getEffectiveAvatar(post.author)!} alt={post.author.displayName} className="w-full h-full object-cover" />
             ) : (
               <span className="text-xl animate-float">🐧</span>
             )}
@@ -225,33 +394,68 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
 
       {/* Post content */}
       <div className="mb-4">
-        <p className="text-white text-lg leading-relaxed whitespace-pre-wrap">
-          {post.content}
-        </p>
+        <FilteredContent
+          shouldWarn={post.contentFilter?.shouldWarn || false}
+          matchedPhrases={post.contentFilter?.matchedPhrases || []}
+          contentType="post"
+        >
+          {renderContentWithEmbeds(post.content)}
 
-        {/* Media attachments */}
-        {post.mediaUrls && post.mediaUrls.length > 0 && (
-          <div className="mt-4 space-y-2">
-            {post.mediaUrls.map((url, index) => (
-              <div key={index} className="rounded-lg overflow-hidden">
-                {post.contentType === 'VIDEO' ? (
-                  <video
-                    src={url}
-                    controls
-                    className="w-full max-h-96 object-cover"
-                    preload="metadata"
-                  />
-                ) : (
-                  <img
-                    src={url}
-                    alt={`Media ${index + 1}`}
-                    className="w-full max-h-96 object-cover"
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+          {/* Media attachments */}
+          {post.mediaUrls && post.mediaUrls.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {post.mediaUrls.map((url, index) => {
+                const mediaType = detectMediaType(url)
+
+                return (
+                  <div key={index} className="rounded-lg overflow-hidden">
+                    {mediaType === 'youtube' && (
+                      <div className="w-full aspect-video">
+                        <iframe
+                          src={getYouTubeEmbedUrl(url) || ''}
+                          className="w-full h-full rounded-lg"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          title={`YouTube video ${index + 1}`}
+                        />
+                      </div>
+                    )}
+
+                    {mediaType === 'video' && (
+                      <video
+                        src={url}
+                        controls
+                        className="w-full max-h-96 object-cover"
+                        preload="metadata"
+                      />
+                    )}
+
+                    {mediaType === 'image' && (
+                      <img
+                        src={url}
+                        alt={`Media ${index + 1}`}
+                        className="w-full max-h-96 object-cover"
+                      />
+                    )}
+
+                    {mediaType === 'link' && (
+                      <div className="bg-white/10 border border-white/20 rounded-lg p-4">
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-cyan-400 hover:text-cyan-300 break-all"
+                        >
+                          {url}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </FilteredContent>
       </div>
 
       {/* Engagement stats */}
@@ -294,19 +498,104 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
             <span className="font-medium">Comment</span>
           </button>
 
-          {/* Share button */}
-          <button
-            onClick={handleShare}
-            disabled={isInteracting === 'share' || isShared}
-            className={`cyber-button transition-all ${
-              isShared
-                ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-400/50 text-green-300'
-                : 'bg-gradient-to-r from-gray-500/20 to-gray-600/20 border-gray-400/50 text-gray-300 hover:text-green-300 hover:border-green-400/50'
-            }`}
-          >
-            <span className="hover:animate-float">{isShared ? '✅' : '🔄'}</span>
-            <span className="font-medium">{isShared ? 'Shared' : 'Share'}</span>
-          </button>
+          {/* Share button with dropdown */}
+          <div className="relative" ref={shareMenuRef}>
+            <button
+              onClick={() => setShowShareMenu(!showShareMenu)}
+              className="cyber-button bg-gradient-to-r from-gray-500/20 to-gray-600/20 border-gray-400/50 text-gray-300 hover:text-green-300 hover:border-green-400/50"
+            >
+              <span className="hover:animate-float">📤</span>
+              <span className="font-medium">Share</span>
+            </button>
+
+            {/* Share dropdown menu */}
+            {showShareMenu && (
+              <div className="absolute bottom-full left-0 mb-2 w-64 bg-gray-900/95 backdrop-blur-lg rounded-lg border border-white/20 shadow-xl z-[9999]">
+                <div className="p-3 space-y-2">
+                  {/* Internal share */}
+                  <button
+                    onClick={handleShare}
+                    disabled={isInteracting === 'share' || isShared}
+                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all ${
+                      isShared
+                        ? 'bg-green-500/20 text-green-300 cursor-not-allowed'
+                        : 'hover:bg-white/10 text-white'
+                    }`}
+                  >
+                    <span className="text-lg">{isShared ? '✅' : '🔄'}</span>
+                    <div className="text-left">
+                      <div className="font-medium">{isShared ? 'Shared to Feed' : 'Share to Feed'}</div>
+                      <div className="text-xs text-gray-400">Share within PenguBook</div>
+                    </div>
+                  </button>
+
+                  {/* Share to X (Twitter) - only if user has linked X account */}
+                  {currentUser?.twitterHandle && (
+                    <button
+                      onClick={handleShareToX}
+                      className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white/10 text-white transition-all"
+                    >
+                      <span className="text-lg">🐦</span>
+                      <div className="text-left">
+                        <div className="font-medium">Share to X</div>
+                        <div className="text-xs text-gray-400">Post to @{currentUser.twitterHandle}</div>
+                      </div>
+                    </button>
+                  )}
+
+                  {/* Copy link */}
+                  <button
+                    onClick={handleCopyLink}
+                    className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white/10 text-white transition-all"
+                  >
+                    <span className="text-lg">🔗</span>
+                    <div className="text-left">
+                      <div className="font-medium">Copy Link</div>
+                      <div className="text-xs text-gray-400">Copy post URL to clipboard</div>
+                    </div>
+                  </button>
+
+                  {/* Share via Web Share API (if supported) */}
+                  {typeof navigator !== 'undefined' && navigator.share && (
+                    <button
+                      onClick={() => {
+                        const postUrl = `${window.location.origin}/posts/${post.id}`
+                        navigator.share({
+                          title: `Post by ${post.author.displayName}`,
+                          text: post.content,
+                          url: postUrl
+                        })
+                        setShowShareMenu(false)
+                      }}
+                      className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-white/10 text-white transition-all"
+                    >
+                      <span className="text-lg">📱</span>
+                      <div className="text-left">
+                        <div className="font-medium">More Options</div>
+                        <div className="text-xs text-gray-400">Use system share menu</div>
+                      </div>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Bookmark button */}
+          <BookmarkButton
+            postId={post.id}
+            isBookmarked={isBookmarked}
+            onToggle={setIsBookmarked}
+            showLabel={true}
+          />
+
+          {/* Report button */}
+          <ReportButton
+            postId={post.id}
+            targetName={`Post by ${post.author.displayName}`}
+            size="md"
+            className="ml-2"
+          />
         </div>
 
         {/* Tip button */}
@@ -346,8 +635,8 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
             <div key={comment.id} className="flex space-x-3">
               <div className="flex-shrink-0">
                 <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center overflow-hidden">
-                  {(comment.user || comment.author)?.avatar ? (
-                    <img src={(comment.user || comment.author)?.avatar} alt={(comment.user || comment.author)?.displayName} className="w-full h-full object-cover" />
+                  {getEffectiveAvatar(comment.user || comment.author) ? (
+                    <img src={getEffectiveAvatar(comment.user || comment.author)!} alt={(comment.user || comment.author)?.displayName} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-sm">🐧</span>
                   )}
@@ -359,7 +648,13 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
                     <span className="font-medium text-white text-sm">{(comment.user || comment.author)?.displayName}</span>
                     <span className="text-xs text-gray-400">{formatDate(comment.createdAt)}</span>
                   </div>
-                  <p className="text-gray-200 text-sm">{comment.content}</p>
+                  <FilteredContent
+                    shouldWarn={(comment as any).contentFilter?.shouldWarn || false}
+                    matchedPhrases={(comment as any).contentFilter?.matchedPhrases || []}
+                    contentType="comment"
+                  >
+                    <p className="text-gray-200 text-sm">{comment.content}</p>
+                  </FilteredContent>
                 </div>
               </div>
             </div>

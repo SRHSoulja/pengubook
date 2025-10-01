@@ -25,7 +25,18 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   useEffect(() => {
     if (!autoConnect || !user?.walletAddress) return
 
-    const socket = io(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001', {
+    // Use localhost for development, production URL for production
+    const isLocalhost = typeof window !== 'undefined' && (
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname.includes('localhost')
+    )
+
+    const socketUrl = isLocalhost
+      ? 'http://localhost:3002'  // Use dedicated WebSocket port for development
+      : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'
+
+    const socket = io(socketUrl, {
       autoConnect: false,
       reconnection: true,
       reconnectionAttempts: 5,
@@ -135,12 +146,13 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   }, [user?.walletAddress, autoConnect, conversationId])
 
   // Send message
-  const sendMessage = useCallback((conversationId: string, content: string, messageType = 'TEXT') => {
+  const sendMessage = useCallback((conversationId: string, content: string, messageType = 'TEXT', mediaUrls: string[] = []) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit('send_message', {
         conversationId,
         content,
-        messageType
+        messageType,
+        mediaUrls
       })
     }
   }, [])

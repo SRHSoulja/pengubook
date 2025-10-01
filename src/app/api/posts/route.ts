@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { awardXP } from '@/lib/leveling'
+import { checkAndAwardAchievements } from '@/lib/achievement-checker'
+import { processHashtagsForPost } from '@/lib/hashtag-processor'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,6 +34,9 @@ export async function GET(request: NextRequest) {
             username: true,
             displayName: true,
             avatar: true,
+            avatarSource: true,
+            discordAvatar: true,
+            twitterAvatar: true,
             level: true,
             isAdmin: true,
             discordName: true,
@@ -148,6 +153,9 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
             username: true,
             displayName: true,
             avatar: true,
+            avatarSource: true,
+            discordAvatar: true,
+            twitterAvatar: true,
             level: true,
             isAdmin: true,
             discordName: true,
@@ -188,6 +196,25 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
     } catch (xpError) {
       console.error('[Posts] Failed to award XP:', xpError)
       // Don't fail the post creation if XP fails
+    }
+
+    // Check and award achievements
+    try {
+      const achievementResult = await checkAndAwardAchievements(authorId, 'post')
+      if (achievementResult.newAchievements.length > 0) {
+        console.log(`[Posts] User ${authorId} unlocked ${achievementResult.newAchievements.length} new achievements: ${achievementResult.newAchievements.join(', ')}`)
+      }
+    } catch (achievementError) {
+      console.error('[Posts] Failed to check achievements:', achievementError)
+      // Don't fail the post creation if achievement checking fails
+    }
+
+    // Process hashtags in the post content
+    try {
+      await processHashtagsForPost(newPost.id, content, prisma)
+    } catch (hashtagError) {
+      console.error('[Posts] Failed to process hashtags:', hashtagError)
+      // Don't fail the post creation if hashtag processing fails
     }
 
     await prisma.$disconnect()

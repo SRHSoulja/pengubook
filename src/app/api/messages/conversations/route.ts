@@ -35,7 +35,10 @@ export const GET = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextReq
                 id: true,
                 username: true,
                 displayName: true,
-                avatar: true
+                avatar: true,
+                avatarSource: true,
+                discordAvatar: true,
+                twitterAvatar: true
               }
             }
           }
@@ -70,6 +73,9 @@ export const GET = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextReq
             username: true,
             displayName: true,
             avatar: true,
+            avatarSource: true,
+            discordAvatar: true,
+            twitterAvatar: true,
             level: true,
             isAdmin: true
           }
@@ -190,6 +196,66 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
         { error: 'One or more participants not found or banned' },
         { status: 400 }
       )
+    }
+
+    // For direct messages, check privacy settings and blocking
+    if (!isGroup) {
+      const targetUserId = participantIds[0]
+
+      // Check if users have blocked each other
+      const blocks = await prisma.block.findFirst({
+        where: {
+          OR: [
+            { blockerId: user.id, blockedId: targetUserId },
+            { blockerId: targetUserId, blockedId: user.id }
+          ]
+        }
+      })
+
+      if (blocks) {
+        await prisma.$disconnect()
+        return NextResponse.json(
+          { error: 'Cannot create conversation - user relationship blocked' },
+          { status: 403 }
+        )
+      }
+
+      // Check target user's DM privacy settings
+      const targetProfile = await prisma.profile.findUnique({
+        where: { userId: targetUserId },
+        select: {
+          dmPrivacyLevel: true,
+          allowDirectMessages: true
+        }
+      })
+
+      if (!targetProfile?.allowDirectMessages || targetProfile?.dmPrivacyLevel === 'NONE') {
+        await prisma.$disconnect()
+        return NextResponse.json(
+          { error: 'User is not accepting direct messages' },
+          { status: 403 }
+        )
+      }
+
+      // If privacy level is FRIENDS_ONLY, check friendship status
+      if (targetProfile.dmPrivacyLevel === 'FRIENDS_ONLY') {
+        const friendship = await prisma.friendship.findFirst({
+          where: {
+            OR: [
+              { initiatorId: user.id, receiverId: targetUserId, status: 'ACCEPTED' },
+              { initiatorId: targetUserId, receiverId: user.id, status: 'ACCEPTED' }
+            ]
+          }
+        })
+
+        if (!friendship) {
+          await prisma.$disconnect()
+          return NextResponse.json(
+            { error: 'User only accepts messages from friends' },
+            { status: 403 }
+          )
+        }
+      }
     }
 
     // Add creator to participants list

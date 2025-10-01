@@ -14,9 +14,21 @@ export class WebSocketServer {
   private userSockets: Map<string, Set<string>> = new Map() // userId -> Set of socketIds
 
   constructor(httpServer: HTTPServer) {
+    // Allow both localhost development and production URLs
+    const allowedOrigins = [
+      'http://localhost:3001',
+      'http://localhost:3000',
+      'http://127.0.0.1:3001',
+      'http://127.0.0.1:3000'
+    ]
+
+    if (process.env.NEXT_PUBLIC_APP_URL) {
+      allowedOrigins.push(process.env.NEXT_PUBLIC_APP_URL)
+    }
+
     this.io = new SocketIOServer(httpServer, {
       cors: {
-        origin: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001',
+        origin: allowedOrigins,
         credentials: true
       }
     })
@@ -30,6 +42,7 @@ export class WebSocketServer {
 
       // Handle authentication
       socket.on('authenticate', async (data: { walletAddress: string }) => {
+        console.log('WebSocket: Received authenticate event for:', data.walletAddress)
         try {
           const user = await this.authenticateUser(data.walletAddress)
           if (user) {
@@ -45,6 +58,7 @@ export class WebSocketServer {
             socket.emit('authenticated', { userId: user.id })
             console.log(`User ${user.id} authenticated on socket ${socket.id}`)
           } else {
+            console.log('WebSocket: User not found in database for wallet:', data.walletAddress)
             socket.emit('authentication_error', 'User not found')
           }
         } catch (error) {
@@ -206,9 +220,22 @@ export class WebSocketServer {
   }
 
   private async authenticateUser(walletAddress: string) {
-    return await prisma.user.findUnique({
-      where: { walletAddress: walletAddress.toLowerCase() }
+    console.log('WebSocket: Authenticating wallet address:', walletAddress)
+
+    // Try exact match first
+    let user = await prisma.user.findUnique({
+      where: { walletAddress: walletAddress }
     })
+
+    // If not found, try lowercase match
+    if (!user) {
+      user = await prisma.user.findUnique({
+        where: { walletAddress: walletAddress.toLowerCase() }
+      })
+    }
+
+    console.log('WebSocket: User lookup result:', user ? `Found user ${user.id}` : 'User not found')
+    return user
   }
 
   private async joinUserRooms(socket: AuthenticatedSocket, userId: string) {

@@ -1,12 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import TipButton from '@/components/TipButton'
 import FollowButton from '@/components/FollowButton'
 import FriendButton from '@/components/FriendButton'
+import UserActions from '@/components/UserActions'
+import WalletBalance from '@/components/WalletBalance'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 interface ProfilePageProps {
   params: { id: string }
@@ -17,91 +20,130 @@ interface UserProfile {
   username: string
   displayName: string
   walletAddress: string
-  bio: string | null
   avatar: string | null
   level: number
   xp: number
   isAdmin: boolean
+  bio: string | null
   profile: {
-    tipCount: number
-    totalTipsReceived: number
-    followersCount: number
-    followingCount: number
-    postsCount: number
-    interests: string[]
     socialLinks: string[]
+    interests: string[]
+    location: string | null
+    website: string | null
+    company: string | null
+    timezone: string | null
+    languages: string[]
+    skills: string[]
+    isPrivate: boolean
+    showActivity: boolean
+    showTips: boolean
+    allowDirectMessages: boolean
+    theme: string
+    bannerImage: string | null
     profileVerified: boolean
+  }
+  stats: {
+    posts: number
+    followers: number
+    following: number
+    tips: number
   }
 }
 
 interface Tip {
   id: string
-  amount: string
-  createdAt: string
-  message?: string
+  amount: number
+  message: string | null
   isPublic: boolean
-  token: {
-    symbol: string
-    logoUrl: string
-  }
-  fromUser: {
-    username: string
-    displayName: string
-  }
+  createdAt: string
 }
 
 interface Post {
   id: string
   content: string
-  createdAt: string
   contentType: string
   mediaUrls: string[]
   visibility: string
-  likesCount: number
-  commentsCount: number
-  sharesCount: number
-  isLiked: boolean
+  isPromoted: boolean
+  createdAt: string
+  updatedAt: string
+  author: {
+    id: string
+    username: string
+    displayName: string
+    avatar: string | null
+    level: number
+    isAdmin: boolean
+    discordName?: string
+    twitterHandle?: string
+  }
+  stats: {
+    likes: number
+    comments: number
+    shares: number
+  }
+  isLiked?: boolean
+  isShared?: boolean
+}
+
+interface PostEdit {
+  id: string
+  postId: string
+  previousContent: string
+  newContent: string
+  editedAt: string
+  editedBy: string
 }
 
 export default function ProfilePage({ params }: ProfilePageProps) {
   const { user: currentUser, isAuthenticated } = useAuth()
+  const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [tips, setTips] = useState<Tip[]>([])
   const [posts, setPosts] = useState<Post[]>([])
+  const [sharedPosts, setSharedPosts] = useState<any[]>([])
+  const [activeTab, setActiveTab] = useState<'posts' | 'shared'>('posts')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [editingPost, setEditingPost] = useState<string | null>(null)
+  const [editContent, setEditContent] = useState('')
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [viewingHistory, setViewingHistory] = useState<string | null>(null)
+  const [editHistory, setEditHistory] = useState<PostEdit[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
 
   useEffect(() => {
     fetchProfile()
     fetchTips()
     fetchPosts()
+    fetchSharedPosts()
   }, [params.id])
 
   const fetchProfile = async () => {
     try {
       const response = await fetch(`/api/users/${params.id}`)
       const data = await response.json()
-
       if (response.ok) {
         setProfile(data.data)
       } else {
-        setError(data.error || 'Failed to fetch profile')
+        setError(data.error || 'Failed to load profile')
       }
-    } catch (error) {
-      console.error('Error fetching profile:', error)
-      setError('Failed to fetch profile')
+    } catch (err) {
+      setError('Failed to load profile')
+    } finally {
+      setLoading(false)
     }
   }
 
   const fetchTips = async () => {
     try {
-      const response = await fetch(`/api/tips/received/${params.id}?limit=10`)
+      const response = await fetch(`/api/tips?userId=${params.id}&type=received&limit=10`)
       if (response.ok) {
         const data = await response.json()
-        setTips(data.data || [])
+        setTips(data.tips || [])
       }
-    } catch (error) {
-      console.error('Error fetching tips:', error)
+    } catch (err) {
+      console.error('Failed to fetch tips:', err)
     }
   }
 
@@ -110,13 +152,163 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       const response = await fetch(`/api/posts?authorId=${params.id}&limit=10`)
       if (response.ok) {
         const data = await response.json()
-        setPosts(data.data || [])
+        setPosts(data.posts || [])
+      } else {
+        console.error('Failed to fetch posts')
+      }
+    } catch (err) {
+      console.error('Failed to fetch posts:', err)
+    }
+  }
+
+  const fetchSharedPosts = async () => {
+    try {
+      const response = await fetch(`/api/users/${params.id}/shares?limit=10`)
+      if (response.ok) {
+        const data = await response.json()
+        setSharedPosts(data.shares || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch shared posts:', err)
+    }
+  }
+
+  const startEditing = (post: Post) => {
+    setEditingPost(post.id)
+    setEditContent(post.content)
+  }
+
+  const cancelEditing = () => {
+    setEditingPost(null)
+    setEditContent('')
+  }
+
+  const saveEdit = async (postId: string) => {
+    if (!currentUser) return
+
+    try {
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': currentUser.id
+        },
+        body: JSON.stringify({
+          content: editContent
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setPosts(prev => prev.map(post =>
+          post.id === postId
+            ? { ...post, content: editContent, updatedAt: data.post.updatedAt }
+            : post
+        ))
+        cancelEditing()
+      } else {
+        const errorData = await response.json()
+        console.error('Failed to update post:', errorData.error)
+        alert('Failed to update post: ' + errorData.error)
       }
     } catch (error) {
-      console.error('Error fetching posts:', error)
-    } finally {
-      setLoading(false)
+      console.error('Error updating post:', error)
+      alert('Error updating post')
     }
+  }
+
+  const deletePost = async (postId: string) => {
+    if (!currentUser) return
+    if (!confirm('Are you sure you want to delete this post?')) return
+
+    setDeleting(postId)
+    try {
+      const response = await fetch(`/api/posts/${postId}?userId=${currentUser.id}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        setPosts(prev => prev.filter(post => post.id !== postId))
+      } else {
+        const errorData = await response.json()
+        alert('Failed to delete post: ' + errorData.error)
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error)
+      alert('Error deleting post')
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  const toggleLike = async (postId: string) => {
+    if (!currentUser || !isAuthenticated) {
+      router.push('/auth/login')
+      return
+    }
+
+    try {
+      const post = posts.find(p => p.id === postId)
+      if (!post) return
+
+      if (!post.isLiked) {
+        const likeResponse = await fetch(`/api/posts/${postId}/like`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-id': currentUser.id
+          }
+        })
+
+        if (likeResponse.ok) {
+          setPosts(prev => prev.map(p =>
+            p.id === postId
+              ? { ...p, isLiked: true, stats: { ...p.stats, likes: p.stats.likes + 1 } }
+              : p
+          ))
+        }
+      } else {
+        const unlikeResponse = await fetch(`/api/posts/${postId}/like?userId=${currentUser.id}`, {
+          method: 'DELETE'
+        })
+
+        if (unlikeResponse.ok) {
+          setPosts(prev => prev.map(p =>
+            p.id === postId
+              ? { ...p, isLiked: false, stats: { ...p.stats, likes: p.stats.likes - 1 } }
+              : p
+          ))
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error)
+    }
+  }
+
+  const viewEditHistory = async (postId: string) => {
+    setViewingHistory(postId)
+    setLoadingHistory(true)
+
+    try {
+      const response = await fetch(`/api/posts/${postId}/edits`)
+      if (response.ok) {
+        const data = await response.json()
+        setEditHistory(data.editHistory || [])
+      } else {
+        console.error('Failed to fetch edit history')
+        setEditHistory([])
+      }
+    } catch (error) {
+      console.error('Error fetching edit history:', error)
+      setEditHistory([])
+    } finally {
+      setLoadingHistory(false)
+    }
+  }
+
+  const closeEditHistory = () => {
+    setViewingHistory(null)
+    setEditHistory([])
   }
 
   if (loading) {
@@ -152,246 +344,271 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     )
   }
 
-  const interests = typeof profile.profile.interests === 'string'
-    ? JSON.parse(profile.profile.interests || '[]')
-    : profile.profile.interests || []
-  const socialLinks = typeof profile.profile.socialLinks === 'string'
-    ? JSON.parse(profile.profile.socialLinks || '[]')
-    : profile.profile.socialLinks || []
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          {/* Profile Header */}
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-8 mb-8">
             <div className="flex flex-col md:flex-row items-start gap-6">
-              {/* Avatar */}
               <div className="w-32 h-32 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center text-5xl font-bold text-white">
                 {profile.avatar ? (
-                  <img src={profile.avatar} alt={profile.displayName} className="w-full h-full rounded-2xl object-cover" />
+                  <img src={profile.avatar} alt={profile.displayName} className="w-full h-full object-cover rounded-2xl" />
                 ) : (
-                  profile.displayName.charAt(0)
+                  <span>🐧</span>
                 )}
               </div>
 
-              {/* Profile Info */}
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-3xl font-bold text-white">{profile.displayName}</h1>
-                  {profile.profile.profileVerified && <span className="text-blue-400 text-2xl">✓</span>}
-                  {profile.isAdmin && <span className="bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full text-xs">ADMIN</span>}
+                  {(profile.isAdmin || profile.profile.profileVerified) && (
+                    <span className="text-blue-400 text-xl">✓</span>
+                  )}
                 </div>
 
-                <p className="text-gray-300 text-lg mb-2">@{profile.username}</p>
-
-                {/* Wallet Address */}
-                <div className="bg-black/30 rounded-lg p-2 mb-3">
-                  <p className="text-xs text-gray-400 mb-1">Wallet Address:</p>
-                  <p className="text-sm text-cyan-400 font-mono break-all select-all">
-                    {profile.walletAddress || 'Not available'}
-                  </p>
-                </div>
+                <p className="text-gray-300 mb-4">@{profile.username}</p>
 
                 {profile.bio && (
-                  <p className="text-gray-200 mb-4">{profile.bio}</p>
+                  <p className="text-gray-100 mb-4">{profile.bio}</p>
                 )}
 
-                {/* Level & XP */}
-                <div className="flex items-center gap-4 mb-4">
-                  <span className="bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-sm">
-                    Level {profile.level}
-                  </span>
-                  <span className="text-gray-300 text-sm">
-                    {profile.xp} XP
-                  </span>
-                </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-cyan-400">{profile.profile.postsCount}</div>
-                    <div className="text-gray-400 text-sm">Posts</div>
+                <div className="flex flex-wrap gap-4 mb-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-cyan-400">Lvl {profile.level}</div>
+                    <div className="text-sm text-gray-300">{profile.xp} XP</div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-400">{profile.profile.followersCount}</div>
-                    <div className="text-gray-400 text-sm">Followers</div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-white">{profile.stats.followers}</div>
+                    <div className="text-sm text-gray-300">Followers</div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-blue-400">{profile.profile.followingCount}</div>
-                    <div className="text-gray-400 text-sm">Following</div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-white">{profile.stats.following}</div>
+                    <div className="text-sm text-gray-300">Following</div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-yellow-400">{profile.profile.tipCount || 0}</div>
-                    <div className="text-gray-400 text-sm">Tips Received</div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-white">{profile.stats.posts}</div>
+                    <div className="text-sm text-gray-300">Posts</div>
                   </div>
                 </div>
-              </div>
 
-              {/* Actions */}
-              <div className="flex flex-col gap-3">
                 {currentUser && currentUser.id !== profile.id && (
-                  <>
-                    <TipButton userId={profile.id} />
+                  <div className="flex gap-3">
                     <FollowButton
                       targetUserId={profile.id}
                       currentUserId={currentUser.id}
                       initialIsFollowing={false}
                     />
-                    <FriendButton
+                    <UserActions
                       targetUserId={profile.id}
-                      currentUserId={currentUser.id}
+                      targetUser={{
+                        username: profile.username,
+                        displayName: profile.displayName
+                      }}
+                      showMessageButton={true}
+                      showFriendButton={true}
+                      showBlockButton={true}
+                      compact={false}
                     />
-                  </>
+                    <TipButton userId={profile.id} />
+                  </div>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* Tips Summary */}
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
-                <h2 className="text-xl font-bold text-white mb-4">💰 Tips Summary</h2>
-                <div className="space-y-3">
-                  <div>
-                    <div className="text-2xl font-bold text-green-400">{profile.profile.tipCount || 0}</div>
-                    <div className="text-gray-400 text-sm">Tips Received</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-yellow-400">{(profile.profile.totalTipsReceived || 0).toFixed(4)}</div>
-                    <div className="text-gray-400 text-sm">Total Value (mixed tokens)</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Interests */}
-              {interests.length > 0 && (
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
-                  <h2 className="text-xl font-bold text-white mb-4">🎯 Interests</h2>
-                  <div className="flex flex-wrap gap-2">
-                    {interests.map((interest: string, index: number) => (
-                      <span
-                        key={index}
-                        className="bg-purple-500/20 text-purple-200 px-3 py-1 rounded-full text-sm"
-                      >
-                        {interest}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Social Links */}
-              {socialLinks.length > 0 && (
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
-                  <h2 className="text-xl font-bold text-white mb-4">🔗 Social Links</h2>
-                  <div className="space-y-2">
-                    {socialLinks.map((link: string, index: number) => (
-                      <a
-                        key={index}
-                        href={link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-cyan-400 hover:text-cyan-300 block text-sm truncate"
-                      >
-                        {link}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
+          {/* Wallet Balance */}
+          {profile.walletAddress && (
+            <div className="mb-8">
+              <WalletBalance
+                walletAddress={profile.walletAddress}
+                userId={profile.id}
+                isOwnProfile={currentUser?.id === profile.id}
+              />
             </div>
+          )}
 
-            {/* Right Column - User Feed & Tips */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* User Feed Section */}
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
-                <h2 className="text-xl font-bold text-white mb-6">📝 Recent Posts</h2>
+          {/* Tabs */}
+          <div className="flex space-x-1 mb-6">
+            <button
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+                activeTab === 'posts'
+                  ? 'bg-cyan-500 text-white'
+                  : 'bg-white/10 text-gray-300 hover:bg-white/20'
+              }`}
+              onClick={() => setActiveTab('posts')}
+            >
+              Posts ({posts.length})
+            </button>
+            <button
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+                activeTab === 'shared'
+                  ? 'bg-cyan-500 text-white'
+                  : 'bg-white/10 text-gray-300 hover:bg-white/20'
+              }`}
+              onClick={() => setActiveTab('shared')}
+            >
+              Shared ({sharedPosts.length})
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="space-y-6">
+            {activeTab === 'posts' && (
+              <div className="space-y-6">
                 {posts.length > 0 ? (
-                  <div className="space-y-4">
-                    {posts.map((post) => (
-                      <div key={post.id} className="bg-white/5 rounded-xl p-4 border border-white/10">
-                        <div className="space-y-3">
-                          <div className="text-white">{post.content}</div>
-                          {post.mediaUrls.length > 0 && (
-                            <div className="grid grid-cols-2 gap-2">
-                              {post.mediaUrls.map((url, index) => (
-                                <img
-                                  key={index}
-                                  src={url}
-                                  alt="Post media"
-                                  className="rounded-lg w-full h-32 object-cover"
-                                />
-                              ))}
+                  posts.map((post) => (
+                    <div key={post.id} className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold">
+                            {post.author.avatar ? (
+                              <img src={post.author.avatar} alt={post.author.displayName} className="w-full h-full object-cover rounded-xl" />
+                            ) : (
+                              <span>🐧</span>
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-white">{post.author.displayName}</span>
+                              {post.author.isAdmin && <span className="text-blue-400">✓</span>}
                             </div>
-                          )}
-                          <div className="flex items-center justify-between text-sm text-gray-400">
-                            <div className="flex items-center gap-4">
-                              <span>❤️ {post.likesCount}</span>
-                              <span>💬 {post.commentsCount}</span>
-                              <span>🔄 {post.sharesCount}</span>
+                            <div className="text-sm text-gray-300">
+                              @{post.author.username} • {new Date(post.createdAt).toLocaleDateString()}
                             </div>
-                            <div>{new Date(post.createdAt).toLocaleDateString()}</div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center text-gray-400 py-8">
-                    <div className="text-4xl mb-4">📝</div>
-                    <p>No posts yet</p>
-                    <p className="text-sm">This penguin hasn't shared anything yet!</p>
-                  </div>
-                )}
-              </div>
 
-              {/* Tips Section */}
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
-                <h2 className="text-xl font-bold text-white mb-6">🎁 Recent Tips Received</h2>
-
-                {tips.length > 0 ? (
-                  <div className="space-y-4">
-                    {tips.map((tip) => (
-                      <div key={tip.id} className="bg-white/5 rounded-xl p-4 border border-white/10">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <span className="text-2xl">{tip.token.logoUrl}</span>
-                            <div>
-                              <div className="text-white font-semibold">
-                                +{tip.amount} {tip.token.symbol}
-                              </div>
-                              <div className="text-gray-400 text-sm">
-                                from @{tip.fromUser.username}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-gray-400 text-sm">
-                            {new Date(tip.createdAt).toLocaleDateString()}
-                          </div>
-                        </div>
-                        {tip.message && tip.isPublic && (
-                          <div className="mt-3 p-3 bg-white/5 rounded-lg border-l-4 border-emerald-400">
-                            <div className="text-gray-300 text-sm">💬 Public Note:</div>
-                            <div className="text-white mt-1">"{tip.message}"</div>
+                        {currentUser && currentUser.id === post.author.id && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => startEditing(post)}
+                              className="text-gray-400 hover:text-white p-1"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              onClick={() => viewEditHistory(post.id)}
+                              className="text-gray-400 hover:text-white p-1"
+                              title="View edit history"
+                            >
+                              📝
+                            </button>
+                            <button
+                              onClick={() => deletePost(post.id)}
+                              disabled={deleting === post.id}
+                              className="text-red-400 hover:text-red-300 p-1 disabled:opacity-50"
+                            >
+                              {deleting === post.id ? '⏳' : '🗑️'}
+                            </button>
                           </div>
                         )}
                       </div>
-                    ))}
-                  </div>
+
+                      {editingPost === post.id ? (
+                        <div className="space-y-4">
+                          <textarea
+                            value={editContent}
+                            onChange={(e) => setEditContent(e.target.value)}
+                            className="w-full p-4 bg-black/20 border border-white/20 rounded-xl text-white placeholder-gray-400 resize-none"
+                            rows={4}
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => saveEdit(post.id)}
+                              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={cancelEditing}
+                              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-white whitespace-pre-wrap">{post.content}</div>
+                      )}
+
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
+                        <div className="flex items-center gap-6">
+                          <button
+                            onClick={() => toggleLike(post.id)}
+                            className={`flex items-center gap-2 transition-colors ${
+                              post.isLiked ? 'text-red-400' : 'text-gray-400 hover:text-red-400'
+                            }`}
+                          >
+                            <span>{post.isLiked ? '❤️' : '🤍'}</span>
+                            <span>{post.stats.likes}</span>
+                          </button>
+                          <span className="text-gray-400">💬 {post.stats.comments}</span>
+                          <span className="text-gray-400">🔄 {post.stats.shares}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
                 ) : (
-                  <div className="text-center text-gray-400 py-8">
-                    <div className="text-4xl mb-4">🎁</div>
-                    <p>No tips received yet</p>
-                    <p className="text-sm">Be the first to send this penguin a tip!</p>
+                  <div className="text-center text-gray-400 py-12">
+                    <div className="text-6xl mb-4">📝</div>
+                    <h3 className="text-xl font-semibold mb-2">No posts yet</h3>
+                    <p>This penguin hasn't shared anything yet!</p>
                   </div>
                 )}
               </div>
-            </div>
+            )}
+
+            {activeTab === 'shared' && (
+              <div className="space-y-6">
+                {sharedPosts.length > 0 ? (
+                  sharedPosts.map((share) => (
+                    <div key={share.id} className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
+                      <div className="text-sm text-gray-400 mb-3">
+                        🔄 Shared on {new Date(share.sharedAt).toLocaleDateString()}
+                      </div>
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold">
+                            {share.post.author.avatar ? (
+                              <img src={share.post.author.avatar} alt={share.post.author.displayName} className="w-full h-full object-cover rounded-xl" />
+                            ) : (
+                              <span>🐧</span>
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-white">{share.post.author.displayName}</span>
+                              {share.post.author.isAdmin && <span className="text-blue-400">✓</span>}
+                            </div>
+                            <div className="text-sm text-gray-300">
+                              @{share.post.author.username} • {new Date(share.post.createdAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-white whitespace-pre-wrap">{share.post.content}</div>
+
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
+                        <div className="flex items-center gap-6">
+                          <span className="text-gray-400">❤️ {share.post.stats.likes}</span>
+                          <span className="text-gray-400">💬 {share.post.stats.comments}</span>
+                          <span className="text-gray-400">🔄 {share.post.stats.shares}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-gray-400 py-12">
+                    <div className="text-6xl mb-4">🔄</div>
+                    <h3 className="text-xl font-semibold mb-2">No shared posts</h3>
+                    <p>This penguin hasn't shared any posts yet!</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

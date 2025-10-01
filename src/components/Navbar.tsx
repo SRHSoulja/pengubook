@@ -10,8 +10,7 @@ export default function Navbar() {
   const [user, setUser] = useState<any>(null)
   const [unreadCount, setUnreadCount] = useState(0)
 
-  const ADMIN_WALLET = process.env.NEXT_PUBLIC_ADMIN_WALLET_ADDRESS
-  const isAdmin = ADMIN_WALLET && client?.account?.address?.toLowerCase() === ADMIN_WALLET.toLowerCase()
+  const isAdmin = user?.isAdmin || false
 
   useEffect(() => {
     if (client?.account?.address) {
@@ -124,6 +123,10 @@ export default function Navbar() {
               <span className="text-lg group-hover:animate-float">🤝</span>
               <span className="font-medium">Friends</span>
             </a>
+            <a href="/achievements" className="nav-link group">
+              <span className="text-lg group-hover:animate-float">🏆</span>
+              <span className="font-medium">Achievements</span>
+            </a>
             <a href="/messages" className="nav-link group relative">
               <span className="text-lg group-hover:animate-float">💬</span>
               <span className="font-medium">Messages</span>
@@ -132,6 +135,10 @@ export default function Navbar() {
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
+            </a>
+            <a href="/bookmarks" className="nav-link group">
+              <span className="text-lg group-hover:animate-float">🔖</span>
+              <span className="font-medium">Bookmarks</span>
             </a>
             <a href="/profile" className="nav-link group">
               <span className="text-lg group-hover:animate-float">👤</span>

@@ -104,7 +104,7 @@ export async function GET(
         content: comment.content,
         createdAt: comment.createdAt,
         updatedAt: comment.updatedAt,
-        author: comment.user
+        user: comment.user
       })),
       shares: post.shares,
       stats: {

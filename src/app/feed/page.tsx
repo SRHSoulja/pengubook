@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar'
 import SocialFeed from '@/components/SocialFeed'
 // DEBUG: Using the SocialFeed with edit functionality
 import Link from 'next/link'
+import GiphyPicker from '@/components/GiphyPicker'
 
 export default function FeedPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
@@ -14,8 +15,10 @@ export default function FeedPage() {
     title: '',
     content: '',
     visibility: 'PUBLIC' as 'PUBLIC' | 'FOLLOWERS_ONLY' | 'FRIENDS_ONLY' | 'PRIVATE',
-    communityId: ''
+    communityId: '',
+    mediaUrls: [] as string[]
   })
+  const [showGiphyPicker, setShowGiphyPicker] = useState(false)
 
 
   const createPost = async () => {
@@ -45,7 +48,7 @@ export default function FeedPage() {
 
       const data = await response.json()
       if (response.ok) {
-        setNewPost({ title: '', content: '', visibility: 'PUBLIC', communityId: '' })
+        setNewPost({ title: '', content: '', visibility: 'PUBLIC', communityId: '', mediaUrls: [] })
         setShowCreatePost(false)
         // Refresh the feed
         window.location.reload()
@@ -62,6 +65,21 @@ export default function FeedPage() {
       console.error('Error creating post:', error)
       alert('Failed to create post')
     }
+  }
+
+  const handleGifSelect = (gifUrl: string) => {
+    setNewPost(prev => ({
+      ...prev,
+      mediaUrls: [...prev.mediaUrls, gifUrl]
+    }))
+    setShowGiphyPicker(false)
+  }
+
+  const removeMediaUrl = (index: number) => {
+    setNewPost(prev => ({
+      ...prev,
+      mediaUrls: prev.mediaUrls.filter((_, i) => i !== index)
+    }))
   }
 
   if (authLoading) {
@@ -152,6 +170,25 @@ export default function FeedPage() {
                   className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-300 focus:outline-none focus:border-cyan-400 resize-none"
                 />
 
+                {/* Media URLs */}
+                {newPost.mediaUrls.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-300">Media attachments:</p>
+                    {newPost.mediaUrls.map((url, index) => (
+                      <div key={index} className="flex items-center justify-between bg-white/5 rounded-lg p-2">
+                        <span className="text-sm text-gray-300 truncate flex-1">{url}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeMediaUrl(index)}
+                          className="text-red-400 hover:text-red-300 ml-2"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <div className="flex gap-3">
                   <select
                     value={newPost.visibility}
@@ -165,6 +202,13 @@ export default function FeedPage() {
                   </select>
 
                   <button
+                    onClick={() => setShowGiphyPicker(true)}
+                    className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    🎭 GIF
+                  </button>
+
+                  <button
                     onClick={createPost}
                     disabled={!newPost.content.trim()}
                     className="bg-cyan-500 hover:bg-cyan-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg transition-colors"
@@ -175,7 +219,7 @@ export default function FeedPage() {
                   <button
                     onClick={() => {
                       setShowCreatePost(false)
-                      setNewPost({ title: '', content: '', visibility: 'PUBLIC', communityId: '' })
+                      setNewPost({ title: '', content: '', visibility: 'PUBLIC', communityId: '', mediaUrls: [] })
                     }}
                     className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
                   >
@@ -190,6 +234,13 @@ export default function FeedPage() {
           <SocialFeed userId={user?.id} limit={15} />
         </div>
       </div>
+
+      {/* Giphy Picker Modal */}
+      <GiphyPicker
+        isOpen={showGiphyPicker}
+        onClose={() => setShowGiphyPicker(false)}
+        onSelect={handleGifSelect}
+      />
     </div>
   )
 }

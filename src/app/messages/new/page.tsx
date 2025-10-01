@@ -30,12 +30,23 @@ export default function NewMessagePage() {
           'Content-Type': 'application/json',
           'x-wallet-address': user.walletAddress
         },
-        body: JSON.stringify({ targetUserId })
+        body: JSON.stringify({ participantIds: [targetUserId] })
       })
 
       const result = await response.json()
       if (result.success) {
-        router.push(`/messages/${result.data.id}`)
+        // Handle both new conversation creation and existing conversation
+        const conversationId = result.conversation?.id || result.data?.id
+        if (conversationId) {
+          router.push(`/messages/${conversationId}`)
+        } else {
+          console.error('No conversation ID in response:', result)
+          alert('Failed to start conversation - no ID returned')
+          router.push('/messages')
+        }
+      } else if (response.status === 409 && result.conversationId) {
+        // Conversation already exists, redirect to it
+        router.push(`/messages/${result.conversationId}`)
       } else {
         console.error('Failed to create conversation:', result.error)
         alert('Failed to start conversation')

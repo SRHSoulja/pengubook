@@ -17,10 +17,13 @@ model User {
   displayName           String?
   bio                   String?
   avatar                String?
+  avatarSource          String               @default("default") // "default", "discord", "twitter"
   discordId             String?              @unique
   discordName           String?
+  discordAvatar         String?
   twitterId             String?              @unique
   twitterHandle         String?
+  twitterAvatar         String?
   isAdmin               Boolean              @default(false)
   isBanned              Boolean              @default(false)
   isOnline              Boolean              @default(false)
@@ -56,6 +59,13 @@ model User {
   postEdits             PostEdit[]           @relation("PostEdits")
   accounts              Account[]
   sessions              Session[]
+  blocksInitiated       Block[]              @relation("UserBlocks")
+  blocksReceived        Block[]              @relation("UserBlocked")
+  bookmarks             Bookmark[]
+  reportsSubmitted      Report[]             @relation("ReportSubmitter")
+  reportsReceived       Report[]             @relation("ReportTarget")
+  mutedPhrases          MutedPhrase[]
+  hiddenTokens          HiddenToken[]
 }
 
 model Profile {
@@ -79,6 +89,7 @@ model Profile {
   showActivity        Boolean @default(true)
   showTips            Boolean @default(true)
   allowDirectMessages Boolean @default(true)
+  dmPrivacyLevel      String  @default("ALL") // ALL, FRIENDS_ONLY, NONE
   theme               String  @default("default")
   bannerImage         String?
   profileVerified     Boolean @default(false)
@@ -133,6 +144,9 @@ model Post {
   reactions   Reaction[]
   shares      Share[]
   edits       PostEdit[]
+  bookmarks   Bookmark[]
+  reports     Report[]
+  hashtags    PostHashtag[]
 
   @@index([authorId])
   @@index([createdAt])
@@ -418,16 +432,37 @@ model CommunityModerator {
   @@index([communityId])
 }
 
+model Achievement {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  title       String
+  description String
+  icon        String   // Emoji or icon identifier
+  category    String   // ENGAGEMENT, SOCIAL, CONTENT, MILESTONE, SPECIAL
+  rarity      String   @default("COMMON") // COMMON, RARE, EPIC, LEGENDARY
+  requirement Int      // Threshold value for achievement
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  userAchievements UserAchievement[]
+
+  @@index([category])
+  @@index([rarity])
+  @@index([isActive])
+}
+
 model UserAchievement {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   userId        String
   achievementId String
-  unlockedAt    DateTime @default(now())
-  progress      Int      @default(100)
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unlockedAt    DateTime    @default(now())
+  progress      Int         @default(100)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
 
   @@unique([userId, achievementId])
   @@index([userId])
+  @@index([achievementId])
+  @@index([unlockedAt])
 }
 
 model Streak {
@@ -508,4 +543,172 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  blocker   User     @relation("UserBlocks", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("UserBlocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@index([createdAt])
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  reporterId  String
+  targetId    String?  // User being reported (for user reports)
+  postId      String?  // Post being reported (for content reports)
+  reason      String   // SPAM, HARASSMENT, INAPPROPRIATE_CONTENT, COPYRIGHT, etc.
+  description String?  // Additional details from reporter
+  status      String   @default("PENDING") // PENDING, INVESTIGATING, RESOLVED, DISMISSED
+  resolution  String?  // Admin notes on how it was resolved
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  reporter    User     @relation("ReportSubmitter", fields: [reporterId], references: [id], onDelete: Cascade)
+  target      User?    @relation("ReportTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  post        Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId])
+  @@index([targetId])
+  @@index([postId])
+  @@index([status])
+  @@index([reason])
+  @@index([createdAt])
+}
+
+model MutedPhrase {
+  id          String   @id @default(cuid())
+  userId      String
+  phrase      String   // The exact phrase to mute (case-insensitive)
+  isRegex     Boolean  @default(false) // Whether this is a regex pattern
+  muteType    String   @default("HIDE") // HIDE, WARN
+  scope       String   @default("ALL") // ALL, POSTS, COMMENTS
+  expiresAt   DateTime? // Optional expiration date
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([phrase])
+  @@index([createdAt])
+}
+
+model HiddenToken {
+  id             String   @id @default(cuid())
+  userId         String
+  tokenAddress   String   // Contract address of the token
+  symbol         String?  // Token symbol for display
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tokenAddress])
+  @@index([userId])
+  @@index([tokenAddress])
+}
+
+model BlacklistedToken {
+  id             String   @id @default(cuid())
+  tokenAddress   String   @unique // Contract address of the blacklisted token
+  symbol         String?  // Token symbol
+  name           String?  // Token name
+  reason         String   // Why it was blacklisted (SCAM, SPAM, etc.)
+  reportCount    Int      @default(1) // Number of user reports
+  blacklistedAt  DateTime @default(now())
+  blacklistedBy  String?  // Admin user ID who blacklisted it
+
+  @@index([tokenAddress])
+  @@index([blacklistedAt])
+}
+
+model TokenReport {
+  id             String   @id @default(cuid())
+  reporterId     String
+  tokenAddress   String   // Contract address of the reported token
+  symbol         String?  // Token symbol
+  name           String?  // Token name
+  reason         String   // SCAM, SPAM, PHISHING, etc.
+  description    String?  // Additional details
+  status         String   @default("PENDING") // PENDING, REVIEWED, BLACKLISTED, DISMISSED
+  createdAt      DateTime @default(now())
+  reviewedAt     DateTime?
+  reviewedBy     String?  // Admin user ID
+
+  @@index([reporterId])
+  @@index([tokenAddress])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model VerifiedToken {
+  id             String   @id @default(cuid())
+  tokenAddress   String   @unique
+  symbol         String?
+  name           String?
+  verifiedAt     DateTime @default(now())
+  verifiedBy     String?  // Admin user ID
+
+  @@index([tokenAddress])
+  @@index([verifiedAt])
+}
+
+model Hashtag {
+  id        String   @id @default(cuid())
+  tag       String   @unique // The hashtag without the # symbol (e.g., "crypto")
+  usageCount Int     @default(1) // Number of times this hashtag has been used
+  lastUsed  DateTime @default(now()) // Last time this hashtag was used
+  isBlocked Boolean  @default(false) // Admin can block inappropriate hashtags
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     PostHashtag[]
+
+  @@index([tag])
+  @@index([usageCount])
+  @@index([lastUsed])
+  @@index([isBlocked])
+}
+
+model PostHashtag {
+  id        String   @id @default(cuid())
+  postId    String
+  hashtagId String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  hashtag   Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, hashtagId])
+  @@index([postId])
+  @@index([hashtagId])
+  @@index([createdAt])
+}
+
+model DiscoveredToken {
+  id             String   @id @default(cuid())
+  tokenAddress   String   @unique
+  symbol         String?
+  name           String?
+  decimals       Int      @default(18)
+  firstSeenAt    DateTime @default(now())
+  lastSeenAt     DateTime @default(now())
+  seenCount      Int      @default(1)
+
+  @@index([tokenAddress])
+  @@index([lastSeenAt])
 }

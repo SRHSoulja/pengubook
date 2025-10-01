@@ -158,7 +158,8 @@ export default function SocialAccountLinking() {
                     provider: (session.user as any).provider,
                     providerAccountId: (session.user as any).providerAccountId,
                     userName: session.user?.name,
-                    actualUsername: (session.user as any).actualUsername
+                    actualUsername: (session.user as any).actualUsername,
+                    avatarUrl: (session.user as any).avatarUrl
                   })
                 })
 
@@ -219,7 +220,8 @@ export default function SocialAccountLinking() {
               provider: (session.user as any).provider,
               providerAccountId: (session.user as any).providerAccountId,
               userName: session.user?.name,
-              actualUsername: (session.user as any).actualUsername
+              actualUsername: (session.user as any).actualUsername,
+              avatarUrl: (session.user as any).avatarUrl
             })
           })
 
