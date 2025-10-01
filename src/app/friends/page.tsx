@@ -251,7 +251,7 @@ export default function FriendsPage() {
                           {/* Actions */}
                           <div className="flex gap-2">
                             <Link
-                              href={`/profile/${friend.id}`}
+                              href={`/profile/${friend.walletAddress || friend.id}`}
                               className="flex-1 bg-cyan-500/20 text-cyan-300 px-4 py-2 rounded-lg hover:bg-cyan-500/30 transition-colors text-center text-sm"
                             >
                               View Profile

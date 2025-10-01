@@ -151,7 +151,7 @@ export default function SearchPage() {
                   results.map((user) => (
                     <Link
                       key={user.id}
-                      href={`/profile/${user.id}`}
+                      href={`/profile/${user.walletAddress || user.id}`}
                       className="flex items-center gap-4 p-6 hover:bg-white/5 transition-colors"
                     >
                       {/* Avatar */}
