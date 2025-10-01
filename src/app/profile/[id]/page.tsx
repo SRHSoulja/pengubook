@@ -114,9 +114,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
   useEffect(() => {
     fetchProfile()
-    fetchTips()
-    fetchPosts()
-    fetchSharedPosts()
   }, [params.id])
 
   const fetchProfile = async () => {
@@ -125,6 +122,10 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       const data = await response.json()
       if (response.ok) {
         setProfile(data.data)
+        // Fetch related data using the actual user ID
+        fetchTips(data.data.id)
+        fetchPosts(data.data.id)
+        fetchSharedPosts(data.data.id)
       } else {
         setError(data.error || 'Failed to load profile')
       }
@@ -135,9 +136,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     }
   }
 
-  const fetchTips = async () => {
+  const fetchTips = async (userId: string) => {
     try {
-      const response = await fetch(`/api/tips?userId=${params.id}&type=received&limit=10`)
+      const response = await fetch(`/api/tips?userId=${userId}&type=received&limit=10`)
       if (response.ok) {
         const data = await response.json()
         setTips(data.tips || [])
@@ -147,9 +148,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     }
   }
 
-  const fetchPosts = async () => {
+  const fetchPosts = async (userId: string) => {
     try {
-      const response = await fetch(`/api/posts?authorId=${params.id}&limit=10`)
+      const response = await fetch(`/api/posts?authorId=${userId}&limit=10`)
       if (response.ok) {
         const data = await response.json()
         setPosts(data.posts || [])
@@ -161,9 +162,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     }
   }
 
-  const fetchSharedPosts = async () => {
+  const fetchSharedPosts = async (userId: string) => {
     try {
-      const response = await fetch(`/api/users/${params.id}/shares?limit=10`)
+      const response = await fetch(`/api/users/${userId}/shares?limit=10`)
       if (response.ok) {
         const data = await response.json()
         setSharedPosts(data.shares || [])
