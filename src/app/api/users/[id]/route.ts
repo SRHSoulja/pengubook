@@ -17,7 +17,12 @@ export async function GET(
 
     const user = await prisma.user.findFirst({
       where: isWalletAddress
-        ? { walletAddress: id.toLowerCase() }
+        ? {
+            walletAddress: {
+              equals: id,
+              mode: 'insensitive'
+            }
+          }
         : { id },
       include: {
         profile: true,
