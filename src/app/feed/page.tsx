@@ -7,6 +7,7 @@ import SocialFeed from '@/components/SocialFeed'
 // DEBUG: Using the SocialFeed with edit functionality
 import Link from 'next/link'
 import GiphyPicker from '@/components/GiphyPicker'
+import TrendingHashtags from '@/components/TrendingHashtags'
 
 export default function FeedPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
@@ -114,7 +115,9 @@ export default function FeedPage() {
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Feed Column */}
+          <div className="lg:col-span-2">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-white mb-4 flex items-center justify-center">
@@ -232,6 +235,14 @@ export default function FeedPage() {
 
           {/* Social Feed */}
           <SocialFeed userId={user?.id} limit={15} />
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8 space-y-6">
+              <TrendingHashtags limit={10} />
+            </div>
+          </div>
         </div>
       </div>
 
