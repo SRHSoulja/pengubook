@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     
 
     try {
-      // Search users by username, display name, discord name, twitter handle, or wallet address
+      // Search users by username, display name, discord name (if visible), twitter handle (if visible), or wallet address
       const users = await prisma.user.findMany({
         where: {
           OR: [
@@ -39,16 +39,34 @@ export async function GET(request: NextRequest) {
               }
             },
             {
-              discordName: {
-                contains: query,
-                mode: 'insensitive'
-              }
+              AND: [
+                {
+                  discordName: {
+                    contains: query,
+                    mode: 'insensitive'
+                  }
+                },
+                {
+                  profile: {
+                    showDiscord: true
+                  }
+                }
+              ]
             },
             {
-              twitterHandle: {
-                contains: query,
-                mode: 'insensitive'
-              }
+              AND: [
+                {
+                  twitterHandle: {
+                    contains: query,
+                    mode: 'insensitive'
+                  }
+                },
+                {
+                  profile: {
+                    showTwitter: true
+                  }
+                }
+              ]
             },
             {
               walletAddress: {
@@ -77,7 +95,9 @@ export async function GET(request: NextRequest) {
               followersCount: true,
               followingCount: true,
               postsCount: true,
-              profileVerified: true
+              profileVerified: true,
+              showDiscord: true,
+              showTwitter: true
             }
           }
         },
@@ -101,14 +121,17 @@ export async function GET(request: NextRequest) {
         bio: user.bio,
         level: user.level,
         isAdmin: user.isAdmin,
-        discordName: user.discordName,
-        twitterHandle: user.twitterHandle,
+        // Only show social accounts if user has them visible
+        discordName: user.profile?.showDiscord ? user.discordName : null,
+        twitterHandle: user.profile?.showTwitter ? user.twitterHandle : null,
         joinedAt: user.createdAt,
         profile: user.profile || {
           followersCount: 0,
           followingCount: 0,
           postsCount: 0,
-          profileVerified: false
+          profileVerified: false,
+          showDiscord: false,
+          showTwitter: false
         }
       }))
 

@@ -263,11 +263,12 @@ export default function PrivacySettings() {
           </div>
 
           <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
-            <div>
+            <div className="flex-1">
               <h3 className="text-white font-medium">Show Discord</h3>
               <p className="text-gray-400 text-sm">Display linked Discord account on your profile</p>
+              <p className="text-green-400 text-xs font-semibold mt-1">⭐ LEAVE UNHIDDEN SO YOUR FRIENDS CAN FIND YOU BY VERIFIED USERNAME</p>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
+            <label className="relative inline-flex items-center cursor-pointer ml-4">
               <input
                 type="checkbox"
                 checked={settings.showDiscord}
@@ -280,11 +281,12 @@ export default function PrivacySettings() {
           </div>
 
           <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
-            <div>
+            <div className="flex-1">
               <h3 className="text-white font-medium">Show X/Twitter</h3>
               <p className="text-gray-400 text-sm">Display linked X/Twitter account on your profile</p>
+              <p className="text-green-400 text-xs font-semibold mt-1">⭐ LEAVE UNHIDDEN SO YOUR FRIENDS CAN FIND YOU BY VERIFIED USERNAME</p>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
+            <label className="relative inline-flex items-center cursor-pointer ml-4">
               <input
                 type="checkbox"
                 checked={settings.showTwitter}
