@@ -77,24 +77,24 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       // Create new user from OAuth data
-      const username = token.actualUsername || token.name || `user_${token.sub.slice(-6)}`
-      const displayName = token.name || `User ${token.sub.slice(-4)}`
+      const username = String(token.actualUsername || token.name || `user_${token.sub.slice(-6)}`)
+      const displayName = String(token.name || `User ${token.sub.slice(-4)}`)
 
       try {
         user = await prisma.user.create({
           data: {
             // Don't set ID manually - let Prisma auto-generate it
-            name: token.name,
+            name: token.name ? String(token.name) : null,
             username,
             displayName,
-            email: token.email,
-            avatar: token.picture || '',
-            image: token.picture || '',
+            email: token.email ? String(token.email) : null,
+            avatar: token.picture ? String(token.picture) : '',
+            image: token.picture ? String(token.picture) : '',
             walletAddress: '', // OAuth users don't have wallet initially
-            discordId: token.provider === 'discord' ? String(token.providerAccountId) : undefined,
-            twitterId: token.provider === 'twitter' ? String(token.providerAccountId) : undefined,
-            discordName: token.provider === 'discord' ? token.actualUsername : undefined,
-            twitterHandle: token.provider === 'twitter' ? token.actualUsername : undefined,
+            discordId: token.provider === 'discord' && token.providerAccountId ? String(token.providerAccountId) : null,
+            twitterId: token.provider === 'twitter' && token.providerAccountId ? String(token.providerAccountId) : null,
+            discordName: token.provider === 'discord' && token.actualUsername ? String(token.actualUsername) : null,
+            twitterHandle: token.provider === 'twitter' && token.actualUsername ? String(token.actualUsername) : null,
           }
         }) as any
 
