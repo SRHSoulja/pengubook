@@ -273,7 +273,7 @@ export default function TipButton({ userId }: TipButtonProps) {
     }
   }
 
-  const modalContent = (
+  const renderModal = () => (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style={{ zIndex: 99999 }}>
       <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-white/20 rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
             {/* Header */}
@@ -521,7 +521,7 @@ export default function TipButton({ userId }: TipButtonProps) {
       </button>
 
       {mounted && showModal && createPortal(
-        modalContent,
+        renderModal(),
         document.body
       )}
     </>
