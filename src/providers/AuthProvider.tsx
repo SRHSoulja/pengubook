@@ -244,28 +244,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.ok && data.user) {
         console.log('Wallet user registered/found:', data.user.id.slice(0, 10) + '...')
 
-        // Check if user is admin based on environment variable
-        const adminWalletAddress = process.env.NEXT_PUBLIC_ADMIN_WALLET_ADDRESS
-        const isAdminByWallet = adminWalletAddress &&
-          walletAddress.toLowerCase() === adminWalletAddress.toLowerCase()
-
-        setUser({
-          id: data.user.id,
-          username: data.user.username,
-          displayName: data.user.displayName,
-          walletAddress: data.user.walletAddress,
-          bio: '',
-          avatar: '',
-          level: 1,
-          isAdmin: isAdminByWallet || false,
-          isBanned: false
-        })
-
-        // Store auth info for persistence
-        sessionStorage.setItem('pengubook-auth', JSON.stringify({
-          walletAddress,
-          timestamp: Date.now()
-        }))
+        // Fetch full user profile to get all fields including social avatars
+        await fetchUser(walletAddress)
       } else {
         console.error('Wallet login failed:', data.error)
       }
