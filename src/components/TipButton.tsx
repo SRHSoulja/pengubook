@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
 
 interface TipButtonProps {
@@ -38,6 +39,12 @@ export default function TipButton({ userId }: TipButtonProps) {
   const [nativeToken, setNativeToken] = useState<any>(null)
   const [recipientData, setRecipientData] = useState<UserData | null>(null)
   const [loadingTokens, setLoadingTokens] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    return () => setMounted(false)
+  }, [])
 
   useEffect(() => {
     if (showModal) {
@@ -244,18 +251,9 @@ export default function TipButton({ userId }: TipButtonProps) {
     }
   }
 
-  return (
-    <>
-      <button
-        onClick={() => setShowModal(true)}
-        className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors"
-      >
-        💰 Tip
-      </button>
-
-      {showModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style={{ zIndex: 99999 }}>
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-white/20 rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+  const modalContent = showModal && (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style={{ zIndex: 99999 }}>
+      <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-white/20 rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -487,8 +485,22 @@ export default function TipButton({ userId }: TipButtonProps) {
                 )}
               </button>
             </div>
-          </div>
-        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <>
+      <button
+        onClick={() => setShowModal(true)}
+        className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors"
+      >
+        💰 Tip
+      </button>
+
+      {mounted && showModal && createPortal(
+        modalContent,
+        document.body
       )}
     </>
   )
