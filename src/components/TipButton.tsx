@@ -66,6 +66,8 @@ export default function TipButton({ userId }: TipButtonProps) {
     // Try to get wallet address from multiple sources
     let walletAddress = client?.account?.address
 
+    console.log('[TipButton] fetchTokens - client address:', walletAddress, 'currentUser:', currentUser)
+
     // Fallback: check if user has a wallet address in their profile
     if (!walletAddress && currentUser?.walletAddress) {
       walletAddress = currentUser.walletAddress
@@ -73,7 +75,7 @@ export default function TipButton({ userId }: TipButtonProps) {
     }
 
     if (!walletAddress) {
-      console.log('[TipButton] No wallet address available - client:', !!client, 'currentUser:', !!currentUser)
+      console.log('[TipButton] No wallet address available - client:', !!client, 'currentUser:', currentUser, 'currentUser.walletAddress:', currentUser?.walletAddress)
       setStatus('Please connect your wallet to send tips')
       return
     }
