@@ -106,16 +106,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (oauthStatus === 'authenticated' && oauthSession?.user?.id) {
       console.log('OAuth user authenticated with NextAuth ID:', oauthSession.user.id)
 
-      // Check if we're in the linking flow (sessionStorage has linkToUserId from social linking)
-      const isLinkingFlow = typeof window !== 'undefined' && sessionStorage.getItem('linkToUserId')
+      // Check if we're in the linking flow (sessionStorage has linkToUserId OR pengubook-auth from social linking)
+      const isLinkingFlow = typeof window !== 'undefined' && (
+        sessionStorage.getItem('linkToUserId') ||
+        sessionStorage.getItem('pengubook-auth')
+      )
 
       if (isLinkingFlow) {
-        console.log('In linking flow (found linkToUserId), skipping OAuth user creation (SocialAccountLinking will handle it)')
+        console.log('In linking flow (found linkToUserId or pengubook-auth), skipping OAuth user creation (SocialAccountLinking will handle it)')
         return
       }
 
       // ONLY create OAuth user if we don't have a wallet user already
-      // If we have a wallet user, the social linking flow will handle the connection
+      // If we have a wallet user OR wallet address, the social linking flow will handle the connection
       if (!walletAddress && !user) {
         console.log('No wallet user found, creating OAuth user')
         createOrUpdateOAuthUser(oauthSession.user)
