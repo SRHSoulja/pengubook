@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
+import { useAuth } from '@/providers/AuthProvider'
 
 interface TipButtonProps {
   userId: string
@@ -29,6 +30,7 @@ interface UserData {
 
 export default function TipButton({ userId }: TipButtonProps) {
   const { data: client } = useAbstractClient()
+  const { user: currentUser } = useAuth()
   const [showModal, setShowModal] = useState(false)
   const [amount, setAmount] = useState('')
   const [message, setMessage] = useState('')
@@ -61,18 +63,28 @@ export default function TipButton({ userId }: TipButtonProps) {
   }, [showModal, userId])
 
   const fetchTokens = async () => {
-    if (!client?.account?.address) {
-      console.log('[TipButton] No client address available')
+    // Try to get wallet address from multiple sources
+    let walletAddress = client?.account?.address
+
+    // Fallback: check if user has a wallet address in their profile
+    if (!walletAddress && currentUser?.walletAddress) {
+      walletAddress = currentUser.walletAddress
+      console.log('[TipButton] Using wallet address from user profile:', walletAddress.slice(0, 10) + '...')
+    }
+
+    if (!walletAddress) {
+      console.log('[TipButton] No wallet address available - client:', !!client, 'currentUser:', !!currentUser)
+      setStatus('Please connect your wallet to send tips')
       return
     }
 
-    console.log('[TipButton] Fetching tokens for:', client.account.address.slice(0, 10) + '...')
+    console.log('[TipButton] Fetching tokens for:', walletAddress.slice(0, 10) + '...')
 
     try {
       setLoadingTokens(true)
 
       // Fetch wallet balance with user's hidden tokens filtered
-      const response = await fetch(`/api/wallet/balance?address=${client.account.address}&userId=${userId}`)
+      const response = await fetch(`/api/wallet/balance?address=${walletAddress}&userId=${userId}`)
       const data = await response.json()
 
       console.log('[TipButton] Token fetch response:', {
