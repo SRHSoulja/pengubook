@@ -248,19 +248,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleWalletLogin = async (walletAddress: string) => {
     try {
-      console.log('Auto-registering wallet user:', walletAddress.slice(0, 10) + '...')
+      console.log('Authenticating wallet user with SIWE:', walletAddress.slice(0, 10) + '...')
       setLoading(true)
 
+      // Get nonce for SIWE
+      const nonceRes = await fetch('/api/auth/nonce')
+      const { nonce } = await nonceRes.json()
+
+      // Create SIWE message
+      const domain = window.location.host
+      const origin = window.location.origin
+      const statement = 'Sign in to PenguBook with your wallet'
+
+      const siweMessage = {
+        domain,
+        address: walletAddress,
+        statement,
+        uri: origin,
+        version: '1',
+        chainId: 1, // Ethereum mainnet, adjust if needed
+        nonce
+      }
+
+      const message = `${domain} wants you to sign in with your Ethereum account:
+${walletAddress}
+
+${statement}
+
+URI: ${origin}
+Version: ${siweMessage.version}
+Chain ID: ${siweMessage.chainId}
+Nonce: ${nonce}
+Issued At: ${new Date().toISOString()}`
+
+      // Request signature from wallet
+      let signature: string
+      try {
+        if (client?.transport) {
+          // Abstract Global Wallet signature
+          signature = await client.transport.request({
+            method: 'personal_sign',
+            params: [message, walletAddress]
+          })
+        } else {
+          console.error('Wallet client not available')
+          setLoading(false)
+          setInitialLoad(false)
+          return
+        }
+      } catch (signError) {
+        console.error('User rejected signature:', signError)
+        setLoading(false)
+        setInitialLoad(false)
+        return
+      }
+
+      // Authenticate with backend
       const response = await fetch('/api/auth/wallet-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress })
+        body: JSON.stringify({ message, signature })
       })
 
       const data = await response.json()
 
       if (response.ok && data.user) {
-        console.log('Wallet user registered/found:', data.user.id.slice(0, 10) + '...')
+        console.log('Wallet user authenticated:', data.user.id.slice(0, 10) + '...')
 
         // Fetch full user profile to get all fields including social avatars
         await fetchUser(walletAddress)
@@ -268,7 +321,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Wallet login failed:', data.error)
       }
     } catch (error) {
-      console.error('Failed to register/login wallet user:', error)
+      console.error('Failed to authenticate wallet user:', error)
     } finally {
       setLoading(false)
       setInitialLoad(false)

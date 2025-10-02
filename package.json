@@ -42,6 +42,7 @@
     "prisma": "^5.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
+    "siwe": "^3.0.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "tailwindcss": "^3.0.0",
@@ -63,8 +64,13 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node",
-    "setupFilesAfterEnv": ["<rootDir>/tests/setup.ts"],
-    "testPathIgnorePatterns": ["<rootDir>/.next/", "<rootDir>/node_modules/"],
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup.ts"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/.next/",
+      "<rootDir>/node_modules/"
+    ],
     "testMatch": [
       "<rootDir>/tests/**/*.(test|spec).ts"
     ],
@@ -75,6 +81,10 @@
       "!src/**/*.config.ts"
     ],
     "coverageDirectory": "coverage",
-    "coverageReporters": ["text", "lcov", "html"]
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ]
   }
 }
