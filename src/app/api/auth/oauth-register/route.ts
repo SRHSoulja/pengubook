@@ -30,14 +30,16 @@ export async function POST(request: NextRequest) {
     
 
     // Check if user already exists by provider account ID OR if a wallet user exists (prevent duplicates)
+    const whereConditions = [{ id: token.sub }]
+    if (token.provider === 'discord' && token.providerAccountId) {
+      whereConditions.push({ discordId: String(token.providerAccountId) })
+    }
+    if (token.provider === 'twitter' && token.providerAccountId) {
+      whereConditions.push({ twitterId: String(token.providerAccountId) })
+    }
+
     let user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { id: token.sub },
-          token.provider === 'discord' ? { discordId: token.providerAccountId } : {},
-          token.provider === 'twitter' ? { twitterId: token.providerAccountId } : {}
-        ].filter(condition => Object.keys(condition).length > 0)
-      },
+      where: { OR: whereConditions },
       include: { profile: true }
     })
 
@@ -108,14 +110,19 @@ export async function POST(request: NextRequest) {
         console.error('[OAuth Register] User creation failed:', createError)
 
         // Try to find user again in case of race condition
+        const retryConditions = []
+        if (token.provider === 'discord' && token.providerAccountId) {
+          retryConditions.push({ discordId: String(token.providerAccountId) })
+        }
+        if (token.provider === 'twitter' && token.providerAccountId) {
+          retryConditions.push({ twitterId: String(token.providerAccountId) })
+        }
+        if (token.email) {
+          retryConditions.push({ email: token.email })
+        }
+
         user = await prisma.user.findFirst({
-          where: {
-            OR: [
-              token.provider === 'discord' ? { discordId: token.providerAccountId } : {},
-              token.provider === 'twitter' ? { twitterId: token.providerAccountId } : {},
-              { email: token.email }
-            ].filter(condition => Object.keys(condition).length > 0)
-          },
+          where: { OR: retryConditions },
           include: { profile: true }
         })
 
