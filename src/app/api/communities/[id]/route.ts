@@ -17,16 +17,6 @@ export async function GET(
     const community = await prisma.community.findUnique({
       where: { id },
       include: {
-        creator: {
-          select: {
-            id: true,
-            username: true,
-            displayName: true,
-            avatar: true,
-            level: true,
-            isAdmin: true
-          }
-        },
         members: {
           include: {
             user: {
@@ -128,7 +118,7 @@ export async function GET(
       visibility: community.visibility,
       rules: community.rules,
       isOfficial: community.isOfficial,
-      creator: community.creator,
+      creatorId: community.creatorId,
       tokenGating: {
         isTokenGated: community.isTokenGated,
         tokenGateType: community.tokenGateType,
@@ -291,18 +281,6 @@ export async function PUT(
       data: {
         ...sanitizedUpdateData,
         updatedAt: new Date()
-      },
-      include: {
-        creator: {
-          select: {
-            id: true,
-            username: true,
-            displayName: true,
-            avatar: true,
-            level: true,
-            isAdmin: true
-          }
-        }
       }
     })
 
@@ -319,7 +297,7 @@ export async function PUT(
       visibility: updatedCommunity.visibility,
       rules: updatedCommunity.rules,
       isOfficial: updatedCommunity.isOfficial,
-      creator: updatedCommunity.creator,
+      creatorId: updatedCommunity.creatorId,
       tokenGating: {
         isTokenGated: updatedCommunity.isTokenGated,
         tokenGateType: updatedCommunity.tokenGateType,
