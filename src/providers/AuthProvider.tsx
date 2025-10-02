@@ -177,15 +177,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Creating/updating OAuth user:', oauthUser)
       setLoading(true)
 
-      // Check if user already exists in our system
-      const response = await fetch(`/api/users/profile?nextAuthId=${oauthUser.id}`)
-      const data = await response.json()
+      // Check if user already exists in our system (404 is expected for new users)
+      const response = await fetch(`/api/users/profile?nextAuthId=${oauthUser.id}`, {
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
 
-      if (response.ok && data.user) {
+      // Only try to parse JSON if response is ok or has content
+      let data = null
+      if (response.ok) {
+        data = await response.json()
+      }
+
+      if (response.ok && data?.user) {
         console.log('Found existing user:', data.user)
         setUser(data.user)
       } else {
-        console.log('User not found, creating OAuth user...')
+        console.log('User not found (404 expected for new users), creating OAuth user...')
         // Call OAuth register endpoint to create the user
         const registerResponse = await fetch('/api/auth/oauth-register', {
           method: 'POST',
