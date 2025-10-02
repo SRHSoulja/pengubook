@@ -68,13 +68,18 @@ export class RpcConfig {
    * Get RPC URL with fallbacks
    */
   static getRpcUrl(networkName?: string): string {
-    // Use custom RPC URL if provided
-    if (process.env.ABSTRACT_RPC_URL) {
+    // Filter out the known bad URL
+    const BAD_URL = 'https://api.abs.xyz'
+
+    // Use custom RPC URL if provided and not the bad one
+    if (process.env.ABSTRACT_RPC_URL && process.env.ABSTRACT_RPC_URL !== BAD_URL) {
       return process.env.ABSTRACT_RPC_URL
     }
 
-    // Use specific network RPC URLs from environment
-    if (process.env.ABSTRACT_MAINNET_RPC && networkName === 'abstract_mainnet') {
+    // Use specific network RPC URLs from environment if not the bad one
+    if (process.env.ABSTRACT_MAINNET_RPC &&
+        process.env.ABSTRACT_MAINNET_RPC !== BAD_URL &&
+        networkName === 'abstract_mainnet') {
       return process.env.ABSTRACT_MAINNET_RPC
     }
 
@@ -92,6 +97,9 @@ export class RpcConfig {
    * Get all available RPC URLs for redundancy
    */
   static getRpcUrls(networkName?: string): string[] {
+    // Filter out the known bad URL
+    const BAD_URL = 'https://api.abs.xyz'
+
     const network = networkName ? NETWORKS[networkName] : this.getDefaultNetwork()
 
     if (!network) {
@@ -100,16 +108,15 @@ export class RpcConfig {
 
     const urls = [network.rpcUrl]
 
-    // Keep the working RPC as-is for Abstract
-    // The testing may fail but the RPC works for actual operations
-
-    // Add environment-specific URLs
-    if (networkName === 'abstract_mainnet' && process.env.ABSTRACT_MAINNET_RPC) {
+    // Add environment-specific URLs (but not the bad one)
+    if (networkName === 'abstract_mainnet' &&
+        process.env.ABSTRACT_MAINNET_RPC &&
+        process.env.ABSTRACT_MAINNET_RPC !== BAD_URL) {
       urls.unshift(process.env.ABSTRACT_MAINNET_RPC)
     }
 
-    // Add custom RPC URL if provided
-    if (process.env.ABSTRACT_RPC_URL) {
+    // Add custom RPC URL if provided (but not the bad one)
+    if (process.env.ABSTRACT_RPC_URL && process.env.ABSTRACT_RPC_URL !== BAD_URL) {
       urls.unshift(process.env.ABSTRACT_RPC_URL)
     }
 
