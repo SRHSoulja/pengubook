@@ -39,9 +39,8 @@ export async function POST(request: NextRequest) {
     }
 
     let user = await prisma.user.findFirst({
-      where: { OR: whereConditions },
-      include: { profile: true }
-    })
+      where: { OR: whereConditions }
+    }) as any
 
     // IMPORTANT: If a wallet user exists, return it instead of creating a duplicate OAuth-only user
     if (!user) {
@@ -51,9 +50,8 @@ export async function POST(request: NextRequest) {
             { walletAddress: { not: null } },
             { walletAddress: { not: '' } }
           ]
-        },
-        include: { profile: true }
-      })
+        }
+      }) as any
 
       if (walletUser) {
         console.log('[OAuth Register] Wallet user exists, preventing duplicate creation. Returning existing wallet user.')
@@ -93,13 +91,12 @@ export async function POST(request: NextRequest) {
             avatar: token.picture || '',
             image: token.picture || '',
             walletAddress: '', // OAuth users don't have wallet initially
-            discordId: token.provider === 'discord' ? token.providerAccountId : undefined,
-            twitterId: token.provider === 'twitter' ? token.providerAccountId : undefined,
+            discordId: token.provider === 'discord' ? String(token.providerAccountId) : undefined,
+            twitterId: token.provider === 'twitter' ? String(token.providerAccountId) : undefined,
             discordName: token.provider === 'discord' ? token.actualUsername : undefined,
             twitterHandle: token.provider === 'twitter' ? token.actualUsername : undefined,
-          },
-          include: { profile: true }
-        })
+          }
+        }) as any
 
         console.log('[OAuth Register] Created new user:', {
           id: user.id.slice(0, 10) + '...',
@@ -122,9 +119,8 @@ export async function POST(request: NextRequest) {
         }
 
         user = await prisma.user.findFirst({
-          where: { OR: retryConditions },
-          include: { profile: true }
-        })
+          where: { OR: retryConditions }
+        }) as any
 
         if (!user) {
           throw createError
