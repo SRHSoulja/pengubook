@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,9 +12,6 @@ export async function GET(request: NextRequest) {
         error: 'Database not available during build'
       }, { status: 503 })
     }
-
-    const { PrismaClient } = await import('@prisma/client')
-    
 
     const { searchParams } = new URL(request.url)
     const walletAddress = searchParams.get('walletAddress')

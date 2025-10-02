@@ -60,8 +60,7 @@ export const GET = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextReq
         const otherParticipants = participantIds.filter((id: string) => id !== user.id)
 
         // Get participant details
-        const tempPrisma = new PrismaClient()
-        const participants = await tempPrisma.user.findMany({
+        const participants = await prisma.user.findMany({
           where: {
             id: {
               in: participantIds
