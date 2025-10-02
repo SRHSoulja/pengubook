@@ -34,6 +34,7 @@
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "autoprefixer": "^10.4.21",
+    "emoji-picker-react": "^4.13.3",
     "ethers": "^6.15.0",
     "jsonwebtoken": "^9.0.2",
     "next": "^14.0.0",

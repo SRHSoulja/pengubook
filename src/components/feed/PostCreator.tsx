@@ -1,9 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { PostType, Visibility, PostCreateRequest } from '@/types'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
 import GiphyPicker from '@/components/GiphyPicker'
+import dynamic from 'next/dynamic'
+
+const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false })
 
 interface PostCreatorProps {
   onPostCreated?: (post: any) => void
@@ -19,6 +22,8 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [mediaInput, setMediaInput] = useState('')
   const [showGiphyPicker, setShowGiphyPicker] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -94,6 +99,26 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
     }
   }
 
+  const handleEmojiSelect = (emojiData: any) => {
+    const emoji = emojiData.emoji
+    const textarea = textareaRef.current
+    if (textarea) {
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const newContent = content.substring(0, start) + emoji + content.substring(end)
+      setContent(newContent)
+
+      // Set cursor position after emoji
+      setTimeout(() => {
+        textarea.focus()
+        textarea.setSelectionRange(start + emoji.length, start + emoji.length)
+      }, 0)
+    } else {
+      setContent(content + emoji)
+    }
+    setShowEmojiPicker(false)
+  }
+
   return (
     <div className={`bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 ${className}`}>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -107,6 +132,7 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
 
           <div className="flex-1 space-y-4">
             <textarea
+              ref={textareaRef}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Share your icy thoughts with the colony... ❄️"
@@ -149,6 +175,20 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
               >
                 Add
               </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors flex items-center gap-2"
+                >
+                  😀 Emoji
+                </button>
+                {showEmojiPicker && (
+                  <div className="absolute bottom-full mb-2 right-0 z-50">
+                    <EmojiPicker onEmojiClick={handleEmojiSelect} theme="dark" />
+                  </div>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={() => setShowGiphyPicker(true)}
