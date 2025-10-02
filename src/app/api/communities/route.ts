@@ -244,18 +244,6 @@ export async function POST(request: NextRequest) {
         tokenIds: JSON.stringify(tokenGating.tokenIds || []),
         tokenSymbol: tokenGating.tokenSymbol,
         membersCount: 1 // Creator is automatically a member
-      },
-      include: {
-        creator: {
-          select: {
-            id: true,
-            username: true,
-            displayName: true,
-            avatar: true,
-            level: true,
-            isAdmin: true
-          }
-        }
       }
     })
 
@@ -290,7 +278,7 @@ export async function POST(request: NextRequest) {
       visibility: newCommunity.visibility,
       rules: newCommunity.rules,
       isOfficial: newCommunity.isOfficial,
-      creator: newCommunity.creator,
+      creatorId: newCommunity.creatorId,
       tokenGating: {
         isTokenGated: newCommunity.isTokenGated,
         tokenGateType: newCommunity.tokenGateType,
