@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { checkAchievementProgress } from './achievements'
+import { getAllStreaks } from './streak-tracker'
 
 export interface AchievementCheckResult {
   newAchievements: string[]
@@ -8,9 +9,9 @@ export interface AchievementCheckResult {
 
 export async function checkAndAwardAchievements(
   userId: string,
-  triggerType?: 'post' | 'like' | 'follow' | 'tip' | 'profile' | 'all'
+  triggerType?: 'post' | 'like' | 'follow' | 'tip' | 'profile' | 'streak' | 'all'
 ): Promise<AchievementCheckResult> {
-  
+
   const newAchievements: string[] = []
 
   try {
@@ -32,6 +33,9 @@ export async function checkAndAwardAchievements(
       return { newAchievements: [], totalEarned: 0 }
     }
 
+    // Get streak data
+    const streaks = await getAllStreaks(userId)
+
     // Get all active achievements
     const allAchievements = await prisma.achievement.findMany({
       where: { isActive: true }
@@ -52,10 +56,19 @@ export async function checkAndAwardAchievements(
           like: ['first_like', 'crowd_pleaser', 'viral_sensation', 'like_magnet'],
           follow: ['first_friend', 'social_butterfly', 'influencer', 'celebrity', 'megastar'],
           tip: ['first_tip', 'crypto_whale'],
-          profile: ['social_connector', 'profile_perfectionist']
+          profile: ['social_connector', 'profile_perfectionist'],
+          streak: [] // Streak achievements will be checked by name pattern
         }
 
-        if (!relevantAchievements[triggerType]?.includes(achievement.name)) {
+        // Check if achievement name contains streak-related keywords when trigger is 'streak'
+        if (triggerType === 'streak') {
+          const isStreakAchievement = achievement.name.includes('streak') ||
+                                       achievement.name.includes('consecutive') ||
+                                       achievement.name.includes('daily')
+          if (!isStreakAchievement) {
+            continue
+          }
+        } else if (!relevantAchievements[triggerType]?.includes(achievement.name)) {
           continue
         }
       }
@@ -118,7 +131,23 @@ export async function checkAndAwardAchievements(
           break
 
         default:
-          continue
+          // Handle streak-based achievements
+          if (achievement.name.includes('login_streak')) {
+            currentValue = streaks.dailyLogin?.currentCount || 0
+          } else if (achievement.name.includes('post_streak')) {
+            currentValue = streaks.dailyPost?.currentCount || 0
+          } else if (achievement.name.includes('interaction_streak')) {
+            currentValue = streaks.dailyInteraction?.currentCount || 0
+          } else if (achievement.name.includes('streak')) {
+            // Generic streak - check best across all streak types
+            currentValue = Math.max(
+              streaks.dailyLogin?.currentCount || 0,
+              streaks.dailyPost?.currentCount || 0,
+              streaks.dailyInteraction?.currentCount || 0
+            )
+          } else {
+            continue
+          }
       }
 
       // Check if achievement is earned

@@ -1,7 +1,7 @@
 'use client'
 
 import { useLoginWithAbstract, useAbstractClient } from '@abstract-foundation/agw-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { signOut } from 'next-auth/react'
 import { useAuth } from '@/providers/AuthProvider'
 import UserSearch from './UserSearch'
@@ -11,8 +11,27 @@ export default function Navbar() {
   const { data: client } = useAbstractClient()
   const { user, isAuthenticated, oauthSession } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
+  const [showMoreMenu, setShowMoreMenu] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const moreMenuRef = useRef<HTMLDivElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
 
   const isAdmin = user?.isAdmin || false
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
+        setShowMoreMenu(false)
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // Fetch unread count when user is authenticated
   useEffect(() => {
@@ -78,125 +97,143 @@ export default function Navbar() {
 
   return (
     <nav className="glass-card-strong border-b border-white/30 sticky top-0 z-50 web3-grid-bg">
-      <div className="container mx-auto mobile-padding py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo with enhanced Web3 styling */}
-          <a href="/dashboard" className="flex items-center group hover-glow">
-            <div className="relative">
-              <span className="text-3xl mr-3 animate-float">🐧</span>
-              <div className="absolute inset-0 animate-aurora-flow opacity-20 rounded-full"></div>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-display font-bold text-gradient">PenguBook</span>
-              <span className="text-xs text-neon-cyan font-mono opacity-60">v2.7.4</span>
+      <div className="container mx-auto mobile-padding py-3">
+        <div className="flex items-center justify-between gap-4">
+          {/* Logo - Compact */}
+          <a href="/dashboard" className="flex items-center group hover-glow flex-shrink-0">
+            <span className="text-2xl mr-2 animate-float">🐧</span>
+            <div className="hidden sm:flex flex-col">
+              <span className="text-lg font-display font-bold text-gradient">PenguBook</span>
             </div>
           </a>
 
-          {/* Search Component */}
-          <div className="hidden md:block">
-            <UserSearch />
-          </div>
-
-          {/* Enhanced Navigation Links */}
-          <div className="hidden md:flex items-center space-x-2">
-            <a href="/dashboard" className="nav-link group">
-              <span className="text-lg group-hover:animate-float">🏠</span>
-              <span className="font-medium">Home</span>
+          {/* Primary Navigation - Condensed */}
+          <div className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+            <a href="/dashboard" className="nav-link-compact group" title="Home">
+              <span className="text-xl">🏠</span>
             </a>
-            <a href="/feed" className="nav-link group">
-              <span className="text-lg group-hover:animate-float">📝</span>
-              <span className="font-medium">Feed</span>
+            <a href="/feed" className="nav-link-compact group" title="Feed">
+              <span className="text-xl">📝</span>
             </a>
-            <a href="/communities" className="nav-link group">
-              <span className="text-lg group-hover:animate-float">🏔️</span>
-              <span className="font-medium">Communities</span>
+            <a href="/communities" className="nav-link-compact group" title="Communities">
+              <span className="text-xl">🏔️</span>
             </a>
-            <a href="/discover" className="nav-link group">
-              <span className="text-lg group-hover:animate-float">🧭</span>
-              <span className="font-medium">Discover</span>
+            <a href="/discover" className="nav-link-compact group" title="Discover">
+              <span className="text-xl">🧭</span>
             </a>
-            <a href="/friends" className="nav-link group">
-              <span className="text-lg group-hover:animate-float">🤝</span>
-              <span className="font-medium">Friends</span>
+            <a href="/friends" className="nav-link-compact group" title="Friends">
+              <span className="text-xl">🤝</span>
             </a>
-            <a href="/achievements" className="nav-link group">
-              <span className="text-lg group-hover:animate-float">🏆</span>
-              <span className="font-medium">Achievements</span>
-            </a>
-            <a href="/messages" className="nav-link group relative">
-              <span className="text-lg group-hover:animate-float">💬</span>
-              <span className="font-medium">Messages</span>
+            <a href="/messages" className="nav-link-compact group relative" title="Messages">
+              <span className="text-xl">💬</span>
               {unreadCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-neon-pink to-neon-purple text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 animate-pulse shadow-neon-sm">
-                  {unreadCount > 99 ? '99+' : unreadCount}
+                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-neon-pink to-neon-purple text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 animate-pulse shadow-neon-sm">
+                  {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
             </a>
-            <a href="/bookmarks" className="nav-link group">
-              <span className="text-lg group-hover:animate-float">🔖</span>
-              <span className="font-medium">Bookmarks</span>
-            </a>
-            <a href="/profile" className="nav-link group">
-              <span className="text-lg group-hover:animate-float">👤</span>
-              <span className="font-medium">Profile</span>
-            </a>
-            <a href="/levels" className="nav-link group">
-              <span className="text-lg group-hover:animate-float">⭐</span>
-              <span className="font-medium">Levels</span>
-            </a>
-            <a href="/settings" className="nav-link group">
-              <span className="text-lg group-hover:animate-float">⚙️</span>
-              <span className="font-medium">Settings</span>
-            </a>
-            {isAdmin && (
-              <a href="/admin" className="nav-link-admin group">
-                <span className="text-lg group-hover:animate-float">👑</span>
-                <span className="font-medium">Admin</span>
-              </a>
-            )}
+
+            {/* More Menu Dropdown */}
+            <div className="relative" ref={moreMenuRef}>
+              <button
+                onClick={() => setShowMoreMenu(!showMoreMenu)}
+                className="nav-link-compact group"
+                title="More"
+              >
+                <span className="text-xl">⋯</span>
+              </button>
+
+              {showMoreMenu && (
+                <div className="absolute top-full right-0 mt-2 w-48 glass-card border border-white/20 rounded-xl shadow-2xl overflow-hidden z-50">
+                  <a href="/achievements" className="dropdown-item">
+                    <span className="text-lg">🏆</span>
+                    <span>Achievements</span>
+                  </a>
+                  <a href="/levels" className="dropdown-item">
+                    <span className="text-lg">⭐</span>
+                    <span>Levels</span>
+                  </a>
+                  <a href="/bookmarks" className="dropdown-item">
+                    <span className="text-lg">🔖</span>
+                    <span>Bookmarks</span>
+                  </a>
+                  {isAdmin && (
+                    <a href="/admin" className="dropdown-item bg-purple-500/10 border-t border-purple-500/20">
+                      <span className="text-lg">👑</span>
+                      <span className="text-purple-300 font-semibold">Admin</span>
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Enhanced User Info & Logout */}
+          {/* Search - Hidden on small screens */}
+          <div className="hidden md:block flex-shrink-0">
+            <UserSearch />
+          </div>
+
+          {/* User Menu */}
           {isAuthenticated && user && (
-            <div className="flex items-center space-x-4">
-              <div className="hidden sm:flex items-center glass-card px-4 py-2 hover-lift">
-                <div className="flex flex-col items-end mr-3">
-                  <span className="text-white text-sm font-display font-medium">
+            <div className="relative flex-shrink-0" ref={userMenuRef}>
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center gap-2 glass-card px-3 py-2 hover-lift rounded-lg"
+              >
+                <div className="flex flex-col items-end">
+                  <span className="text-white text-sm font-display font-medium hidden sm:block">
                     {user.displayName || 'Penguin'}
                   </span>
                   {client?.account?.address ? (
-                    <>
-                      <span className="text-neon-cyan text-xs font-mono">
-                        {client.account.address.slice(0, 6)}...{client.account.address.slice(-4)}
-                      </span>
-                    </>
+                    <span className="text-neon-cyan text-xs font-mono hidden sm:block">
+                      {client.account.address.slice(0, 4)}...{client.account.address.slice(-3)}
+                    </span>
                   ) : user.walletAddress ? (
-                    <span className="text-neon-cyan text-xs font-mono">
-                      {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
+                    <span className="text-neon-cyan text-xs font-mono hidden sm:block">
+                      {user.walletAddress.slice(0, 4)}...{user.walletAddress.slice(-3)}
                     </span>
-                  ) : (
-                    <span className="text-gray-400 text-xs">@{user.username}</span>
-                  )}
+                  ) : null}
                 </div>
-                {client?.account?.address && (
-                  <div className="flex flex-col items-center">
-                    <span className="text-neon-cyan text-xs font-bold bg-neon-cyan/20 px-2 py-1 rounded border border-neon-cyan/30">
-                      AGW
-                    </span>
-                    <div className="w-2 h-2 bg-neon-green rounded-full animate-pulse mt-1"></div>
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={handleLogout}
-                className="cyber-button bg-gradient-to-r from-red-500/20 to-red-600/20 border-red-400/50 text-red-300 hover:text-red-200 hover:shadow-[0_0_20px_rgba(239,68,68,0.5)]"
-              >
-                <span className="mr-2">🚪</span>
-                <span className="font-medium">Logout</span>
+                <div className="text-2xl">👤</div>
               </button>
+
+              {showUserMenu && (
+                <div className="absolute top-full right-0 mt-2 w-56 glass-card border border-white/20 rounded-xl shadow-2xl overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-white/10">
+                    <p className="text-white font-semibold">{user.displayName}</p>
+                    <p className="text-gray-400 text-sm">Level {user.level}</p>
+                  </div>
+
+                  <a href="/profile" className="dropdown-item">
+                    <span className="text-lg">👤</span>
+                    <span>Profile</span>
+                  </a>
+                  <a href="/settings" className="dropdown-item">
+                    <span className="text-lg">⚙️</span>
+                    <span>Settings</span>
+                  </a>
+
+                  <div className="border-t border-white/10">
+                    <button
+                      onClick={handleLogout}
+                      className="dropdown-item text-red-300 hover:bg-red-500/20 w-full"
+                    >
+                      <span className="text-lg">🚪</span>
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
+
+          {/* Mobile Menu Button (shown on smaller screens) */}
+          <button
+            onClick={() => setShowMoreMenu(!showMoreMenu)}
+            className="lg:hidden nav-link-compact"
+          >
+            <span className="text-xl">☰</span>
+          </button>
         </div>
       </div>
 

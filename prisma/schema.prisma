@@ -441,6 +441,7 @@ model Achievement {
   category    String   // ENGAGEMENT, SOCIAL, CONTENT, MILESTONE, SPECIAL
   rarity      String   @default("COMMON") // COMMON, RARE, EPIC, LEGENDARY
   requirement Int      // Threshold value for achievement
+  xpReward    Int      @default(10) // XP awarded when achievement is unlocked
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   userAchievements UserAchievement[]
@@ -711,4 +712,18 @@ model DiscoveredToken {
 
   @@index([tokenAddress])
   @@index([lastSeenAt])
+}
+
+model XPLevel {
+  id          String   @id @default(cuid())
+  level       Int      @unique
+  xpRequired  Int      // Total XP required to reach this level
+  title       String   // Level title (e.g., "Novice Penguin", "Master Explorer")
+  icon        String   // Emoji icon for this level
+  perks       String   @default("[]") // JSON array of perk descriptions
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([level])
+  @@index([xpRequired])
 }

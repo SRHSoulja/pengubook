@@ -4,6 +4,7 @@ import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { awardXP } from '@/lib/leveling'
 import { checkAndAwardAchievements } from '@/lib/achievement-checker'
 import { processHashtagsForPost } from '@/lib/hashtag-processor'
+import { updatePostStreak } from '@/lib/streak-tracker'
 
 export const dynamic = 'force-dynamic'
 
@@ -195,6 +196,22 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
     } catch (xpError) {
       console.error('[Posts] Failed to award XP:', xpError)
       // Don't fail the post creation if XP fails
+    }
+
+    // Update post streak
+    try {
+      const streakResult = await updatePostStreak(authorId)
+      console.log(`[Posts] User ${authorId} post streak: ${streakResult.currentCount} days`)
+
+      // Check streak-based achievements if streak was extended
+      if (streakResult.wasExtended || streakResult.isNew) {
+        const achievementResult = await checkAndAwardAchievements(authorId, 'streak')
+        if (achievementResult.newAchievements.length > 0) {
+          console.log(`[Posts] User ${authorId} unlocked streak achievements: ${achievementResult.newAchievements.join(', ')}`)
+        }
+      }
+    } catch (streakError) {
+      console.error('[Posts] Failed to update post streak:', streakError)
     }
 
     // Check and award achievements

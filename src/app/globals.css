@@ -278,6 +278,18 @@
          transition-all duration-300 hover-lift focus-visible;
 }
 
+.nav-link-compact {
+  @apply flex items-center justify-center p-2.5 rounded-lg
+         text-gray-300 hover:text-white hover:bg-white/10
+         transition-all duration-200 hover-lift focus-visible
+         min-w-[44px] min-h-[44px];
+}
+
+.dropdown-item {
+  @apply flex items-center gap-3 px-4 py-3 text-white hover:bg-white/10
+         transition-colors duration-200 cursor-pointer;
+}
+
 .nav-link-admin {
   @apply flex items-center space-x-2 px-3 py-2 rounded-lg
          text-orange-300 hover:text-orange-100 hover:bg-orange-500/10

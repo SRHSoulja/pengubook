@@ -5,6 +5,8 @@ import Navbar from '@/components/Navbar'
 import TokenBlacklistManager from '@/components/admin/TokenBlacklistManager'
 import TokenVerificationManager from '@/components/admin/TokenVerificationManager'
 import UserManager from '@/components/admin/UserManager'
+import AchievementManager from '@/components/admin/AchievementManager'
+import XPLevelManager from '@/components/admin/XPLevelManager'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
@@ -95,6 +97,8 @@ export default function AdminPage() {
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: '📊' },
+    { id: 'achievements', name: 'Achievements', icon: '🏆' },
+    { id: 'xp-levels', name: 'XP Levels', icon: '⭐' },
     { id: 'reports', name: 'Token Reports', icon: '⚠️' },
     { id: 'blacklist', name: 'Blacklist', icon: '🚫' },
     { id: 'verified', name: 'Verification', icon: '✓' },
@@ -223,6 +227,10 @@ export default function AdminPage() {
             )}
 
             {activeTab === 'verified' && <TokenVerificationManager />}
+
+            {activeTab === 'achievements' && <AchievementManager />}
+
+            {activeTab === 'xp-levels' && <XPLevelManager />}
 
             {activeTab === 'users' && <UserManager />}
 

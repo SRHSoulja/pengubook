@@ -159,6 +159,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           walletAddress: address,
           timestamp: Date.now()
         }))
+
+        // Update login streak in background (don't await to avoid blocking)
+        if (data.user.id) {
+          // Check if we already updated streak today
+          const lastStreakUpdate = sessionStorage.getItem('last-streak-update')
+          const lastStreakDate = sessionStorage.getItem('last-streak-date')
+          const now = Date.now()
+          const today = new Date().toDateString()
+
+          // Update if it's a new day OR if more than 12 hours have passed since last update
+          const shouldUpdate = !lastStreakDate ||
+                              lastStreakDate !== today ||
+                              (!lastStreakUpdate || now - parseInt(lastStreakUpdate) > 12 * 60 * 60 * 1000)
+
+          if (shouldUpdate) {
+            fetch('/api/users/update-login-streak', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-wallet-address': address
+              },
+              body: JSON.stringify({ userId: data.user.id })
+            }).then(() => {
+              // Mark that we updated the streak
+              sessionStorage.setItem('last-streak-update', now.toString())
+              sessionStorage.setItem('last-streak-date', today)
+            }).catch(err => console.error('Failed to update login streak:', err))
+          }
+        }
       } else {
         setUser(null)
         sessionStorage.removeItem('pengubook-auth')
