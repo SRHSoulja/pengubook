@@ -364,7 +364,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-3xl font-bold text-white">{profile.displayName}</h1>
-                  {(profile.isAdmin || profile.profile.profileVerified) && (
+                  {(profile.isAdmin || profile.profile?.profileVerified) && (
                     <span className="text-blue-400 text-xl">✓</span>
                   )}
                 </div>

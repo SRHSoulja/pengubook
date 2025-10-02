@@ -28,12 +28,22 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user) {
-      // Create new user
+      // Create new user with profile
       user = await prisma.user.create({
         data: {
           walletAddress,
           username: `user_${walletAddress.slice(-6)}`,
           displayName: `Penguin ${walletAddress.slice(-4)}`,
+          profile: {
+            create: {
+              isPrivate: false,
+              showActivity: true,
+              showTips: true,
+              allowDirectMessages: true,
+              theme: 'dark',
+              profileVerified: false
+            }
+          }
         }
       })
     }
