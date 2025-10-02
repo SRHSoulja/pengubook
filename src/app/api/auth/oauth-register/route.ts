@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     
 
     // Check if user already exists by provider account ID OR if a wallet user exists (prevent duplicates)
-    const whereConditions = [{ id: token.sub }]
+    const whereConditions: any[] = [{ id: token.sub }]
     if (token.provider === 'discord' && token.providerAccountId) {
       whereConditions.push({ discordId: String(token.providerAccountId) })
     }
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
         console.error('[OAuth Register] User creation failed:', createError)
 
         // Try to find user again in case of race condition
-        const retryConditions = []
+        const retryConditions: any[] = []
         if (token.provider === 'discord' && token.providerAccountId) {
           retryConditions.push({ discordId: String(token.providerAccountId) })
         }
