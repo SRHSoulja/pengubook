@@ -84,7 +84,7 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
     if (messagesFromOthers.length === 0) {
       return NextResponse.json({
         success: true,
-        message: 'No messages to mark as read (all messages are from you)',
+        content: 'No messages to mark as read (all messages are from you)',
         readReceiptsCreated: 0
       })
     }
@@ -112,7 +112,7 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
 
     return NextResponse.json({
       success: true,
-      message: `Marked ${messagesFromOthers.length} messages as read`,
+      content: `Marked ${messagesFromOthers.length} messages as read`,
       readReceiptsCreated: result.count
     })
 
@@ -181,7 +181,7 @@ export const PUT = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
     if (unreadMessages.length === 0) {
       return NextResponse.json({
         success: true,
-        message: 'No unread messages to mark as read',
+        content: 'No unread messages to mark as read',
         readReceiptsCreated: 0
       })
     }
@@ -207,7 +207,7 @@ export const PUT = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
 
     return NextResponse.json({
       success: true,
-      message: `Marked ${unreadMessages.length} messages as read`,
+      content: `Marked ${unreadMessages.length} messages as read`,
       readReceiptsCreated: result.count
     })
 

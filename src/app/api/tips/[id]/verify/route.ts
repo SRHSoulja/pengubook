@@ -178,7 +178,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: N
         toUser: updatedTip.toUser,
         token: updatedTip.token
       },
-      message: `Tip ${status.toLowerCase()} successfully`
+      content: `Tip ${status.toLowerCase()} successfully`
     })
 
   } catch (error: any) {

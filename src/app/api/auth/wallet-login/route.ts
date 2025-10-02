@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: 'Wallet authentication successful',
+        content: 'Wallet authentication successful',
         user: {
           id: user.id,
           walletAddress: user.walletAddress,

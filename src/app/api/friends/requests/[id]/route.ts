@@ -188,7 +188,7 @@ export async function PUT(
       success: true,
       friendship: updatedFriendship,
       action,
-      message: `Friend request ${action}ed successfully`
+      content: `Friend request ${action}ed successfully`
     })
 
   } catch (error: any) {
@@ -300,16 +300,13 @@ export async function DELETE(
             type: { in: ['FRIEND_REQUEST', 'FRIEND_ACCEPTED'] }
           }
         ],
-        metadata: {
-          contains: `"friendshipId":"${friendshipId}"`
-        }
       }
     })
 
 
     return NextResponse.json({
       success: true,
-      message: 'Friendship deleted successfully'
+      content: 'Friendship deleted successfully'
     })
 
   } catch (error: any) {

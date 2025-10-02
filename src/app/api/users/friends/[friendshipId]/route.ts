@@ -116,7 +116,7 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (
           createdAt: updatedFriendship.createdAt,
           updatedAt: updatedFriendship.updatedAt
         },
-        message: 'Friend request accepted'
+        content: 'Friend request accepted'
       })
 
     } else {
@@ -134,7 +134,7 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (
 
       return NextResponse.json({
         success: true,
-        message: 'Friend request declined'
+        content: 'Friend request declined'
       })
     }
 
@@ -202,7 +202,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAuth(async (
 
     return NextResponse.json({
       success: true,
-      message: `Friendship ${action} successfully`
+      content: `Friendship ${action} successfully`
     })
 
   } catch (error: any) {

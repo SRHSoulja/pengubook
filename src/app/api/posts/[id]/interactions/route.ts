@@ -70,7 +70,7 @@ export const POST = withAuth(async (
 
       return NextResponse.json({
         success: true,
-        message: 'Post shared successfully',
+        content: 'Post shared successfully',
         share
       })
     }

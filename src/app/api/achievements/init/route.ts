@@ -68,7 +68,7 @@ export const POST = withAuth(async (request: NextRequest, user: any) => {
 
     return NextResponse.json({
       success: true,
-      message: `Achievements initialized successfully`,
+      content: `Achievements initialized successfully`,
       stats: {
         created,
         updated,

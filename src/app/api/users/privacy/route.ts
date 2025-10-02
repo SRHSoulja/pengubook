@@ -114,7 +114,7 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextReq
     return NextResponse.json({
       success: true,
       data: updatedProfile,
-      message: 'Privacy settings updated successfully'
+      content: 'Privacy settings updated successfully'
     })
 
   } catch (error: any) {

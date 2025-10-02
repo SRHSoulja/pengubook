@@ -58,7 +58,7 @@ export const DELETE = withAuth(async (
 
     return NextResponse.json({
       success: true,
-      message: 'Muted phrase deleted successfully'
+      content: 'Muted phrase deleted successfully'
     })
 
   } catch (error: any) {

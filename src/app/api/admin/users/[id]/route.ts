@@ -138,7 +138,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request:
 
     return NextResponse.json({
       success: true,
-      message: `User "${targetUser.username}" deleted successfully`
+      content: `User "${targetUser.username}" deleted successfully`
     })
 
   } catch (error: any) {

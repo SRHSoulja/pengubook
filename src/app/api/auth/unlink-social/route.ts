@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: `${provider} account unlinked successfully`,
+        content: `${provider} account unlinked successfully`,
         unlinkedProvider: provider,
         remainingLinks: {
           discord: !!updatedUser.discordId,

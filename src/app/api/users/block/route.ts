@@ -83,7 +83,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
 
     return NextResponse.json({
       success: true,
-      message: 'User blocked successfully',
+      content: 'User blocked successfully',
       blockId: block.id
     })
 
@@ -134,7 +134,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAuth(async (request: Next
 
     return NextResponse.json({
       success: true,
-      message: 'User unblocked successfully'
+      content: 'User unblocked successfully'
     })
 
   } catch (error: any) {

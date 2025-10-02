@@ -272,7 +272,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
         isInitiator: true,
         createdAt: friendship.createdAt
       },
-      message: 'Friend request sent successfully'
+      content: 'Friend request sent successfully'
     })
 
   } catch (error: any) {

@@ -322,7 +322,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
         toUser: newTip.toUser,
         token: newTip.token
       },
-      message: 'Tip created successfully. Transaction verification in progress.'
+      content: 'Tip created successfully. Transaction verification in progress.'
     }, { status: 201 })
 
   } catch (error: any) {

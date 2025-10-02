@@ -145,11 +145,7 @@ export async function POST(
         toUserId: followingId,
         type: 'FOLLOW',
         title: 'New Follower',
-        message: `${follower.displayName} started following you`,
-        metadata: JSON.stringify({
-          followerId,
-          followerName: follower.displayName
-        })
+        content: `${follower.displayName} started following you`,
       }
     })
 
@@ -254,7 +250,7 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: 'Unfollowed successfully'
+      content: 'Unfollowed successfully'
     })
 
   } catch (error: any) {

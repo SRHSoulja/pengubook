@@ -208,7 +208,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: 'Social account linked successfully',
+        content: 'Social account linked successfully',
         linkedAccount: { provider, ...result.updateData },
         verifiedData: result.verifyUser
       })

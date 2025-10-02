@@ -61,7 +61,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
       return NextResponse.json({
         success: true,
         hasAccess: true,
-        message: 'Community does not require token gating',
+        content: 'Community does not require token gating',
         community: {
           id: community.id,
           name: community.name,

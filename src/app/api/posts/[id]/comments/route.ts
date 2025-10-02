@@ -203,12 +203,7 @@ export async function POST(
           toUserId: post.authorId,
           type: 'COMMENT',
           title: 'New Comment',
-          message: `${user.displayName} commented on your post`,
-          metadata: JSON.stringify({
-            postId,
-            commentId: newComment.id,
-            commentContent: content.substring(0, 100)
-          })
+          content: `${user.displayName} commented on your post`,
         }
       })
     }

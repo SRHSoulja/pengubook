@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Friend request sent successfully'
+      content: 'Friend request sent successfully'
     })
 
   } catch (error: any) {

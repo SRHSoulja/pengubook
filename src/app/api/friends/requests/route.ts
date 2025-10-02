@@ -201,12 +201,7 @@ export async function POST(request: NextRequest) {
         toUserId: receiverId,
         type: 'FRIEND_REQUEST',
         title: 'Friend Request',
-        message: `${initiator.displayName} sent you a friend request`,
-        metadata: JSON.stringify({
-          friendshipId: friendRequest.id,
-          initiatorId,
-          initiatorName: initiator.displayName
-        })
+        content: `${initiator.displayName} sent you a friend request`,
       }
     })
 

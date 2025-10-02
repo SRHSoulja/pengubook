@@ -17,7 +17,7 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      message: 'Database connection working!',
+      content: 'Database connection working!',
       userCount,
       timestamp: new Date().toISOString()
     })

@@ -173,7 +173,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
     return NextResponse.json({
       success: true,
       mutedPhrase,
-      message: 'Phrase muted successfully'
+      content: 'Phrase muted successfully'
     })
 
   } catch (error: any) {

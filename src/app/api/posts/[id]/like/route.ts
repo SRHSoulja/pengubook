@@ -120,11 +120,7 @@ export async function POST(
           toUserId: post.authorId,
           type: 'LIKE',
           title: 'New Like',
-          message: `${user.displayName} liked your post`,
-          metadata: JSON.stringify({
-            postId,
-            postContent: post.id
-          })
+          content: `${user.displayName} liked your post`,
         }
       })
     }
@@ -231,10 +227,6 @@ export async function DELETE(
           fromUserId: userId,
           toUserId: post.authorId,
           type: 'LIKE',
-          metadata: {
-            contains: `"postId":"${postId}"`
-          }
-        }
       })
     }
 
@@ -246,7 +238,7 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: 'Like removed successfully',
+      content: 'Like removed successfully',
       likeCount
     })
 

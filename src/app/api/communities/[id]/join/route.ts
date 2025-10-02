@@ -175,7 +175,7 @@ export async function POST(
         user: membership.user,
         community: membership.community
       },
-      message: `Successfully joined "${community.displayName}"`
+      content: `Successfully joined "${community.displayName}"`
     }, { status: 201 })
 
   } catch (error: any) {
@@ -279,7 +279,7 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: `Successfully left "${community.displayName}"`
+      content: `Successfully left "${community.displayName}"`
     })
 
   } catch (error: any) {

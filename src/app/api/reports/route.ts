@@ -171,7 +171,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
         target: report.target,
         post: report.post
       },
-      message: 'Report submitted successfully. Our moderation team will review it.'
+      content: 'Report submitted successfully. Our moderation team will review it.'
     })
 
   } catch (error: any) {

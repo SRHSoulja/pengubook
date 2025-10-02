@@ -330,7 +330,7 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: 'Post deleted successfully'
+      content: 'Post deleted successfully'
     })
 
   } catch (error: any) {

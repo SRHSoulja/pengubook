@@ -164,7 +164,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request:
 
     return NextResponse.json({
       success: true,
-      message: `Token "${existingToken.symbol}" deleted successfully`
+      content: `Token "${existingToken.symbol}" deleted successfully`
     })
 
   } catch (error: any) {

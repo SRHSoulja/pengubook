@@ -370,7 +370,7 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: `Community "${community.displayName}" deleted successfully`
+      content: `Community "${community.displayName}" deleted successfully`
     })
 
   } catch (error: any) {
