@@ -2,53 +2,40 @@
 
 import { useLoginWithAbstract, useAbstractClient } from '@abstract-foundation/agw-react'
 import { useState, useEffect } from 'react'
+import { signOut } from 'next-auth/react'
+import { useAuth } from '@/providers/AuthProvider'
 import UserSearch from './UserSearch'
 
 export default function Navbar() {
   const { logout } = useLoginWithAbstract()
   const { data: client } = useAbstractClient()
-  const [user, setUser] = useState<any>(null)
+  const { user, isAuthenticated, oauthSession } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
 
   const isAdmin = user?.isAdmin || false
 
+  // Fetch unread count when user is authenticated
   useEffect(() => {
-    if (client?.account?.address) {
-      fetchUser(client.account.address)
-    }
-  }, [client?.account?.address])
-
-  // Separate effect for unread count that depends on user being loaded
-  useEffect(() => {
-    if (user?.id && client?.account?.address) {
+    if (user?.id && isAuthenticated) {
       fetchUnreadCount()
 
       // Set up interval to check for new messages every 30 seconds
       const interval = setInterval(fetchUnreadCount, 30000)
       return () => clearInterval(interval)
     }
-  }, [user?.id, client?.account?.address])
-
-  const fetchUser = async (walletAddress: string) => {
-    try {
-      const response = await fetch(`/api/users/profile?walletAddress=${walletAddress}`)
-      const data = await response.json()
-      if (response.ok) {
-        setUser(data.user)
-      }
-    } catch (error) {
-      console.error('Failed to fetch user:', error)
-    }
-  }
+  }, [user?.id, isAuthenticated])
 
   const fetchUnreadCount = async () => {
     // Only fetch if user is properly authenticated and registered
-    if (!client?.account?.address || !user?.id) return
+    if (!user?.id) return
+
+    const walletAddress = client?.account?.address || user?.walletAddress
+    if (!walletAddress) return
 
     try {
       const response = await fetch('/api/messages/conversations', {
         headers: {
-          'x-wallet-address': client.account.address,
+          'x-wallet-address': walletAddress,
           'x-user-id': user.id
         },
         credentials: 'include' // Include NextAuth cookies
@@ -75,8 +62,17 @@ export default function Navbar() {
     }
   }
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    // Logout from both Abstract wallet and NextAuth
+    if (client?.account?.address) {
+      logout()
+    }
+    if (oauthSession) {
+      await signOut({ redirect: false })
+    }
+    // Clear session storage
+    sessionStorage.removeItem('pengubook-auth')
+    sessionStorage.removeItem('pengubook-oauth-auth')
     window.location.href = '/'
   }
 
@@ -161,23 +157,35 @@ export default function Navbar() {
           </div>
 
           {/* Enhanced User Info & Logout */}
-          {client?.account?.address && (
+          {isAuthenticated && user && (
             <div className="flex items-center space-x-4">
               <div className="hidden sm:flex items-center glass-card px-4 py-2 hover-lift">
                 <div className="flex flex-col items-end mr-3">
                   <span className="text-white text-sm font-display font-medium">
-                    {user?.displayName || 'Penguin'}
+                    {user.displayName || 'Penguin'}
                   </span>
-                  <span className="text-neon-cyan text-xs font-mono">
-                    {client.account.address.slice(0, 6)}...{client.account.address.slice(-4)}
-                  </span>
+                  {client?.account?.address ? (
+                    <>
+                      <span className="text-neon-cyan text-xs font-mono">
+                        {client.account.address.slice(0, 6)}...{client.account.address.slice(-4)}
+                      </span>
+                    </>
+                  ) : user.walletAddress ? (
+                    <span className="text-neon-cyan text-xs font-mono">
+                      {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400 text-xs">@{user.username}</span>
+                  )}
                 </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-neon-cyan text-xs font-bold bg-neon-cyan/20 px-2 py-1 rounded border border-neon-cyan/30">
-                    AGW
-                  </span>
-                  <div className="w-2 h-2 bg-neon-green rounded-full animate-pulse mt-1"></div>
-                </div>
+                {client?.account?.address && (
+                  <div className="flex flex-col items-center">
+                    <span className="text-neon-cyan text-xs font-bold bg-neon-cyan/20 px-2 py-1 rounded border border-neon-cyan/30">
+                      AGW
+                    </span>
+                    <div className="w-2 h-2 bg-neon-green rounded-full animate-pulse mt-1"></div>
+                  </div>
+                )}
               </div>
 
               <button
