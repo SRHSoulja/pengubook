@@ -64,7 +64,7 @@ export default function TipButton({ userId }: TipButtonProps) {
 
   const fetchTokens = async () => {
     // Try to get wallet address from multiple sources
-    let walletAddress = client?.account?.address
+    let walletAddress: string | undefined = client?.account?.address
 
     console.log('[TipButton] fetchTokens - client address:', walletAddress, 'currentUser:', currentUser)
 
