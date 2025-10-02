@@ -135,10 +135,17 @@ const handler = NextAuth({
           actualUsername = (profile as any)?.data?.username || (profile as any)?.username || (profile as any)?.screen_name || user?.name
           // Twitter profile image (X API v2) - replace _normal with _400x400 for better quality
           let twitterAvatar = (profile as any)?.data?.profile_image_url || user?.image || ''
+          const originalAvatar = twitterAvatar
           if (twitterAvatar) {
             // Replace _normal.jpg with _400x400.jpg for higher quality
             twitterAvatar = twitterAvatar.replace('_normal.', '_400x400.')
           }
+          console.log('[NextAuth] Twitter avatar quality upgrade:', {
+            original: originalAvatar,
+            upgraded: twitterAvatar,
+            wasUpgraded: originalAvatar !== twitterAvatar,
+            timestamp: new Date().toISOString()
+          })
           avatarUrl = twitterAvatar
         } else if (account.provider === 'discord') {
           // Discord username is in profile.username

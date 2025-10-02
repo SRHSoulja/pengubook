@@ -139,7 +139,15 @@ export async function POST(request: NextRequest) {
           updateData.twitterHandle = twitterHandle.startsWith('@') ? twitterHandle : `@${twitterHandle}`
           updateData.twitterId = providerAccountId
           if (avatarUrl) {
-            updateData.twitterAvatar = avatarUrl
+            // Upgrade Twitter avatar quality from _normal to _400x400
+            const upgradedAvatarUrl = avatarUrl.replace('_normal.', '_400x400.')
+            updateData.twitterAvatar = upgradedAvatarUrl
+            console.log('[LinkSocial] Twitter avatar upgrade:', {
+              original: avatarUrl,
+              upgraded: upgradedAvatarUrl,
+              wasUpgraded: avatarUrl !== upgradedAvatarUrl,
+              timestamp: new Date().toISOString()
+            })
           }
 
           console.log('[LinkSocial] Twitter handle processing:', {

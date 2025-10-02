@@ -172,6 +172,8 @@ export default function SocialAccountLinking() {
                     response: data,
                     timestamp: new Date().toISOString()
                   })
+                  // Clear the linking flag
+                  sessionStorage.removeItem('linkToUserId')
                   // Refresh the page to reload user data
                   window.location.href = '/settings'
                   return
@@ -234,6 +236,8 @@ export default function SocialAccountLinking() {
               response: data,
               timestamp: new Date().toISOString()
             })
+            // Clear the linking flag
+            sessionStorage.removeItem('linkToUserId')
             // Refresh user data and clear URL
             refetchUser()
             window.history.replaceState({}, '', window.location.pathname)

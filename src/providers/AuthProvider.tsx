@@ -106,11 +106,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (oauthStatus === 'authenticated' && oauthSession?.user?.id) {
       console.log('OAuth user authenticated with NextAuth ID:', oauthSession.user.id)
 
-      // Check if we're in the linking flow (URL has ?linked=true)
-      const isLinkingFlow = typeof window !== 'undefined' && window.location.search.includes('linked=true')
+      // Check if we're in the linking flow (sessionStorage has linkToUserId from social linking)
+      const isLinkingFlow = typeof window !== 'undefined' && sessionStorage.getItem('linkToUserId')
 
       if (isLinkingFlow) {
-        console.log('In linking flow, skipping OAuth user creation (SocialAccountLinking will handle it)')
+        console.log('In linking flow (found linkToUserId), skipping OAuth user creation (SocialAccountLinking will handle it)')
         return
       }
 
