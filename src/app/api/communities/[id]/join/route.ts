@@ -160,13 +160,7 @@ export async function POST(
           toUserId: community.creatorId,
           type: 'COMMUNITY_JOIN',
           title: 'New Community Member',
-          message: `${user.displayName} joined your community "${community.displayName}"`,
-          metadata: JSON.stringify({
-            communityId,
-            communityName: community.displayName,
-            memberUserId: userId,
-            memberName: user.displayName
-          })
+          content: `${user.displayName} joined your community "${community.displayName}"`
         }
       })
     }
