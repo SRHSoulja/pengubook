@@ -179,10 +179,7 @@ export async function PUT(
       where: {
         fromUserId: friendship.initiatorId,
         toUserId: friendship.receiverId,
-        type: 'FRIEND_REQUEST',
-        metadata: {
-          contains: `"friendshipId":"${friendshipId}"`
-        }
+        type: 'FRIEND_REQUEST'
       }
     })
 
