@@ -47,11 +47,11 @@ export default function TipButton({ userId }: TipButtonProps) {
   }, [])
 
   useEffect(() => {
-    if (showModal) {
+    if (showModal && client?.account?.address) {
       fetchTokens()
       fetchRecipientData()
     }
-  }, [showModal, userId])
+  }, [showModal, userId, client?.account?.address])
 
   const fetchTokens = async () => {
     if (!client?.account?.address) return
