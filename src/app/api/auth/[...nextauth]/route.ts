@@ -138,8 +138,16 @@ const handler = NextAuth({
         } else if (account.provider === 'discord') {
           // Discord username is in profile.username
           actualUsername = (profile as any)?.username || user?.name
-          // Discord avatar URL
-          avatarUrl = (profile as any)?.image_url || user?.image || ''
+          // Discord avatar URL - construct from id and avatar hash
+          const discordId = (profile as any)?.id || account.providerAccountId
+          const avatarHash = (profile as any)?.avatar
+          if (discordId && avatarHash) {
+            // Animated avatars start with a_, use .gif, otherwise use .png
+            const extension = avatarHash.startsWith('a_') ? 'gif' : 'png'
+            avatarUrl = `https://cdn.discordapp.com/avatars/${discordId}/${avatarHash}.${extension}`
+          } else {
+            avatarUrl = user?.image || ''
+          }
         }
 
         // Fresh login - store the OAuth account data
