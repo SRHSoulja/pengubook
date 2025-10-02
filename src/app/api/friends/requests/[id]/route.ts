@@ -169,12 +169,7 @@ export async function PUT(
           toUserId: friendship.initiatorId,
           type: 'FRIEND_ACCEPTED',
           title: 'Friend Request Accepted',
-          message: `${friendship.receiver.displayName} accepted your friend request`,
-          metadata: JSON.stringify({
-            friendshipId,
-            acceptedBy: friendship.receiverId,
-            acceptedByName: friendship.receiver.displayName
-          })
+          content: `${friendship.receiver.displayName} accepted your friend request`
         }
       })
     }
