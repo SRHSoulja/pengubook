@@ -119,7 +119,10 @@ export default function TipButton({ userId }: TipButtonProps) {
   }
 
   const handleSendTip = async () => {
-    if (!amount || !client?.account?.address || !recipientData) {
+    // Get wallet address from client or current user
+    const senderAddress = client?.account?.address || currentUser?.walletAddress
+
+    if (!amount || !senderAddress || !recipientData) {
       setStatus('Please fill in all required fields!')
       return
     }
@@ -160,6 +163,13 @@ export default function TipButton({ userId }: TipButtonProps) {
 
       if (requiredAmount > availableBalance) {
         setStatus(`Insufficient balance! You have ${availableBalance.toFixed(6)} ${tokenSymbol}`)
+        setIsSending(false)
+        return
+      }
+
+      // Check if wallet client is available for signing transactions
+      if (!client?.account?.address) {
+        setStatus('❌ Wallet not connected! Please connect your Abstract wallet to send tips.')
         setIsSending(false)
         return
       }
@@ -226,7 +236,7 @@ export default function TipButton({ userId }: TipButtonProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-wallet-address': client.account.address
+          'x-wallet-address': senderAddress
         },
         body: JSON.stringify({
           toUserId: userId,
