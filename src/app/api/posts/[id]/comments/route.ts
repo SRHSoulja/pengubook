@@ -33,7 +33,7 @@ export async function GET(
     const comments = await prisma.comment.findMany({
       where: { postId },
       include: {
-        author: {
+        user: {
           select: {
             id: true,
             username: true,
@@ -77,7 +77,7 @@ export async function GET(
       content: comment.content,
       createdAt: comment.createdAt,
       updatedAt: comment.updatedAt,
-      author: comment.author,
+      author: comment.user,
       likes: comment.likes.map(like => ({
         userId: like.userId,
         user: like.user
