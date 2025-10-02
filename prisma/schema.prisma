@@ -92,6 +92,7 @@ model Profile {
   dmPrivacyLevel      String  @default("ALL") // ALL, FRIENDS_ONLY, NONE
   showDiscord         Boolean @default(true)
   showTwitter         Boolean @default(true)
+  featuredCommunityId String?
   theme               String  @default("default")
   bannerImage         String?
   profileVerified     Boolean @default(false)

@@ -13,6 +13,14 @@ interface PrivacySettings {
   showTwitter: boolean
 }
 
+interface Community {
+  id: string
+  displayName: string
+  avatar?: string
+  isOfficial: boolean
+  membersCount: number
+}
+
 interface BlockedUser {
   id: string
   user: {
@@ -36,6 +44,8 @@ export default function PrivacySettings() {
     showTwitter: true
   })
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([])
+  const [communities, setCommunities] = useState<Community[]>([])
+  const [featuredCommunityId, setFeaturedCommunityId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -43,6 +53,7 @@ export default function PrivacySettings() {
     if (user?.walletAddress) {
       fetchPrivacySettings()
       fetchBlockedUsers()
+      fetchUserCommunities()
     }
   }, [user])
 
@@ -57,6 +68,7 @@ export default function PrivacySettings() {
       if (response.ok) {
         const data = await response.json()
         setSettings(data.data)
+        setFeaturedCommunityId(data.data.featuredCommunityId || null)
       }
     } catch (error) {
       console.error('Error fetching privacy settings:', error)
@@ -79,6 +91,27 @@ export default function PrivacySettings() {
       }
     } catch (error) {
       console.error('Error fetching blocked users:', error)
+    }
+  }
+
+  const fetchUserCommunities = async () => {
+    try {
+      const response = await fetch('/api/communities/my-communities', {
+        headers: {
+          'x-wallet-address': user?.walletAddress || ''
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Filter to only show ACTIVE memberships
+        const activeCommunities = data.communities
+          .filter((membership: any) => membership.status === 'ACTIVE')
+          .map((membership: any) => membership.community)
+        setCommunities(activeCommunities)
+      }
+    } catch (error) {
+      console.error('Error fetching user communities:', error)
     }
   }
 
@@ -125,6 +158,32 @@ export default function PrivacySettings() {
     } catch (error) {
       console.error('Error unblocking user:', error)
       alert('Failed to unblock user')
+    }
+  }
+
+  const updateFeaturedCommunity = async (communityId: string | null) => {
+    setSaving(true)
+    try {
+      const response = await fetch('/api/users/featured-community', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user?.id || ''
+        },
+        body: JSON.stringify({ communityId })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setFeaturedCommunityId(data.featuredCommunityId)
+      } else {
+        throw new Error('Failed to update featured community')
+      }
+    } catch (error) {
+      console.error('Error updating featured community:', error)
+      alert('Failed to update featured community')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -298,6 +357,84 @@ export default function PrivacySettings() {
             </label>
           </div>
         </div>
+      </div>
+
+      {/* Featured Community */}
+      <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+          <span className="mr-2">⭐</span> Featured Community
+        </h2>
+
+        <p className="text-gray-400 text-sm mb-4">
+          Choose one of your communities to showcase on your profile
+        </p>
+
+        {communities.length === 0 ? (
+          <p className="text-gray-400 text-center py-8">
+            You haven't joined any communities yet.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {/* None option */}
+            <label className="flex items-center p-3 bg-black/20 rounded-lg cursor-pointer hover:bg-black/30 transition-colors">
+              <input
+                type="radio"
+                name="featuredCommunity"
+                checked={featuredCommunityId === null}
+                onChange={() => updateFeaturedCommunity(null)}
+                disabled={saving}
+                className="mr-3 text-purple-500"
+              />
+              <div>
+                <span className="text-white font-medium">None</span>
+                <p className="text-gray-400 text-sm">Don't feature any community</p>
+              </div>
+            </label>
+
+            {/* Community options */}
+            {communities.map((community) => (
+              <label
+                key={community.id}
+                className="flex items-center p-3 bg-black/20 rounded-lg cursor-pointer hover:bg-black/30 transition-colors"
+              >
+                <input
+                  type="radio"
+                  name="featuredCommunity"
+                  checked={featuredCommunityId === community.id}
+                  onChange={() => updateFeaturedCommunity(community.id)}
+                  disabled={saving}
+                  className="mr-3 text-purple-500"
+                />
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                  {community.avatar ? (
+                    <img
+                      src={community.avatar}
+                      alt={community.displayName}
+                      className="w-full h-full rounded-lg object-cover"
+                    />
+                  ) : (
+                    <span className="text-white font-bold text-sm">
+                      {community.displayName.charAt(0)}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-white font-medium">
+                      {community.displayName}
+                    </span>
+                    {community.isOfficial && (
+                      <span className="text-yellow-400 text-xs">✨</span>
+                    )}
+                  </div>
+                  <p className="text-gray-400 text-sm">
+                    {community.membersCount.toLocaleString()} members
+                  </p>
+                </div>
+              </label>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Blocked Users */}

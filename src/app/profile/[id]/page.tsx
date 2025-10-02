@@ -42,10 +42,19 @@ interface UserProfile {
     showDiscord: boolean
     showTwitter: boolean
     allowDirectMessages: boolean
+    featuredCommunityId: string | null
     theme: string
     bannerImage: string | null
     profileVerified: boolean
   }
+  featuredCommunity?: {
+    id: string
+    name: string
+    displayName: string
+    avatar: string | null
+    isOfficial: boolean
+    membersCount: number
+  } | null
   stats: {
     posts: number
     followers: number
@@ -399,6 +408,38 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                       </div>
                     )}
                   </div>
+                )}
+
+                {/* Featured Community */}
+                {profile.featuredCommunity && (
+                  <Link
+                    href={`/communities/${profile.featuredCommunity.id}`}
+                    className="inline-flex items-center gap-3 bg-purple-500/20 border border-purple-500/30 px-4 py-2 rounded-lg mb-4 hover:bg-purple-500/30 transition-colors group"
+                  >
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                      {profile.featuredCommunity.avatar ? (
+                        <img
+                          src={profile.featuredCommunity.avatar}
+                          alt={profile.featuredCommunity.displayName}
+                          className="w-full h-full rounded-lg object-cover"
+                        />
+                      ) : (
+                        <span className="text-white font-bold text-sm">{profile.featuredCommunity.displayName.charAt(0)}</span>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-purple-200 text-sm font-semibold group-hover:text-purple-100">{profile.featuredCommunity.displayName}</span>
+                        {profile.featuredCommunity.isOfficial && (
+                          <span className="text-yellow-400 text-xs">✨</span>
+                        )}
+                      </div>
+                      <p className="text-purple-300/70 text-xs">{profile.featuredCommunity.membersCount.toLocaleString()} members</p>
+                    </div>
+                    <svg className="w-4 h-4 text-purple-300 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
                 )}
 
                 <div className="flex flex-wrap gap-4 mb-6">

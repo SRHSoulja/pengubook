@@ -17,7 +17,10 @@ export const GET = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
         dmPrivacyLevel: true,
         isPrivate: true,
         showActivity: true,
-        showTips: true
+        showTips: true,
+        showDiscord: true,
+        showTwitter: true,
+        featuredCommunityId: true
       }
     })
 
@@ -52,7 +55,9 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextReq
       dmPrivacyLevel,
       isPrivate,
       showActivity,
-      showTips
+      showTips,
+      showDiscord,
+      showTwitter
     } = body
 
     // Validate dmPrivacyLevel
@@ -88,6 +93,14 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextReq
       updateData.showTips = showTips
     }
 
+    if (typeof showDiscord === 'boolean') {
+      updateData.showDiscord = showDiscord
+    }
+
+    if (typeof showTwitter === 'boolean') {
+      updateData.showTwitter = showTwitter
+    }
+
     // Update profile
     const updatedProfile = await prisma.profile.upsert({
       where: { userId: user.id },
@@ -101,7 +114,10 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextReq
         dmPrivacyLevel: true,
         isPrivate: true,
         showActivity: true,
-        showTips: true
+        showTips: true,
+        showDiscord: true,
+        showTwitter: true,
+        featuredCommunityId: true
       }
     })
 
