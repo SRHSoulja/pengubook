@@ -49,33 +49,36 @@ export async function GET(
               }
             }
           }
-        },
-        posts: {
-          include: {
-            author: {
-              select: {
-                id: true,
-                username: true,
-                displayName: true,
-                avatar: true,
-                level: true,
-                isAdmin: true
-              }
-            },
-            _count: {
-              select: {
-                likes: true,
-                comments: true,
-                shares: true
-              }
-            }
-          },
-          orderBy: {
-            createdAt: 'desc'
-          },
-          take: 10 // Latest 10 posts
         }
       }
+    })
+
+    // Fetch recent posts separately
+    const recentPosts = await prisma.post.findMany({
+      where: { communityId: id },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            avatar: true,
+            level: true,
+            isAdmin: true
+          }
+        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+            shares: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 10
     })
 
     if (!community) {
@@ -141,7 +144,7 @@ export async function GET(
         permissions: JSON.parse(mod.permissions || '[]'),
         assignedAt: mod.assignedAt
       })),
-      recentPosts: community.posts.map(post => ({
+      recentPosts: recentPosts.map(post => ({
         id: post.id,
         content: post.content.substring(0, 200) + (post.content.length > 200 ? '...' : ''),
         contentType: post.contentType,
