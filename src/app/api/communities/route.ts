@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
       visibility: community.visibility,
       rules: community.rules,
       isOfficial: community.isOfficial,
-      creator: community.creator,
+      creatorId: community.creatorId,
       tokenGating: {
         isTokenGated: community.isTokenGated,
         tokenGateType: community.tokenGateType,
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       },
       stats: {
         membersCount: community._count.members,
-        postsCount: community._count.posts
+        postsCount: community.postsCount
       },
       moderators: community.moderators.map(mod => ({
         user: mod.user,
