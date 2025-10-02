@@ -254,43 +254,77 @@ export default function TipButton({ userId }: TipButtonProps) {
       </button>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 w-96">
-            <h3 className="text-lg font-semibold mb-4 text-white">Send Tip</h3>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-white/20 rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                💰 Send Tip
+              </h3>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-400 hover:text-white transition-colors text-2xl"
+              >
+                ✕
+              </button>
+            </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-white mb-2">Select Token</label>
+            {/* Recipient Info */}
+            {recipientData && (
+              <div className="mb-6 p-4 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                    {recipientData.displayName.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">{recipientData.displayName}</p>
+                    <p className="text-blue-200 text-sm">@{recipientData.username}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Token Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-white mb-3">Select Token</label>
               {loadingTokens ? (
-                <div className="flex items-center justify-center py-4">
-                  <div className="w-6 h-6 border-3 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="ml-2 text-gray-400">Loading tokens...</span>
+                <div className="flex items-center justify-center py-8 bg-white/5 rounded-xl">
+                  <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="ml-3 text-gray-400">Loading your tokens...</span>
                 </div>
               ) : (
-                <div className="space-y-2 max-h-60 overflow-y-auto">
+                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   {/* Native ETH */}
                   {nativeToken && (
                     <button
                       type="button"
                       onClick={() => setSelectedToken('ETH')}
-                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-all ${
+                      className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${
                         selectedToken === 'ETH'
-                          ? 'bg-cyan-500/30 border-2 border-cyan-400'
-                          : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                          ? 'bg-gradient-to-r from-cyan-500/30 to-blue-500/30 border-2 border-cyan-400 shadow-lg shadow-cyan-500/20'
+                          : 'bg-gray-700/30 border border-white/10 hover:bg-gray-700/50 hover:border-cyan-400/50'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        {nativeToken.logoUrl && (
-                          <img src={nativeToken.logoUrl} alt="ETH" className="w-8 h-8 rounded-full" />
+                        {nativeToken.logoUrl ? (
+                          <img src={nativeToken.logoUrl} alt="ETH" className="w-10 h-10 rounded-full" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
+                            <span className="text-white font-bold">Ξ</span>
+                          </div>
                         )}
                         <div className="text-left">
-                          <div className="font-medium text-white">{nativeToken.symbol}</div>
-                          <div className="text-xs text-gray-400">Native Token</div>
+                          <div className="font-semibold text-white flex items-center gap-2">
+                            {nativeToken.symbol}
+                            <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full">Native</span>
+                          </div>
+                          <div className="text-xs text-gray-400">Ethereum</div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-white font-medium">{parseFloat(nativeToken.balance).toFixed(4)}</div>
+                        <div className="text-white font-semibold">{parseFloat(nativeToken.balance).toFixed(4)}</div>
                         {nativeToken.valueUsd && (
-                          <div className="text-xs text-gray-400">${nativeToken.valueUsd.toFixed(2)}</div>
+                          <div className="text-xs text-green-400">${nativeToken.valueUsd.toFixed(2)}</div>
                         )}
                       </div>
                     </button>
@@ -302,50 +336,53 @@ export default function TipButton({ userId }: TipButtonProps) {
                       key={token.token}
                       type="button"
                       onClick={() => setSelectedToken(token.symbol)}
-                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-all ${
+                      className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${
                         selectedToken === token.symbol
-                          ? 'bg-cyan-500/30 border-2 border-cyan-400'
-                          : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                          ? 'bg-gradient-to-r from-cyan-500/30 to-blue-500/30 border-2 border-cyan-400 shadow-lg shadow-cyan-500/20'
+                          : 'bg-gray-700/30 border border-white/10 hover:bg-gray-700/50 hover:border-cyan-400/50'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         {token.logoUrl ? (
-                          <img src={token.logoUrl} alt={token.symbol} className="w-8 h-8 rounded-full" />
+                          <img src={token.logoUrl} alt={token.symbol} className="w-10 h-10 rounded-full" />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-xs font-bold">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-sm font-bold">
                             {token.symbol.slice(0, 2)}
                           </div>
                         )}
                         <div className="text-left">
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium text-white">{token.symbol}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-white">{token.symbol}</span>
                             {token.isVerified && (
-                              <span className="text-cyan-400 text-xs">✓</span>
+                              <span className="text-cyan-400 text-sm" title="Verified Token">✓</span>
                             )}
                           </div>
-                          <div className="text-xs text-gray-400 truncate max-w-[120px]">{token.name}</div>
+                          <div className="text-xs text-gray-400 truncate max-w-[150px]">{token.name}</div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-white font-medium">{parseFloat(token.balance).toFixed(4)}</div>
+                        <div className="text-white font-semibold">{parseFloat(token.balance).toFixed(4)}</div>
                         {token.valueUsd && (
-                          <div className="text-xs text-gray-400">${token.valueUsd.toFixed(2)}</div>
+                          <div className="text-xs text-green-400">${token.valueUsd.toFixed(2)}</div>
                         )}
                       </div>
                     </button>
                   ))}
 
                   {!nativeToken && tokens.length === 0 && (
-                    <div className="text-center py-4 text-gray-400">
-                      No tokens available
+                    <div className="text-center py-8 bg-gray-700/20 rounded-xl">
+                      <div className="text-4xl mb-2">💸</div>
+                      <p className="text-gray-400">No tokens available</p>
+                      <p className="text-xs text-gray-500 mt-1">Add tokens to your wallet to send tips</p>
                     </div>
                   )}
                 </div>
               )}
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-white mb-2">Amount</label>
+            {/* Amount Input */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-white mb-3">Amount</label>
               <div className="relative">
                 <input
                   type="number"
@@ -353,62 +390,101 @@ export default function TipButton({ userId }: TipButtonProps) {
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.01"
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full bg-gray-700/30 border border-white/20 rounded-xl px-4 py-4 pr-20 text-white text-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent"
                 />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-cyan-500/20 text-cyan-400 px-3 py-1 rounded-lg text-sm font-semibold">
                   {selectedToken}
                 </div>
               </div>
               {selectedToken && (
-                <div className="mt-1 text-xs text-gray-400">
-                  Available: {
-                    selectedToken === 'ETH'
-                      ? parseFloat(nativeToken?.balance || '0').toFixed(6)
-                      : parseFloat(tokens.find(t => t.symbol === selectedToken)?.balance || '0').toFixed(6)
-                  } {selectedToken}
+                <div className="mt-2 flex items-center justify-between text-sm">
+                  <span className="text-gray-400">
+                    Available: <span className="text-white font-medium">
+                      {selectedToken === 'ETH'
+                        ? parseFloat(nativeToken?.balance || '0').toFixed(6)
+                        : parseFloat(tokens.find(t => t.symbol === selectedToken)?.balance || '0').toFixed(6)
+                      } {selectedToken}
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const maxBalance = selectedToken === 'ETH'
+                        ? parseFloat(nativeToken?.balance || '0')
+                        : parseFloat(tokens.find(t => t.symbol === selectedToken)?.balance || '0')
+                      setAmount((maxBalance * 0.95).toFixed(6)) // 95% to leave room for gas
+                    }}
+                    className="text-cyan-400 hover:text-cyan-300 text-xs font-medium"
+                  >
+                    MAX
+                  </button>
                 </div>
               )}
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-white mb-2">Message (Optional)</label>
+            {/* Message Input */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-white mb-3">
+                Message <span className="text-gray-500 font-normal">(Optional)</span>
+              </label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Great post! 🐧"
                 rows={3}
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-none"
+                maxLength={200}
+                className="w-full bg-gray-700/30 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent resize-none"
               />
+              <div className="mt-1 text-xs text-gray-400 text-right">
+                {message.length}/200
+              </div>
             </div>
 
-            {recipientData && (
-              <div className="mb-4 p-3 bg-blue-500/20 border border-blue-500/30 rounded-xl">
-                <p className="text-blue-200 text-sm">
-                  <span className="font-medium">Sending to:</span> {recipientData.displayName} (@{recipientData.username})
+            {/* Status Messages */}
+            {status && (
+              <div className="mb-6 p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl">
+                <p className="text-white text-sm flex items-center gap-2">
+                  <span className="text-lg">{
+                    status.includes('🎉') ? '🎉' :
+                    status.includes('🔐') ? '🔐' :
+                    status.includes('⛓️') ? '⛓️' :
+                    status.includes('❌') ? '❌' :
+                    'ℹ️'
+                  }</span>
+                  {status}
                 </p>
               </div>
             )}
 
-            {status && (
-              <div className="mb-4 p-3 bg-purple-500/20 border border-purple-500/30 rounded-xl">
-                <p className="text-purple-200 text-sm">{status}</p>
-              </div>
-            )}
-
-            <div className="flex space-x-3">
+            {/* Action Buttons */}
+            <div className="flex gap-3 sticky bottom-0 bg-gradient-to-t from-gray-900 to-transparent pt-4">
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false)
+                  setStatus('')
+                  setAmount('')
+                  setMessage('')
+                }}
                 disabled={isSending}
-                className="flex-1 bg-gray-500/20 text-gray-300 py-3 rounded-xl hover:bg-gray-500/30 transition-colors disabled:opacity-50"
+                className="flex-1 bg-gray-700/50 hover:bg-gray-700 text-white py-4 rounded-xl transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSendTip}
                 disabled={!amount || isSending || !recipientData || (!nativeToken && tokens.length === 0) || loadingTokens}
-                className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 rounded-xl hover:from-yellow-600 hover:to-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white py-4 rounded-xl transition-all font-semibold shadow-lg shadow-yellow-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
               >
-                {isSending ? 'Sending...' : loadingTokens ? 'Loading...' : 'Send Tip'}
+                {isSending ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Sending...
+                  </span>
+                ) : loadingTokens ? (
+                  'Loading...'
+                ) : (
+                  `💰 Send Tip`
+                )}
               </button>
             </div>
           </div>
