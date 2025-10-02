@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
       console.log('[UnlinkSocial] Wallet user found:', {
         userId: walletUser.id.slice(0, 10) + '...',
-        walletAddress: walletUser.walletAddress.slice(0, 10) + '...',
+        walletAddress: walletUser.walletAddress?.slice(0, 10) + '...',
         hasDiscord: !!walletUser.discordId,
         hasTwitter: !!walletUser.twitterId,
         timestamp: new Date().toISOString()
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       console.log('[UnlinkSocial] Social account unlinked successfully:', {
         provider,
         userId: updatedUser.id.slice(0, 10) + '...',
-        walletAddress: updatedUser.walletAddress.slice(0, 10) + '...',
+        walletAddress: updatedUser.walletAddress?.slice(0, 10) + '...',
         remainingLinks: {
           hasDiscord: !!updatedUser.discordId,
           hasTwitter: !!updatedUser.twitterId

@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
       console.log('[LinkSocial] Wallet user found:', {
         userId: walletUser.id.slice(0, 10) + '...',
-        walletAddress: walletUser.walletAddress.slice(0, 10) + '...',
+        walletAddress: walletUser.walletAddress?.slice(0, 10) + '...' || 'none',
         hasDiscord: !!walletUser.discordId,
         hasTwitter: !!walletUser.twitterId,
         timestamp: new Date().toISOString()
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
         console.log('[LinkSocial] Account linked successfully:', {
           provider,
           userId: updatedUser.id.slice(0, 10) + '...',
-          walletAddress: updatedUser.walletAddress.slice(0, 10) + '...',
+          walletAddress: updatedUser.walletAddress?.slice(0, 10) + '...' || 'none',
           updatedFields: Object.keys(updateData).join(', '),
           actualUpdatedData: {
             discordId: updatedUser.discordId?.slice(0, 10) + '...' || null,
