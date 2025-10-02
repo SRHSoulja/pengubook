@@ -211,7 +211,7 @@ export async function GET(request: NextRequest) {
     const bookmarkedPostIds = new Set(userBookmarks.map(bookmark => bookmark.postId))
 
     // Get user's muted phrases for content filtering
-    const mutedPhrases = await prisma.mutedPhrase.findMany({
+    const mutedPhrases = (await prisma.mutedPhrase.findMany({
       where: {
         userId,
         // Exclude expired phrases
@@ -220,7 +220,7 @@ export async function GET(request: NextRequest) {
           { expiresAt: { gt: new Date() } }
         ]
       }
-    })
+    })) as any[]
 
 
     const formattedPosts = posts.map(post => {
