@@ -1,6 +1,24 @@
 // Blockchain integration utilities for Web3 features
 
+import { ethers } from 'ethers'
 import { logger } from './logger'
+
+// ERC-20 Token ABI (minimal for balance, decimals, symbol)
+const ERC20_ABI = [
+  'function balanceOf(address owner) view returns (uint256)',
+  'function decimals() view returns (uint8)',
+  'function symbol() view returns (string)',
+  'function name() view returns (string)',
+  'function totalSupply() view returns (uint256)'
+]
+
+// ERC-721 NFT ABI (minimal for ownership check)
+const ERC721_ABI = [
+  'function ownerOf(uint256 tokenId) view returns (address)',
+  'function balanceOf(address owner) view returns (uint256)',
+  'function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)',
+  'function tokenURI(uint256 tokenId) view returns (string)'
+]
 
 // Types for blockchain operations
 export interface TokenBalance {
@@ -155,17 +173,33 @@ class RealBlockchainService {
     try {
       logger.debug('Getting token balance from blockchain', { walletAddress, tokenAddress }, 'Blockchain')
 
-      // TODO: Implement actual Web3 calls
-      // Example using ethers.js:
-      // const provider = new ethers.JsonRpcProvider(this.rpcUrl)
-      // const contract = new ethers.Contract(tokenAddress, ERC20_ABI, provider)
-      // const balance = await contract.balanceOf(walletAddress)
-      // const decimals = await contract.decimals()
-      // const symbol = await contract.symbol()
+      const provider = new ethers.JsonRpcProvider(this.rpcUrl)
 
-      // For now, return mock data
-      logger.warn('Real blockchain service not implemented, using mock data', {}, 'Blockchain')
-      return new MockBlockchainService().getTokenBalance(walletAddress, tokenAddress)
+      // Handle native ETH balance
+      if (tokenAddress === '0x0000000000000000000000000000000000000000' || tokenAddress === '0x') {
+        const balance = await provider.getBalance(walletAddress)
+        return {
+          tokenAddress: '0x0000000000000000000000000000000000000000',
+          balance: ethers.formatEther(balance),
+          decimals: 18,
+          symbol: 'ETH'
+        }
+      }
+
+      // ERC-20 token balance
+      const contract = new ethers.Contract(tokenAddress, ERC20_ABI, provider)
+      const [balance, decimals, symbol] = await Promise.all([
+        contract.balanceOf(walletAddress),
+        contract.decimals(),
+        contract.symbol()
+      ])
+
+      return {
+        tokenAddress,
+        balance: ethers.formatUnits(balance, decimals),
+        decimals: Number(decimals),
+        symbol: String(symbol)
+      }
 
     } catch (error: any) {
       logger.error('Failed to get token balance', { error: error.message, walletAddress, tokenAddress }, 'Blockchain')
@@ -177,15 +211,38 @@ class RealBlockchainService {
     try {
       logger.debug('Verifying transaction on blockchain', { txHash }, 'Blockchain')
 
-      // TODO: Implement actual transaction verification
-      // Example using ethers.js:
-      // const provider = new ethers.JsonRpcProvider(this.rpcUrl)
-      // const tx = await provider.getTransaction(txHash)
-      // const receipt = await provider.getTransactionReceipt(txHash)
+      const provider = new ethers.JsonRpcProvider(this.rpcUrl)
 
-      // For now, return mock data
-      logger.warn('Real blockchain service not implemented, using mock data', {}, 'Blockchain')
-      return new MockBlockchainService().verifyTransaction(txHash)
+      // Get transaction and receipt
+      const [tx, receipt] = await Promise.all([
+        provider.getTransaction(txHash),
+        provider.getTransactionReceipt(txHash)
+      ])
+
+      if (!tx) {
+        return {
+          exists: false,
+          isConfirmed: false,
+          from: '',
+          to: '',
+          value: '0',
+          status: 'pending'
+        }
+      }
+
+      const block = receipt ? await provider.getBlock(receipt.blockNumber) : null
+
+      return {
+        exists: true,
+        isConfirmed: !!receipt,
+        from: tx.from,
+        to: tx.to || '',
+        value: ethers.formatEther(tx.value),
+        blockNumber: receipt?.blockNumber,
+        gasUsed: receipt?.gasUsed.toString(),
+        timestamp: block?.timestamp,
+        status: receipt ? (receipt.status === 1 ? 'success' : 'failed') : 'pending'
+      }
 
     } catch (error: any) {
       logger.error('Failed to verify transaction', { error: error.message, txHash }, 'Blockchain')
@@ -197,10 +254,22 @@ class RealBlockchainService {
     try {
       logger.debug('Getting token info from blockchain', { tokenAddress }, 'Blockchain')
 
-      // TODO: Implement actual token info retrieval
-      // For now, return mock data
-      logger.warn('Real blockchain service not implemented, using mock data', {}, 'Blockchain')
-      return new MockBlockchainService().getTokenInfo(tokenAddress)
+      const provider = new ethers.JsonRpcProvider(this.rpcUrl)
+      const contract = new ethers.Contract(tokenAddress, ERC20_ABI, provider)
+
+      const [name, symbol, decimals, totalSupply] = await Promise.all([
+        contract.name(),
+        contract.symbol(),
+        contract.decimals(),
+        contract.totalSupply()
+      ])
+
+      return {
+        name: String(name),
+        symbol: String(symbol),
+        decimals: Number(decimals),
+        totalSupply: ethers.formatUnits(totalSupply, decimals)
+      }
 
     } catch (error: any) {
       logger.error('Failed to get token info', { error: error.message, tokenAddress }, 'Blockchain')
@@ -212,10 +281,88 @@ class RealBlockchainService {
     try {
       logger.debug('Checking NFT ownership on blockchain', { walletAddress, contractAddress, tokenId }, 'Blockchain')
 
-      // TODO: Implement actual NFT ownership check
-      // For now, return mock data
-      logger.warn('Real blockchain service not implemented, using mock data', {}, 'Blockchain')
-      return new MockBlockchainService().checkNFTOwnership(walletAddress, contractAddress, tokenId)
+      const provider = new ethers.JsonRpcProvider(this.rpcUrl)
+      const contract = new ethers.Contract(contractAddress, ERC721_ABI, provider)
+
+      // If specific tokenId provided, check ownership of that token
+      if (tokenId) {
+        try {
+          const owner = await contract.ownerOf(tokenId)
+
+          if (owner.toLowerCase() !== walletAddress.toLowerCase()) {
+            return [] // Not the owner
+          }
+
+          // Try to get metadata
+          let metadata
+          try {
+            const tokenURI = await contract.tokenURI(tokenId)
+            // Fetch metadata from URI (IPFS or HTTP)
+            if (tokenURI.startsWith('ipfs://')) {
+              const ipfsHash = tokenURI.replace('ipfs://', '')
+              const metadataUrl = `https://ipfs.io/ipfs/${ipfsHash}`
+              const response = await fetch(metadataUrl)
+              metadata = await response.json()
+            } else if (tokenURI.startsWith('http')) {
+              const response = await fetch(tokenURI)
+              metadata = await response.json()
+            }
+          } catch (metadataError) {
+            logger.warn('Failed to fetch NFT metadata', { tokenId, contractAddress }, 'Blockchain')
+          }
+
+          return [{
+            contractAddress,
+            tokenId,
+            owner: walletAddress,
+            metadata
+          }]
+        } catch (ownerError) {
+          return [] // Token doesn't exist or not owned
+        }
+      }
+
+      // Get all NFTs owned by wallet
+      const balance = await contract.balanceOf(walletAddress)
+      const ownedNFTs: NFTOwnership[] = []
+
+      // Get up to 10 NFTs (to avoid timeout on large collections)
+      const maxToFetch = Math.min(Number(balance), 10)
+
+      for (let i = 0; i < maxToFetch; i++) {
+        try {
+          const tokenIdBigInt = await contract.tokenOfOwnerByIndex(walletAddress, i)
+          const tokenIdStr = tokenIdBigInt.toString()
+
+          // Try to get metadata
+          let metadata
+          try {
+            const tokenURI = await contract.tokenURI(tokenIdBigInt)
+            if (tokenURI.startsWith('ipfs://')) {
+              const ipfsHash = tokenURI.replace('ipfs://', '')
+              const metadataUrl = `https://ipfs.io/ipfs/${ipfsHash}`
+              const response = await fetch(metadataUrl, { signal: AbortSignal.timeout(5000) })
+              metadata = await response.json()
+            } else if (tokenURI.startsWith('http')) {
+              const response = await fetch(tokenURI, { signal: AbortSignal.timeout(5000) })
+              metadata = await response.json()
+            }
+          } catch (metadataError) {
+            logger.warn('Failed to fetch NFT metadata', { tokenId: tokenIdStr, contractAddress }, 'Blockchain')
+          }
+
+          ownedNFTs.push({
+            contractAddress,
+            tokenId: tokenIdStr,
+            owner: walletAddress,
+            metadata
+          })
+        } catch (indexError) {
+          logger.warn('Failed to get token at index', { index: i, contractAddress }, 'Blockchain')
+        }
+      }
+
+      return ownedNFTs
 
     } catch (error: any) {
       logger.error('Failed to check NFT ownership', { error: error.message, walletAddress, contractAddress }, 'Blockchain')
