@@ -106,6 +106,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (oauthStatus === 'authenticated' && oauthSession?.user?.id) {
       console.log('OAuth user authenticated with NextAuth ID:', oauthSession.user.id)
 
+      // Check if we're in the linking flow (URL has ?linked=true)
+      const isLinkingFlow = typeof window !== 'undefined' && window.location.search.includes('linked=true')
+
+      if (isLinkingFlow) {
+        console.log('In linking flow, skipping OAuth user creation (SocialAccountLinking will handle it)')
+        return
+      }
+
       // ONLY create OAuth user if we don't have a wallet user already
       // If we have a wallet user, the social linking flow will handle the connection
       if (!walletAddress && !user) {
