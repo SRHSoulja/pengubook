@@ -307,6 +307,15 @@ export default function TipButton({ userId }: TipButtonProps) {
             {/* Token Selection */}
             <div className="mb-6">
               <label className="block text-sm font-semibold text-white mb-3">Select Token</label>
+
+              {/* DEBUG INFO */}
+              <div className="mb-2 p-2 bg-red-500/20 border border-red-500 rounded text-xs text-white">
+                <div>loadingTokens: {String(loadingTokens)}</div>
+                <div>nativeToken: {nativeToken ? JSON.stringify(nativeToken).slice(0, 50) : 'null'}</div>
+                <div>tokens.length: {tokens.length}</div>
+                <div>client address: {client?.account?.address?.slice(0, 10) || 'none'}</div>
+              </div>
+
               {loadingTokens ? (
                 <div className="flex items-center justify-center py-8 bg-white/5 rounded-xl">
                   <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
