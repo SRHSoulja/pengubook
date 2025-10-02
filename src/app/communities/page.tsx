@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useTheme } from '@/providers/ThemeProvider'
 import Navbar from '@/components/Navbar'
 import CreateCommunityModal from '@/components/CreateCommunityModal'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
@@ -25,6 +26,7 @@ interface Community {
 
 export default function CommunitiesPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
+  const { currentTheme } = useTheme()
   const [communities, setCommunities] = useState<Community[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
@@ -116,7 +118,7 @@ export default function CommunitiesPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center text-white">
-          <div className="text-6xl mb-4">🐧</div>
+          <div className="flex justify-center mb-4"><img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-24 h-24" /></div>
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p className="text-gray-300 mb-6">You need to connect your wallet to explore communities!</p>
           <Link href="/" className="bg-cyan-500 text-white px-6 py-3 rounded-xl hover:bg-cyan-600 transition-colors">
@@ -128,7 +130,7 @@ export default function CommunitiesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+    <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">
@@ -136,7 +138,7 @@ export default function CommunitiesPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-white mb-4 flex items-center justify-center">
-              <span className="mr-3">🏔️</span>
+              <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-12 h-12 mr-3" />
               Community Colonies
             </h1>
             <p className="text-xl text-gray-300 mb-6">

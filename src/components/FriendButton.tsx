@@ -116,7 +116,7 @@ export default function FriendButton({ targetUserId, currentUserId }: FriendButt
       default:
         return {
           text: 'Add Friend',
-          icon: '🤝',
+          icon: <img src="https://gmgnrepeat.com/icons/penguinfriends1.png" alt="Add Friend" className="w-5 h-5" />,
           className: 'bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-rose-600',
           disabled: false
         }

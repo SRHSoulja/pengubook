@@ -44,7 +44,7 @@ export default function CommunityMembersList({
     }
   }
 
-  const getRoleIcon = (role: string) => {
+  const getRoleIcon = (role: string): React.ReactNode => {
     switch (role.toUpperCase()) {
       case 'OWNER':
         return '👑'
@@ -53,7 +53,7 @@ export default function CommunityMembersList({
       case 'MODERATOR':
         return '🛡️'
       default:
-        return '👤'
+        return <img src="https://gmgnrepeat.com/icons/penguinsilhouette1.png" alt="Member" className="w-4 h-4 inline-block" />
     }
   }
 

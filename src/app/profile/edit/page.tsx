@@ -84,7 +84,7 @@ export default function ProfileEditPage() {
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center text-white">
-            <div className="text-6xl mb-4">🐧</div>
+            <div className="flex justify-center mb-4"><img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PenguBook" className="w-24 h-24" /></div>
             <h1 className="text-2xl font-bold mb-4">Profile Access Required</h1>
             <p className="text-gray-300 mb-6">Please connect your wallet to edit your profile</p>
             <Link href="/" className="bg-cyan-500 text-white px-6 py-3 rounded-xl hover:bg-cyan-600 transition-colors">

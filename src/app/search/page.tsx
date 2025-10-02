@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useTheme } from '@/providers/ThemeProvider'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 
@@ -28,6 +29,7 @@ interface SearchResult {
 export default function SearchPage() {
   const searchParams = useSearchParams()
   const query = searchParams?.get('q') || ''
+  const { currentTheme } = useTheme()
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState(query)
@@ -79,7 +81,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+    <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">

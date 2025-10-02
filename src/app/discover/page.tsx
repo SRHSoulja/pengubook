@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useTheme } from '@/providers/ThemeProvider'
 import Navbar from '@/components/Navbar'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 import UserActions from '@/components/UserActions'
@@ -50,6 +51,7 @@ interface CommunityRecommendation {
 
 export default function DiscoverPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
+  const { currentTheme } = useTheme()
   const [suggestedUsers, setSuggestedUsers] = useState<UserSuggestion[]>([])
   const [suggestedCommunities, setSuggestedCommunities] = useState<CommunityRecommendation[]>([])
   const [loading, setLoading] = useState(true)
@@ -114,7 +116,7 @@ export default function DiscoverPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center text-white">
-          <div className="text-6xl mb-4">🐧</div>
+          <div className="flex justify-center mb-4"><img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PenguBook" className="w-24 h-24" /></div>
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p className="text-gray-300 mb-6">You need to connect your wallet to discover new penguins!</p>
           <Link href="/" className="bg-cyan-500 text-white px-6 py-3 rounded-xl hover:bg-cyan-600 transition-colors">
@@ -126,7 +128,7 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+    <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">
@@ -134,7 +136,7 @@ export default function DiscoverPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-white mb-4 flex items-center justify-center">
-              <span className="mr-3">🧭</span>
+              <img src="https://gmgnrepeat.com/icons/penguindiscover1.png" alt="Discover" className="w-12 h-12 mr-3" />
               Discover Penguins
             </h1>
             <p className="text-xl text-gray-300">
@@ -146,23 +148,25 @@ export default function DiscoverPage() {
           <div className="flex bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-2 mb-8">
             <button
               onClick={() => setActiveTab('users')}
-              className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all ${
+              className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
                 activeTab === 'users'
                   ? 'bg-cyan-500 text-white shadow-lg'
                   : 'text-gray-300 hover:bg-white/10'
               }`}
             >
-              🐧 Suggested Pengus
+              <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="Suggested" className="w-5 h-5" />
+              Suggested Pengus
             </button>
             <button
               onClick={() => setActiveTab('communities')}
-              className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all ${
+              className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
                 activeTab === 'communities'
                   ? 'bg-purple-500 text-white shadow-lg'
                   : 'text-gray-300 hover:bg-white/10'
               }`}
             >
-              🏔️ Recommended Communities
+              <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-5 h-5" />
+              Recommended Communities
             </button>
             <button
               onClick={() => setActiveTab('hashtags')}
@@ -188,7 +192,7 @@ export default function DiscoverPage() {
                 <>
                   {suggestedUsers.length === 0 ? (
                     <div className="text-center text-white py-12">
-                      <div className="text-4xl mb-4">🔍</div>
+                      <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="Suggestions" className="w-24 h-24 mx-auto mb-4" />
                       <p className="text-xl">No penguin suggestions available</p>
                       <p className="text-gray-300">Follow more pengus and join communities to get better recommendations!</p>
                     </div>
@@ -281,7 +285,7 @@ export default function DiscoverPage() {
                 <>
                   {suggestedCommunities.length === 0 ? (
                     <div className="text-center text-white py-12">
-                      <div className="text-4xl mb-4">🔍</div>
+                      <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-24 h-24 mx-auto mb-4" />
                       <p className="text-xl">No community recommendations available</p>
                       <p className="text-gray-300">Update your interests in settings to get better recommendations!</p>
                     </div>

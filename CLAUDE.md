@@ -3,6 +3,11 @@
 ## Project Overview
 PenguBook is a Next.js 14.2.32 social platform with Web3 wallet integration (Abstract Global Wallet), OAuth authentication (Discord/Twitter via NextAuth.js), and Prisma ORM with PostgreSQL database.
 
+## Brand Colors
+Official Pengu brand colors for custom icons and design:
+- **Pengu Green**: `#00E177` - Primary brand color
+- **Pengu Orange**: `#FFB92E` - Accent color (used for beak & feet in icons)
+
 ## Architecture
 
 ### Authentication System

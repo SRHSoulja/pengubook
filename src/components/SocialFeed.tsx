@@ -556,12 +556,6 @@ via @PenguBook`
                 </button>
               )}
             </div>
-            {/* Debug: Show user ID comparison */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="text-xs text-yellow-300 bg-black/20 p-1 rounded">
-                User: {userId} | Author: {post.author.id} | Match: {userId === post.author.id ? 'YES' : 'NO'}
-              </div>
-            )}
           </div>
 
           {/* Post Content */}

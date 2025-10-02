@@ -118,7 +118,7 @@ export default function WalletConnect() {
             </>
           ) : (
             <>
-              <span className="text-2xl animate-float">🐧</span>
+              <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="Penguin" className="w-6 h-6 animate-float" />
               <span>Connect Wallet & Join</span>
               <span className="text-2xl">→</span>
             </>

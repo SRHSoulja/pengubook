@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTheme } from '@/providers/ThemeProvider'
 
 const funnyPenguinFacts = [
   "Did you know penguins have a gland above their eyes that filters salt from seawater? 🧂",
@@ -15,23 +16,41 @@ const funnyPenguinFacts = [
   "The tallest penguin ever discovered was 6.8 feet tall! 📏"
 ]
 
-const penguinEmojis = ['🐧', '🐧💎', '🐧❄️', '🐧🌊', '🐧✨', '🐧🎩', '🐧💙']
+interface PenguinLoadingScreenProps {
+  icon?: string
+  iconAlt?: string
+}
 
-export default function PenguinLoadingScreen() {
+export default function PenguinLoadingScreen({ icon, iconAlt }: PenguinLoadingScreenProps) {
+  const { currentTheme } = useTheme()
   const [currentFact, setCurrentFact] = useState(0)
-  const [currentEmoji, setCurrentEmoji] = useState(0)
   const [dots, setDots] = useState('')
+  const [navIcon, setNavIcon] = useState<{ icon: string; alt: string } | null>(null)
+
+  useEffect(() => {
+    // Try to get the nav icon from sessionStorage
+    if (typeof window !== 'undefined') {
+      const storedIcon = sessionStorage.getItem('nav-icon')
+      if (storedIcon) {
+        try {
+          setNavIcon(JSON.parse(storedIcon))
+          // Clear it so it doesn't persist
+          sessionStorage.removeItem('nav-icon')
+        } catch (e) {
+          console.error('Failed to parse nav icon', e)
+        }
+      }
+    }
+  }, [])
+
+  const displayIcon = navIcon?.icon || icon || 'https://gmgnrepeat.com/icons/pengubookicon1.png'
+  const displayIconAlt = navIcon?.alt || iconAlt || 'PenguBook'
 
   useEffect(() => {
     // Rotate through facts every 3 seconds
     const factInterval = setInterval(() => {
       setCurrentFact((prev) => (prev + 1) % funnyPenguinFacts.length)
     }, 3000)
-
-    // Change emoji every 1.5 seconds
-    const emojiInterval = setInterval(() => {
-      setCurrentEmoji((prev) => (prev + 1) % penguinEmojis.length)
-    }, 1500)
 
     // Animate dots
     const dotsInterval = setInterval(() => {
@@ -45,13 +64,15 @@ export default function PenguinLoadingScreen() {
 
     return () => {
       clearInterval(factInterval)
-      clearInterval(emojiInterval)
       clearInterval(dotsInterval)
     }
   }, [])
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-black via-gray-900 to-emerald-900 flex items-center justify-center z-50">
+    <div
+      className="fixed inset-0 flex items-center justify-center z-50 transition-all duration-500"
+      style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }}
+    >
       {/* Animated background elements - Abstract green themed */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Floating gradient orbs - Abstract green colors */}
@@ -66,8 +87,8 @@ export default function PenguinLoadingScreen() {
       <div className="relative z-10 text-center space-y-8 max-w-2xl px-8">
         {/* Main penguin animation */}
         <div className="relative">
-          <div className="text-8xl animate-bounce">
-            {penguinEmojis[currentEmoji]}
+          <div className="flex justify-center animate-bounce">
+            <img src={displayIcon} alt={displayIconAlt} className="w-48 h-48 drop-shadow-2xl" />
           </div>
           <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
             <div className="flex space-x-1">

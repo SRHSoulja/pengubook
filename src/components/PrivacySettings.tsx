@@ -203,7 +203,7 @@ export default function PrivacySettings() {
       {/* Profile Privacy Settings */}
       <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
         <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-          <span className="mr-2">👤</span> Profile Privacy
+          <span className="mr-2"><img src="https://gmgnrepeat.com/icons/penguinsilhouette1.png" alt="Profile" className="w-5 h-5 inline-block" /></span> Profile Privacy
         </h2>
 
         <div className="space-y-4">

@@ -8,7 +8,7 @@ import ThemeCustomizer from '@/components/ThemeCustomizer'
 
 interface NavItem {
   id: string
-  icon: string
+  icon: React.ReactNode
   label: string
   href?: string
   action?: () => void
@@ -27,31 +27,31 @@ export default function MobileBottomNav() {
   const navItems: NavItem[] = [
     {
       id: 'home',
-      icon: '🏠',
+      icon: <img src="https://gmgnrepeat.com/icons/penguinhome1.png" alt="Home" className="w-5 h-5" />,
       label: 'Home',
       href: '/dashboard'
     },
     {
       id: 'feed',
-      icon: '📱',
+      icon: <img src="https://gmgnrepeat.com/icons/penguinfeed1.png" alt="Feed" className="w-5 h-5" />,
       label: 'Feed',
       href: '/feed'
     },
     {
       id: 'tip',
-      icon: '💸',
+      icon: 'https://gmgnrepeat.com/icons/penguintip1.png',
       label: 'Tip',
       action: () => setShowTipModal(true)
     },
     {
       id: 'communities',
-      icon: '🏔️',
+      icon: <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-5 h-5" />,
       label: 'Communities',
       href: '/communities'
     },
     {
       id: 'profile',
-      icon: '👤',
+      icon: <img src="https://gmgnrepeat.com/icons/penguinsilhouette1.png" alt="Profile" className="w-5 h-5" />,
       label: 'Profile',
       href: '/profile'
     }
@@ -112,7 +112,7 @@ export default function MobileBottomNav() {
               onClick={() => setShowThemeCustomizer(true)}
               className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-purple-500/25 transition-all duration-300 hover:scale-110"
             >
-              <span className="text-lg animate-float">🎨</span>
+              <img src="https://gmgnrepeat.com/icons/penguintheme1.png" alt="Themes" className="w-6 h-6 animate-float" />
             </button>
           </div>
         </div>

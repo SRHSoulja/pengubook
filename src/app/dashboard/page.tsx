@@ -24,7 +24,9 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center text-white">
-          <div className="text-6xl mb-4">🐧</div>
+          <div className="flex justify-center mb-4">
+            <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PenguBook" className="w-24 h-24" />
+          </div>
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p className="text-gray-300 mb-6">You need to connect your wallet to access the colony!</p>
           <a href="/" className="bg-cyan-500 text-white px-6 py-3 rounded-xl hover:bg-cyan-600 transition-colors">
@@ -50,7 +52,9 @@ export default function Dashboard() {
           {/* Enhanced Welcome Header */}
           <div className="text-center mb-16 relative">
             <div className="relative inline-block">
-              <div className="text-8xl mb-6 animate-float">🐧</div>
+              <div className="flex justify-center mb-6 animate-float">
+                <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PenguBook" className="w-32 h-32" />
+              </div>
               <div className="absolute inset-0 animate-aurora-flow opacity-30 rounded-full"></div>
             </div>
             <h1 className="text-5xl md:text-6xl font-display font-bold text-gradient mb-6 leading-tight">
@@ -72,7 +76,7 @@ export default function Dashboard() {
           {/* Enhanced Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <div className="glass-card-strong hover-lift group text-center p-8 relative overflow-hidden">
-              <div className="text-5xl mb-4 group-hover:animate-float">💸</div>
+              <img src="https://gmgnrepeat.com/icons/penguintip1.png" alt="Tips Sent" className="w-16 h-16 mx-auto mb-4 group-hover:animate-float" />
               <h3 className="text-xl font-display font-semibold text-white mb-2">Tips Sent</h3>
               <p className="text-4xl font-bold text-neon-cyan font-mono">
                 {user?.profile?.tipsSentCount || 0}
@@ -114,7 +118,7 @@ export default function Dashboard() {
                 href="/profile"
                 className="group glass-card hover-lift hover-glow p-6 rounded-2xl transition-all duration-300 flex flex-col items-center text-center space-y-3"
               >
-                <span className="text-4xl group-hover:animate-float">👤</span>
+                <img src="https://gmgnrepeat.com/icons/penguinsilhouette1.png" alt="Profile" className="w-12 h-12 group-hover:animate-float" />
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">My Profile</h3>
                   <p className="text-sm text-gray-400">View and edit your profile</p>
@@ -126,7 +130,7 @@ export default function Dashboard() {
                 href="/settings"
                 className="group glass-card hover-lift hover-glow p-6 rounded-2xl transition-all duration-300 flex flex-col items-center text-center space-y-3"
               >
-                <span className="text-4xl group-hover:animate-float">⚙️</span>
+                <span className="text-5xl group-hover:animate-float">⚙️</span>
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">Settings</h3>
                   <p className="text-sm text-gray-400">Manage profile & accounts</p>
@@ -138,7 +142,7 @@ export default function Dashboard() {
                 onClick={() => setShowTipModal(true)}
                 className="group glass-card hover-lift hover-glow p-6 rounded-2xl transition-all duration-300 flex flex-col items-center text-center space-y-3"
               >
-                <span className="text-4xl group-hover:animate-float">💸</span>
+                <img src="https://gmgnrepeat.com/icons/penguintip1.png" alt="Send Tip" className="w-12 h-12 group-hover:animate-float" />
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">Send Tip</h3>
                   <p className="text-sm text-gray-400">Spread penguin love</p>
@@ -150,7 +154,7 @@ export default function Dashboard() {
                 href="/feed"
                 className="group glass-card hover-lift hover-glow p-6 rounded-2xl transition-all duration-300 flex flex-col items-center text-center space-y-3"
               >
-                <span className="text-4xl group-hover:animate-float">📝</span>
+                <img src="https://gmgnrepeat.com/icons/penguinfeed1.png" alt="Feed" className="w-12 h-12 group-hover:animate-float" />
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">Social Feed</h3>
                   <p className="text-sm text-gray-400">See what's happening</p>
@@ -162,7 +166,7 @@ export default function Dashboard() {
                 href="/discover"
                 className="group glass-card hover-lift hover-glow p-6 rounded-2xl transition-all duration-300 flex flex-col items-center text-center space-y-3"
               >
-                <span className="text-4xl group-hover:animate-float">🧭</span>
+                <img src="https://gmgnrepeat.com/icons/penguindiscover1.png" alt="Discover" className="w-12 h-12 group-hover:animate-float" />
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">Discover</h3>
                   <p className="text-sm text-gray-400">Find new penguins</p>
@@ -174,7 +178,7 @@ export default function Dashboard() {
                 href="/communities"
                 className="group glass-card hover-lift hover-glow p-6 rounded-2xl transition-all duration-300 flex flex-col items-center text-center space-y-3"
               >
-                <span className="text-4xl group-hover:animate-float">🏔️</span>
+                <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-12 h-12 group-hover:animate-float" />
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">Communities</h3>
                   <p className="text-sm text-gray-400">Join penguin colonies</p>
@@ -186,7 +190,7 @@ export default function Dashboard() {
                 href="/friends"
                 className="group glass-card hover-lift hover-glow p-6 rounded-2xl transition-all duration-300 flex flex-col items-center text-center space-y-3"
               >
-                <span className="text-4xl group-hover:animate-float">🤝</span>
+                <img src="https://gmgnrepeat.com/icons/penguinfriends1.png" alt="Friends" className="w-12 h-12 group-hover:animate-float" />
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">FRENS</h3>
                   <p className="text-sm text-gray-400">Connect with penguins</p>
@@ -198,7 +202,7 @@ export default function Dashboard() {
                 onClick={() => setShowThemeCustomizer(true)}
                 className="group glass-card hover-lift hover-glow p-6 rounded-2xl transition-all duration-300 flex flex-col items-center text-center space-y-3"
               >
-                <span className="text-4xl group-hover:animate-float">🎨</span>
+                <img src="https://gmgnrepeat.com/icons/penguintheme1.png" alt="Themes" className="w-12 h-12 group-hover:animate-float" />
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">Themes</h3>
                   <p className="text-sm text-gray-400">Customize your style</p>

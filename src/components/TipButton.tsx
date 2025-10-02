@@ -392,7 +392,7 @@ export default function TipButton({ userId }: TipButtonProps) {
 
                   {!nativeToken && tokens.length === 0 && (
                     <div className="text-center py-8 bg-gray-700/20 rounded-xl">
-                      <div className="text-4xl mb-2">💸</div>
+                      <img src="https://gmgnrepeat.com/icons/penguintip1.png" alt="No tokens" className="w-12 h-12 mx-auto mb-2" />
                       <p className="text-gray-400">No tokens available</p>
                       <p className="text-xs text-gray-500 mt-1">Add tokens to your wallet to send tips</p>
                     </div>
@@ -451,7 +451,7 @@ export default function TipButton({ userId }: TipButtonProps) {
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Great post! 🐧"
+                placeholder="Great post! 🎉"
                 rows={3}
                 maxLength={200}
                 className="w-full bg-gray-700/30 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent resize-none"
@@ -516,9 +516,10 @@ export default function TipButton({ userId }: TipButtonProps) {
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors"
+        className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
       >
-        💰 Tip
+        <img src="https://gmgnrepeat.com/icons/penguintip1.png" alt="Tip" className="w-6 h-6" />
+        <span>Tip</span>
       </button>
 
       {mounted && showModal && createPortal(

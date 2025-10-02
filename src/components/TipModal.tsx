@@ -152,7 +152,7 @@ export default function TipModal({ isOpen, onClose }: TipModalProps) {
       <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-8 max-w-md w-full">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-white flex items-center">
-            <span className="mr-3">💸</span>
+            <img src="https://gmgnrepeat.com/icons/penguintip1.png" alt="Send Tip" className="w-8 h-8 mr-3" />
             Send Tip
           </h2>
           <button
@@ -217,7 +217,7 @@ export default function TipModal({ isOpen, onClose }: TipModalProps) {
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Great post! 🐧"
+              placeholder="Great post! 🎉"
               rows={3}
               className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-none"
             />

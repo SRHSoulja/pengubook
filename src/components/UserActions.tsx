@@ -235,11 +235,12 @@ export default function UserActions({
       {showMessageButton && !isBlocked && (
         <Link
           href={`/messages/new?userId=${targetUserId}`}
-          className={`bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors text-center ${
+          className={`bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 ${
             compact ? 'px-3 py-1 text-sm' : 'px-4 py-2'
           }`}
         >
-          💬 Message
+          <span className="text-xl">💬</span>
+          <span>Message</span>
         </Link>
       )}
 
@@ -249,11 +250,12 @@ export default function UserActions({
           {friendshipStatus.status === 'none' && (
             <button
               onClick={sendFriendRequest}
-              className={`bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors ${
+              className={`bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 ${
                 compact ? 'px-3 py-1 text-sm' : 'px-4 py-2'
               }`}
             >
-              👥 Add Friend
+              <img src="https://gmgnrepeat.com/icons/penguinfriends1.png" alt="Add Friend" className={compact ? 'w-5 h-5' : 'w-6 h-6'} />
+              <span>Add Friend</span>
             </button>
           )}
 

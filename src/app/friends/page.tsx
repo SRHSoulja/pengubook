@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { useTheme } from '@/providers/ThemeProvider'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
 
@@ -30,6 +31,7 @@ interface FriendRequest {
 
 export default function FriendsPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
+  const { currentTheme } = useTheme()
   const [friends, setFriends] = useState<Friend[]>([])
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([])
   const [loading, setLoading] = useState(true)
@@ -112,11 +114,11 @@ export default function FriendsPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+      <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center text-white">
-            <div className="text-6xl mb-4">🐧</div>
+            <div className="flex justify-center mb-4"><img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PenguBook" className="w-24 h-24" /></div>
             <h1 className="text-2xl font-bold mb-4">Loading...</h1>
             <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
           </div>
@@ -127,11 +129,11 @@ export default function FriendsPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+      <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center text-white">
-            <div className="text-6xl mb-4">🐧</div>
+            <div className="flex justify-center mb-4"><img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PenguBook" className="w-24 h-24" /></div>
             <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
             <p className="text-gray-300 mb-6">You need to connect your wallet to see your friends!</p>
             <Link href="/" className="bg-cyan-500 text-white px-6 py-3 rounded-xl hover:bg-cyan-600 transition-colors">
@@ -144,7 +146,7 @@ export default function FriendsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+    <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">
@@ -152,7 +154,7 @@ export default function FriendsPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-white mb-4 flex items-center justify-center">
-              <span className="mr-3">🤝</span>
+              <img src="https://gmgnrepeat.com/icons/penguinfriends1.png" alt="Friends" className="w-12 h-12 mr-3" />
               Penguin Friends
             </h1>
             <p className="text-xl text-gray-300">
@@ -170,7 +172,8 @@ export default function FriendsPage() {
                   : 'text-gray-300 hover:bg-white/10'
               }`}
             >
-              🤝 My Friends ({friends.length})
+              <img src="https://gmgnrepeat.com/icons/penguinfriends1.png" alt="Friends" className="w-5 h-5 inline-block mr-2" />
+              My Friends ({friends.length})
             </button>
             <button
               onClick={() => setActiveTab('requests')}
@@ -196,7 +199,7 @@ export default function FriendsPage() {
                 <>
                   {friends.length === 0 ? (
                     <div className="text-center text-white py-12">
-                      <div className="text-6xl mb-4">🐧</div>
+                      <div className="flex justify-center mb-4"><img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PenguBook" className="w-24 h-24" /></div>
                       <h2 className="text-2xl font-bold mb-4">No Friends Yet</h2>
                       <p className="text-gray-300 mb-6">Start connecting with other penguins!</p>
                       <Link

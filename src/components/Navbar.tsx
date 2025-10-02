@@ -103,7 +103,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between gap-4">
           {/* Logo - Compact */}
           <a href="/dashboard" className="flex items-center group hover-glow flex-shrink-0">
-            <span className="text-2xl mr-2 animate-float">🐧</span>
+            <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PenguBook" className="w-8 h-8 mr-2 animate-float" />
             <div className="hidden sm:flex flex-col">
               <span className="text-lg font-display font-bold text-gradient">PenguBook</span>
             </div>
@@ -111,42 +111,82 @@ export default function Navbar() {
 
           {/* Primary Navigation - Condensed */}
           <div className="hidden lg:flex items-center gap-1 flex-1 justify-center">
-            <a href="/dashboard" className="nav-link-compact group" title="Home">
-              <span className="text-xl">🏠</span>
+            <a
+              href="/dashboard"
+              className="nav-link-compact group relative"
+              onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinhome1.png', alt: 'Home' }))}
+            >
+              <img src="https://gmgnrepeat.com/icons/penguinhome1.png" alt="Home" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+                Home
+              </span>
             </a>
-            <a href="/feed" className="nav-link-compact group" title="Feed">
-              <span className="text-xl">📝</span>
+            <a
+              href="/feed"
+              className="nav-link-compact group relative"
+              onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinfeed1.png', alt: 'Feed' }))}
+            >
+              <img src="https://gmgnrepeat.com/icons/penguinfeed1.png" alt="Feed" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+                Feed
+              </span>
             </a>
-            <a href="/communities" className="nav-link-compact group" title="Communities">
-              <span className="text-xl">🏔️</span>
+            <a
+              href="/communities"
+              className="nav-link-compact group relative"
+              onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguincommunity1.png', alt: 'Communities' }))}
+            >
+              <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+                Communities
+              </span>
             </a>
-            <a href="/discover" className="nav-link-compact group" title="Discover">
-              <span className="text-xl">🧭</span>
+            <a
+              href="/discover"
+              className="nav-link-compact group relative"
+              onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguindiscover1.png', alt: 'Discover' }))}
+            >
+              <img src="https://gmgnrepeat.com/icons/penguindiscover1.png" alt="Discover" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+                Discover
+              </span>
             </a>
-            <a href="/friends" className="nav-link-compact group" title="Friends">
-              <span className="text-xl">🤝</span>
+            <a
+              href="/friends"
+              className="nav-link-compact group relative"
+              onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinfriends1.png', alt: 'Friends' }))}
+            >
+              <img src="https://gmgnrepeat.com/icons/penguinfriends1.png" alt="Friends" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+                Friends
+              </span>
             </a>
-            <a href="/messages" className="nav-link-compact group relative" title="Messages">
+            <a href="/messages" className="nav-link-compact group relative">
               <span className="text-xl">💬</span>
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-gradient-to-r from-neon-pink to-neon-purple text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 animate-pulse shadow-neon-sm">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+                Messages
+              </span>
             </a>
 
             {/* More Menu Dropdown */}
             <div className="relative" ref={moreMenuRef}>
               <button
                 onClick={() => setShowMoreMenu(!showMoreMenu)}
-                className="nav-link-compact group"
-                title="More"
+                className="nav-link-compact group relative"
               >
                 <span className="text-xl">⋯</span>
+                <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+                  More
+                </span>
               </button>
 
               {showMoreMenu && (
-                <div className="absolute top-full right-0 mt-2 w-48 glass-card border border-white/20 rounded-xl shadow-2xl overflow-hidden z-50">
+                <div className="absolute top-full right-0 mt-2 w-48 glass-card-strong border border-white/30 rounded-xl shadow-2xl overflow-hidden z-50">
                   <a href="/achievements" className="dropdown-item">
                     <span className="text-lg">🏆</span>
                     <span>Achievements</span>
@@ -196,7 +236,7 @@ export default function Navbar() {
                     </span>
                   ) : null}
                 </div>
-                <div className="text-2xl">👤</div>
+                <img src="https://gmgnrepeat.com/icons/penguinsilhouette1.png" alt="Profile" className="w-8 h-8" />
               </button>
 
               {showUserMenu && (
@@ -207,7 +247,7 @@ export default function Navbar() {
                   </div>
 
                   <a href="/profile" className="dropdown-item">
-                    <span className="text-lg">👤</span>
+                    <img src="https://gmgnrepeat.com/icons/penguinsilhouette1.png" alt="Profile" className="w-5 h-5" />
                     <span>Profile</span>
                   </a>
                   <a href="/settings" className="dropdown-item">
@@ -221,7 +261,7 @@ export default function Navbar() {
                     }}
                     className="dropdown-item w-full"
                   >
-                    <span className="text-lg">🎨</span>
+                    <img src="https://gmgnrepeat.com/icons/penguintheme1.png" alt="Themes" className="w-5 h-5" />
                     <span>Themes</span>
                   </button>
 
