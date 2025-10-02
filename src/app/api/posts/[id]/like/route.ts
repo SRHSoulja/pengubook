@@ -226,7 +226,8 @@ export async function DELETE(
         where: {
           fromUserId: userId,
           toUserId: post.authorId,
-          type: 'LIKE',
+          type: 'LIKE'
+        }
       })
     }
 
