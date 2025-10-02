@@ -35,12 +35,7 @@ export async function POST(
         tokenMinAmount: true,
         tokenIds: true,
         tokenSymbol: true,
-        creator: {
-          select: {
-            id: true,
-            displayName: true
-          }
-        }
+        creatorId: true
       }
     })
 
@@ -158,11 +153,11 @@ export async function POST(
     })
 
     // Create notification for community creator (if not self-joining)
-    if (community.creator.id !== userId) {
+    if (community.creatorId !== userId) {
       await prisma.notification.create({
         data: {
           fromUserId: userId,
-          toUserId: community.creator.id,
+          toUserId: community.creatorId,
           type: 'COMMUNITY_JOIN',
           title: 'New Community Member',
           message: `${user.displayName} joined your community "${community.displayName}"`,
