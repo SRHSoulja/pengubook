@@ -90,6 +90,8 @@ model Profile {
   showTips            Boolean @default(true)
   allowDirectMessages Boolean @default(true)
   dmPrivacyLevel      String  @default("ALL") // ALL, FRIENDS_ONLY, NONE
+  showDiscord         Boolean @default(true)
+  showTwitter         Boolean @default(true)
   theme               String  @default("default")
   bannerImage         String?
   profileVerified     Boolean @default(false)

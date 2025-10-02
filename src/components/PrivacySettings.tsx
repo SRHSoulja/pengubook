@@ -9,6 +9,8 @@ interface PrivacySettings {
   isPrivate: boolean
   showActivity: boolean
   showTips: boolean
+  showDiscord: boolean
+  showTwitter: boolean
 }
 
 interface BlockedUser {
@@ -29,7 +31,9 @@ export default function PrivacySettings() {
     dmPrivacyLevel: 'ALL',
     isPrivate: false,
     showActivity: true,
-    showTips: true
+    showTips: true,
+    showDiscord: true,
+    showTwitter: true
   })
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([])
   const [loading, setLoading] = useState(true)
@@ -251,6 +255,40 @@ export default function PrivacySettings() {
                 type="checkbox"
                 checked={settings.showTips}
                 onChange={(e) => handleToggle('showTips', e.target.checked)}
+                disabled={saving}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+            <div>
+              <h3 className="text-white font-medium">Show Discord</h3>
+              <p className="text-gray-400 text-sm">Display linked Discord account on your profile</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.showDiscord}
+                onChange={(e) => handleToggle('showDiscord', e.target.checked)}
+                disabled={saving}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+            <div>
+              <h3 className="text-white font-medium">Show X/Twitter</h3>
+              <p className="text-gray-400 text-sm">Display linked X/Twitter account on your profile</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.showTwitter}
+                onChange={(e) => handleToggle('showTwitter', e.target.checked)}
                 disabled={saving}
                 className="sr-only peer"
               />
