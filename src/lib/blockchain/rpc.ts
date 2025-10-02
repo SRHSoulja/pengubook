@@ -148,6 +148,13 @@ export class RpcConfig {
   static async getWorkingRpcUrl(networkName?: string): Promise<string> {
     const urls = this.getRpcUrls(networkName)
 
+    // For Abstract mainnet, skip testing and use the known working URL
+    // The api.abs.xyz URL redirects to HTML instead of returning JSON-RPC
+    if (networkName === 'abstract_mainnet' || !networkName) {
+      // Return the first URL which should be from env or default mainnet URL
+      return urls[0]
+    }
+
     for (const url of urls) {
       const isWorking = await this.testRpcConnection(url)
       if (isWorking) {
