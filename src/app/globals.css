@@ -193,23 +193,41 @@
 
 /* Theme System CSS Variables */
 :root {
-  --theme-bg-gradient: theme(colors.gray.900) theme(colors.green.900) theme(colors.emerald.900);
-  --theme-accent-color: theme(colors.emerald.400);
-  --theme-text-color: theme(colors.white);
-  --theme-glass-tint: theme(colors.emerald.500) / 0.1;
+  --theme-from: #111827;
+  --theme-via: #064e3b;
+  --theme-to: #065f46;
+  --theme-accent: #10b981;
+  --theme-text: #ffffff;
+  --theme-glass: rgba(16, 185, 129, 0.1);
 }
 
 /* Dynamic theme classes using CSS variables */
 .theme-bg {
-  background: linear-gradient(135deg, var(--theme-bg-gradient));
+  background: linear-gradient(135deg, var(--theme-from), var(--theme-via), var(--theme-to));
 }
 
 .theme-accent {
-  color: var(--theme-accent-color);
+  color: var(--theme-accent);
 }
 
 .theme-text {
-  color: var(--theme-text-color);
+  color: var(--theme-text);
+}
+
+.theme-bg-from {
+  background-color: var(--theme-from);
+}
+
+.theme-bg-via {
+  background-color: var(--theme-via);
+}
+
+.theme-bg-to {
+  background-color: var(--theme-to);
+}
+
+.theme-glass {
+  background-color: var(--theme-glass);
 }
 
 /* Legacy theme classes */

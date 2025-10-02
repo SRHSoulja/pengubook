@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import { signOut } from 'next-auth/react'
 import { useAuth } from '@/providers/AuthProvider'
 import UserSearch from './UserSearch'
+import ThemeCustomizer from './ThemeCustomizer'
 
 export default function Navbar() {
   const { logout } = useLoginWithAbstract()
@@ -13,6 +14,7 @@ export default function Navbar() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showThemeCustomizer, setShowThemeCustomizer] = useState(false)
   const moreMenuRef = useRef<HTMLDivElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
 
@@ -212,6 +214,16 @@ export default function Navbar() {
                     <span className="text-lg">⚙️</span>
                     <span>Settings</span>
                   </a>
+                  <button
+                    onClick={() => {
+                      setShowThemeCustomizer(true)
+                      setShowUserMenu(false)
+                    }}
+                    className="dropdown-item w-full"
+                  >
+                    <span className="text-lg">🎨</span>
+                    <span>Themes</span>
+                  </button>
 
                   <div className="border-t border-white/10">
                     <button
@@ -239,6 +251,12 @@ export default function Navbar() {
 
       {/* Add subtle aurora effect */}
       <div className="absolute inset-0 aurora-bg animate-aurora-flow opacity-10 pointer-events-none"></div>
+
+      {/* Theme Customizer Modal */}
+      <ThemeCustomizer
+        isOpen={showThemeCustomizer}
+        onClose={() => setShowThemeCustomizer(false)}
+      />
     </nav>
   )
 }

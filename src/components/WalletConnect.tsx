@@ -105,28 +105,37 @@ export default function WalletConnect() {
       <button
         onClick={handleLogin}
         disabled={isConnecting || clientLoading}
-        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg"
+        className="group relative w-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl font-display font-bold text-lg shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
       >
-        {isConnecting || clientLoading ? (
-          <div className="flex items-center justify-center space-x-2">
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            <span>Connecting...</span>
-          </div>
-        ) : (
-          'Connect to Abstract 🐧'
-        )}
+        {/* Animated shine effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transform translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+
+        <div className="relative flex items-center justify-center gap-3">
+          {isConnecting || clientLoading ? (
+            <>
+              <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Connecting to Abstract...</span>
+            </>
+          ) : (
+            <>
+              <span className="text-2xl animate-float">🐧</span>
+              <span>Connect Wallet & Join</span>
+              <span className="text-2xl">→</span>
+            </>
+          )}
+        </div>
       </button>
 
       {(loginStep || registrationStatus) && (
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 text-center">
+        <div className="glass-card bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-cyan-500/30 rounded-xl p-4 text-center">
           {loginStep && (
-            <div className="text-blue-200 text-sm font-medium flex items-center justify-center space-x-2">
-              <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+            <div className="text-cyan-200 text-sm font-semibold flex items-center justify-center gap-3">
+              <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
               <span>{loginStep}</span>
             </div>
           )}
           {registrationStatus && (
-            <div className="text-blue-100 text-sm mt-1">{registrationStatus}</div>
+            <div className="text-cyan-100 text-sm mt-2">{registrationStatus}</div>
           )}
         </div>
       )}

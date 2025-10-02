@@ -8,6 +8,7 @@ import MobileBottomNav from '@/components/MobileBottomNav'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import ClientErrorHandler from '@/components/ClientErrorHandler'
 import StreakCheckerWrapper from '@/components/StreakCheckerWrapper'
+import ThemeWrapper from '@/components/ThemeWrapper'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -33,9 +34,11 @@ export default function RootLayout({
               <AbstractProvider>
                 <AuthProvider>
                   <ThemeProvider>
-                    <StreakCheckerWrapper />
-                    {children}
-                    <MobileBottomNav />
+                    <ThemeWrapper>
+                      <StreakCheckerWrapper />
+                      {children}
+                      <MobileBottomNav />
+                    </ThemeWrapper>
                   </ThemeProvider>
                 </AuthProvider>
               </AbstractProvider>
