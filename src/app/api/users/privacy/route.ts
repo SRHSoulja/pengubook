@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger } from '@/lib/logger'
 
@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 // Get user's privacy settings
 export const GET = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextRequest, user: any) => {
   try {
-    const prisma = new PrismaClient()
+    
 
     const profile = await prisma.profile.findUnique({
       where: { userId: user.id },
@@ -21,7 +21,6 @@ export const GET = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
       }
     })
 
-    await prisma.$disconnect()
 
     if (!profile) {
       return NextResponse.json(
@@ -64,7 +63,7 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextReq
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Prepare update data
     const updateData: any = {}
@@ -106,7 +105,6 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextReq
       }
     })
 
-    await prisma.$disconnect()
 
     logger.info('Privacy settings updated', {
       userId: user.id.slice(0, 8) + '...',

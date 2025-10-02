@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
 // GET - Get all unique tokens from user wallets that aren't verified or blacklisted
 export async function GET(request: NextRequest) {
   try {
-    const prisma = new PrismaClient()
+    
 
     // Get all verified token addresses
     const verifiedTokens = await prisma.verifiedToken.findMany({
@@ -43,7 +43,6 @@ export async function GET(request: NextRequest) {
         lastSeen: token.lastSeenAt
       }))
 
-    await prisma.$disconnect()
     return NextResponse.json(availableTokens)
   } catch (error) {
     console.error('Error fetching available tokens:', error)

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 
@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 // Get user's muted phrases
 export const GET = withAuth(async (request: NextRequest, user: any) => {
   try {
-    const prisma = new PrismaClient()
+    
 
     const mutedPhrases = await prisma.mutedPhrase.findMany({
       where: {
@@ -22,7 +22,6 @@ export const GET = withAuth(async (request: NextRequest, user: any) => {
       orderBy: { createdAt: 'desc' }
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,
@@ -107,7 +106,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
       scope
     })
 
-    const prisma = new PrismaClient()
+    
 
     // Check if user already has too many muted phrases (limit to 100)
     const existingCount = await prisma.mutedPhrase.count({
@@ -121,7 +120,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (existingCount >= 100) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Maximum limit of 100 muted phrases reached' },
         { status: 400 }
@@ -144,7 +142,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (existingPhrase) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'This phrase is already muted' },
         { status: 409 }
@@ -163,7 +160,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
       }
     })
 
-    await prisma.$disconnect()
 
     logger.info('Muted phrase added', {
       mutedPhraseId: mutedPhrase.id,

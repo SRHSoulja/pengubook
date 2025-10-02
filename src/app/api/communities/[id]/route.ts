@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,7 +12,7 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId') // For checking membership and permissions
 
-    const prisma = new PrismaClient()
+    
 
     const community = await prisma.community.findUnique({
       where: { id },
@@ -89,7 +89,6 @@ export async function GET(
     })
 
     if (!community) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Community not found' },
         { status: 404 }
@@ -116,7 +115,6 @@ export async function GET(
       }
     }
 
-    await prisma.$disconnect()
 
     const formattedCommunity = {
       id: community.id,
@@ -201,7 +199,7 @@ export async function PUT(
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if community exists
     const community = await prisma.community.findUnique({
@@ -214,7 +212,6 @@ export async function PUT(
     })
 
     if (!community) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Community not found' },
         { status: 404 }
@@ -228,7 +225,6 @@ export async function PUT(
     })
 
     if (!user) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -257,7 +253,6 @@ export async function PUT(
     }
 
     if (!hasPermission) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'You do not have permission to edit this community' },
         { status: 403 }
@@ -285,7 +280,6 @@ export async function PUT(
 
     // Cannot change name after creation
     if (updateData.name && updateData.name !== community.name) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Community name cannot be changed after creation' },
         { status: 400 }
@@ -312,7 +306,6 @@ export async function PUT(
       }
     })
 
-    await prisma.$disconnect()
 
     const formattedCommunity = {
       id: updatedCommunity.id,
@@ -373,7 +366,7 @@ export async function DELETE(
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if community exists
     const community = await prisma.community.findUnique({
@@ -387,7 +380,6 @@ export async function DELETE(
     })
 
     if (!community) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Community not found' },
         { status: 404 }
@@ -401,7 +393,6 @@ export async function DELETE(
     })
 
     if (!user) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -409,7 +400,6 @@ export async function DELETE(
     }
 
     if (!user.isAdmin && community.creatorId !== userId) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Only the community creator or admin can delete this community' },
         { status: 403 }
@@ -421,7 +411,6 @@ export async function DELETE(
       where: { id }
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

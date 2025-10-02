@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,7 +10,7 @@ export async function GET(
   try {
     const { id } = params
 
-    const prisma = new PrismaClient()
+    
 
     // Check if id is a wallet address (starts with 0x and is 42 chars)
     const isWalletAddress = /^0x[a-fA-F0-9]{40}$/.test(id)
@@ -38,14 +38,12 @@ export async function GET(
     })
 
     if (!user) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       )
     }
 
-    await prisma.$disconnect()
 
     const profileData = {
       id: user.id,

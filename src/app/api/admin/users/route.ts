@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAdminAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 
@@ -15,7 +15,7 @@ export const GET = withRateLimit(60, 60 * 1000)(withAdminAuth(async (request: Ne
 
     logAPI.request('admin/users', { requestedBy: user.id.slice(0, 8) + '...', limit, offset, search })
 
-    const prisma = new PrismaClient()
+    
 
     const where: any = {}
     if (search) {
@@ -54,7 +54,6 @@ export const GET = withRateLimit(60, 60 * 1000)(withAdminAuth(async (request: Ne
 
     const totalUsers = await prisma.user.count({ where })
 
-    await prisma.$disconnect()
 
     logger.info('Admin users fetched', {
       requestedBy: user.id,

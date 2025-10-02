@@ -2,9 +2,7 @@ import NextAuth from 'next-auth'
 import DiscordProvider from 'next-auth/providers/discord'
 import TwitterProvider from 'next-auth/providers/twitter'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 const handler = NextAuth({
   // Remove adapter - we don't want NextAuth to create users automatically

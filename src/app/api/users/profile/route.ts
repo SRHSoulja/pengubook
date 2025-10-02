@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { PrismaClient } = await import('@prisma/client')
-    const prisma = new PrismaClient()
+    
 
     const { searchParams } = new URL(request.url)
     const walletAddress = searchParams.get('walletAddress')
@@ -80,7 +80,6 @@ export async function GET(request: NextRequest) {
         timestamp: new Date().toISOString()
       })
 
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -97,7 +96,6 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString()
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,
@@ -141,7 +139,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const { PrismaClient } = await import('@prisma/client')
-    const prisma = new PrismaClient()
+    
 
     const body = await request.json()
     const { walletAddress, displayName, username, bio, interests, avatarSource } = body
@@ -249,7 +247,6 @@ export async function PUT(request: NextRequest) {
         timestamp: new Date().toISOString()
       })
 
-      await prisma.$disconnect()
 
       return NextResponse.json({
         success: true,
@@ -280,7 +277,6 @@ export async function PUT(request: NextRequest) {
       timestamp: new Date().toISOString()
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 const ABSTRACT_RPC_URL = 'https://api.mainnet.abs.xyz'
 const DEXSCREENER_API = 'https://api.dexscreener.com'

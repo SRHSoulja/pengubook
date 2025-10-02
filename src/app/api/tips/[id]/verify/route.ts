@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAdminAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 
@@ -19,7 +19,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: N
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Find the tip
     const tip = await prisma.tip.findUnique({
@@ -51,7 +51,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: N
     })
 
     if (!tip) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Tip not found' },
         { status: 404 }
@@ -59,7 +58,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: N
     }
 
     if (tip.status !== 'PENDING') {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Tip has already been verified' },
         { status: 409 }
@@ -154,7 +152,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: N
       })
     }
 
-    await prisma.$disconnect()
 
     logger.info(`Tip ${status.toLowerCase()}`, {
       tipId: updatedTip.id,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth } from '@/lib/auth-middleware'
 import { ACHIEVEMENT_DEFINITIONS } from '@/lib/achievements'
 import { logger } from '@/lib/logger'
@@ -17,7 +17,7 @@ export const POST = withAuth(async (request: NextRequest, user: any) => {
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     let created = 0
     let updated = 0
@@ -58,7 +58,6 @@ export const POST = withAuth(async (request: NextRequest, user: any) => {
       }
     }
 
-    await prisma.$disconnect()
 
     logger.info('Achievements initialized', {
       adminId: user.id,

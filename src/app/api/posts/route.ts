@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { awardXP } from '@/lib/leveling'
 import { checkAndAwardAchievements } from '@/lib/achievement-checker'
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0')
     const visibility = searchParams.get('visibility') || 'PUBLIC'
 
-    const prisma = new PrismaClient()
+    
 
     const where: any = {
       visibility: visibility
@@ -73,7 +73,6 @@ export async function GET(request: NextRequest) {
       skip: offset
     })
 
-    await prisma.$disconnect()
 
     const formattedPosts = posts.map(post => ({
       id: post.id,
@@ -133,7 +132,7 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // User is already authenticated and verified by middleware
 
@@ -217,7 +216,6 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
       // Don't fail the post creation if hashtag processing fails
     }
 
-    await prisma.$disconnect()
 
     const formattedPost = {
       id: newPost.id,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth } from '@/lib/auth-middleware'
 
 export const dynamic = 'force-dynamic'
@@ -14,7 +14,7 @@ export const POST = withAuth(async (
     const body = await request.json()
     const { action } = body
 
-    const prisma = new PrismaClient()
+    
 
     // Check if post exists
     const post = await prisma.post.findUnique({
@@ -23,7 +23,6 @@ export const POST = withAuth(async (
     })
 
     if (!post) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Post not found' },
         { status: 404 }
@@ -42,7 +41,6 @@ export const POST = withAuth(async (
       })
 
       if (existingShare) {
-        await prisma.$disconnect()
         return NextResponse.json(
           { error: 'Post already shared' },
           { status: 400 }
@@ -69,7 +67,6 @@ export const POST = withAuth(async (
         })
       }
 
-      await prisma.$disconnect()
 
       return NextResponse.json({
         success: true,
@@ -78,7 +75,6 @@ export const POST = withAuth(async (
       })
     }
 
-    await prisma.$disconnect()
     return NextResponse.json(
       { error: 'Invalid action' },
       { status: 400 }

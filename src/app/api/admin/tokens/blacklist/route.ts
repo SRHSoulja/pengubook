@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
 // GET - Get all blacklisted tokens
 export async function GET(request: NextRequest) {
   try {
-    const prisma = new PrismaClient()
+    
 
     const blacklistedTokens = await prisma.blacklistedToken.findMany({
       orderBy: { blacklistedAt: 'desc' }
     })
 
-    await prisma.$disconnect()
     return NextResponse.json(blacklistedTokens)
   } catch (error) {
     console.error('Error fetching blacklisted tokens:', error)
@@ -23,7 +22,7 @@ export async function GET(request: NextRequest) {
 // POST - Blacklist a token
 export async function POST(request: NextRequest) {
   try {
-    const prisma = new PrismaClient()
+    
     const { tokenAddress, symbol, name, reason, userId } = await request.json()
 
     if (!tokenAddress) {
@@ -73,7 +72,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    await prisma.$disconnect()
     return NextResponse.json(blacklistedToken)
   } catch (error) {
     console.error('Error blacklisting token:', error)
@@ -84,7 +82,7 @@ export async function POST(request: NextRequest) {
 // DELETE - Remove a token from blacklist
 export async function DELETE(request: NextRequest) {
   try {
-    const prisma = new PrismaClient()
+    
     const { searchParams } = new URL(request.url)
     const tokenAddress = searchParams.get('address')
 
@@ -96,7 +94,6 @@ export async function DELETE(request: NextRequest) {
       where: { tokenAddress: tokenAddress.toLowerCase() }
     })
 
-    await prisma.$disconnect()
     return NextResponse.json({ success: true })
   } catch (error: any) {
     if (error.code === 'P2025') {

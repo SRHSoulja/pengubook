@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 
@@ -53,7 +53,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
       reason
     })
 
-    const prisma = new PrismaClient()
+    
 
     // Check if target user exists (for user reports)
     if (targetId) {
@@ -63,7 +63,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
       })
 
       if (!targetUser) {
-        await prisma.$disconnect()
         return NextResponse.json(
           { error: 'Target user not found' },
           { status: 404 }
@@ -72,7 +71,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
 
       // Prevent self-reporting
       if (targetId === user.id) {
-        await prisma.$disconnect()
         return NextResponse.json(
           { error: 'You cannot report yourself' },
           { status: 400 }
@@ -88,7 +86,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
       })
 
       if (!post) {
-        await prisma.$disconnect()
         return NextResponse.json(
           { error: 'Post not found' },
           { status: 404 }
@@ -107,7 +104,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (existingReport) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'You have already submitted a report for this item that is being reviewed' },
         { status: 409 }
@@ -154,7 +150,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
       }
     })
 
-    await prisma.$disconnect()
 
     logger.info('Report submitted', {
       reportId: report.id,

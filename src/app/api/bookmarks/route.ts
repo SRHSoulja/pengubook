@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 
@@ -15,7 +15,7 @@ export const GET = withRateLimit(100, 60 * 1000)(withAuth(async (request: NextRe
 
     logAPI.request('bookmarks/get', { userId: user.id.slice(0, 8) + '...', page, limit })
 
-    const prisma = new PrismaClient()
+    
 
     const bookmarks = await prisma.bookmark.findMany({
       where: {
@@ -63,7 +63,6 @@ export const GET = withRateLimit(100, 60 * 1000)(withAuth(async (request: NextRe
       where: { userId: user.id }
     })
 
-    await prisma.$disconnect()
 
     const formattedBookmarks = bookmarks.map(bookmark => ({
       id: bookmark.id,
@@ -132,7 +131,7 @@ export const POST = withRateLimit(50, 60 * 1000)(withAuth(async (request: NextRe
 
     logAPI.request('bookmarks/toggle', { userId: user.id.slice(0, 8) + '...', postId: postId.slice(0, 8) + '...' })
 
-    const prisma = new PrismaClient()
+    
 
     // Check if post exists
     const post = await prisma.post.findUnique({
@@ -141,7 +140,6 @@ export const POST = withRateLimit(50, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (!post) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Post not found' },
         { status: 404 }
@@ -177,7 +175,6 @@ export const POST = withRateLimit(50, 60 * 1000)(withAuth(async (request: NextRe
       action = 'added'
     }
 
-    await prisma.$disconnect()
 
     logger.info(`Bookmark ${action}`, {
       userId: user.id,

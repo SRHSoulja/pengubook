@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if already following
     const existingFollow = await prisma.follow.findUnique({
@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingFollow) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Already following this user' },
         { status: 409 }
@@ -69,7 +68,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

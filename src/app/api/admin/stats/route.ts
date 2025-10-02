@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-    const prisma = new PrismaClient()
+    
 
     // Fetch all statistics in parallel
     const [
@@ -30,7 +30,6 @@ export async function GET(request: NextRequest) {
       })
     ])
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       totalUsers,

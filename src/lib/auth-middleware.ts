@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {
@@ -71,7 +71,7 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       }
     }
 
-    const prisma = new PrismaClient()
+    
 
     let user
     try {
@@ -138,7 +138,6 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       }
 
       if (!user) {
-        await prisma.$disconnect()
         return {
           success: false,
           error: 'User not found. Please ensure you are registered.',
@@ -147,7 +146,6 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       }
 
       if (user.isBanned) {
-        await prisma.$disconnect()
         return {
           success: false,
           error: 'Your account has been banned. Please contact support.',
@@ -155,7 +153,6 @@ export async function authenticateRequest(request: NextRequest): Promise<{
         }
       }
 
-      await prisma.$disconnect()
 
       // Check if user is admin based on environment variable
       const adminWalletAddress = process.env.ADMIN_WALLET_ADDRESS
@@ -176,7 +173,6 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       }
 
     } catch (dbError) {
-      await prisma.$disconnect()
       console.error('[Auth] Database error:', dbError)
       return {
         success: false,

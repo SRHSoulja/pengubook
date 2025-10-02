@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { awardXP } from '@/lib/leveling'
 
@@ -15,7 +15,7 @@ export async function GET(
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50)
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    const prisma = new PrismaClient()
+    
 
     // Check if post exists
     const post = await prisma.post.findUnique({
@@ -24,7 +24,6 @@ export async function GET(
     })
 
     if (!post) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Post not found' },
         { status: 404 }
@@ -72,7 +71,6 @@ export async function GET(
       skip: offset
     })
 
-    await prisma.$disconnect()
 
     const formattedComments = comments.map(comment => ({
       id: comment.id,
@@ -131,7 +129,7 @@ export async function POST(
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if post exists
     const post = await prisma.post.findUnique({
@@ -148,7 +146,6 @@ export async function POST(
     })
 
     if (!post) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Post not found' },
         { status: 404 }
@@ -162,7 +159,6 @@ export async function POST(
     })
 
     if (!user) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -170,7 +166,6 @@ export async function POST(
     }
 
     if (user.isBanned) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Banned users cannot create comments' },
         { status: 403 }
@@ -230,7 +225,6 @@ export async function POST(
       // Don't fail the comment creation if XP fails
     }
 
-    await prisma.$disconnect()
 
     const formattedComment = {
       id: newComment.id,

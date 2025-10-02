@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 import { validate } from '@/lib/validation'
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     logAPI.request('tips', { userId: userId.slice(0, 8) + '...', type, limit })
 
-    const prisma = new PrismaClient()
+    
 
     let whereClause: any = {
       status: 'COMPLETED' // Only show completed tips
@@ -82,7 +82,6 @@ export async function GET(request: NextRequest) {
       skip: offset
     })
 
-    await prisma.$disconnect()
 
     const formattedTips = tips.map(tip => ({
       id: tip.id,
@@ -167,7 +166,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if transaction hash already exists
     const existingTip = await prisma.tip.findUnique({
@@ -175,7 +174,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (existingTip) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Transaction hash already used' },
         { status: 409 }
@@ -189,7 +187,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (!recipient) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Recipient user not found' },
         { status: 404 }
@@ -197,7 +194,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
     }
 
     if (recipient.isBanned) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Cannot tip banned users' },
         { status: 403 }
@@ -211,7 +207,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (!token) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Token not found' },
         { status: 404 }
@@ -219,7 +214,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
     }
 
     if (!token.isEnabled) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Token is not enabled for tipping' },
         { status: 403 }
@@ -304,7 +298,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
       }
     })
 
-    await prisma.$disconnect()
 
     logger.info('Tip created', {
       tipId: newTip.id,

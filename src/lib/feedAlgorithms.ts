@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { FeedAlgorithmOptions, TrendingScore, Post } from '@/types'
-
-const prisma = new PrismaClient()
 
 // Chronological feed algorithm
 export async function getChronologicalFeed(options: FeedAlgorithmOptions): Promise<Post[]> {

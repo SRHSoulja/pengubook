@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth } from '@/lib/auth-middleware'
 
 export const dynamic = 'force-dynamic'
@@ -11,7 +11,7 @@ export async function GET(
   try {
     const { id } = params
 
-    const prisma = new PrismaClient()
+    
 
     const post = await prisma.post.findUnique({
       where: { id },
@@ -75,14 +75,12 @@ export async function GET(
     })
 
     if (!post) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Post not found' },
         { status: 404 }
       )
     }
 
-    await prisma.$disconnect()
 
     const formattedPost = {
       id: post.id,
@@ -138,7 +136,7 @@ export const PUT = withAuth(async (
     const body = await request.json()
     const { content, contentType, mediaUrls, visibility } = body
 
-    const prisma = new PrismaClient()
+    
 
     // Check if post exists and user owns it
     const existingPost = await prisma.post.findUnique({
@@ -151,7 +149,6 @@ export const PUT = withAuth(async (
     })
 
     if (!existingPost) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Post not found' },
         { status: 404 }
@@ -159,7 +156,6 @@ export const PUT = withAuth(async (
     }
 
     if (existingPost.authorId !== user.id) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'You can only edit your own posts' },
         { status: 403 }
@@ -169,7 +165,6 @@ export const PUT = withAuth(async (
     // Check if post is too old to edit (24 hours)
     const hoursOld = (Date.now() - existingPost.createdAt.getTime()) / (1000 * 60 * 60)
     if (hoursOld > 24) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Posts can only be edited within 24 hours of creation' },
         { status: 403 }
@@ -182,7 +177,6 @@ export const PUT = withAuth(async (
 
     if (content !== undefined) {
       if (content.length > 2000) {
-        await prisma.$disconnect()
         return NextResponse.json(
           { error: 'Content cannot exceed 2000 characters' },
           { status: 400 }
@@ -233,7 +227,6 @@ export const PUT = withAuth(async (
       }
     })
 
-    await prisma.$disconnect()
 
     const formattedPost = {
       id: updatedPost.id,
@@ -282,7 +275,7 @@ export async function DELETE(
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if post exists and user owns it (or is admin)
     const existingPost = await prisma.post.findUnique({
@@ -293,7 +286,6 @@ export async function DELETE(
     })
 
     if (!existingPost) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Post not found' },
         { status: 404 }
@@ -307,7 +299,6 @@ export async function DELETE(
     })
 
     if (!user) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -315,7 +306,6 @@ export async function DELETE(
     }
 
     if (existingPost.authorId !== userId && !user.isAdmin) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'You can only delete your own posts' },
         { status: 403 }
@@ -337,7 +327,6 @@ export async function DELETE(
       }
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { EngagementType } from '@/types'
-
-const prisma = new PrismaClient()
 
 // Track user engagement with posts
 export async function trackEngagement(

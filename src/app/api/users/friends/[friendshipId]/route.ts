@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger } from '@/lib/logger'
 
@@ -23,7 +23,7 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Find the friendship request
     const friendship = await prisma.friendship.findUnique({
@@ -49,7 +49,6 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (
     })
 
     if (!friendship) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Friend request not found' },
         { status: 404 }
@@ -58,7 +57,6 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (
 
     // Check if user is the receiver of the request
     if (friendship.receiverId !== user.id) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'You can only respond to friend requests sent to you' },
         { status: 403 }
@@ -67,7 +65,6 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (
 
     // Check if request is still pending
     if (friendship.status !== 'PENDING') {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Friend request has already been responded to' },
         { status: 409 }
@@ -102,7 +99,6 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (
         }
       })
 
-      await prisma.$disconnect()
 
       logger.info('Friend request accepted', {
         friendshipId,
@@ -129,7 +125,6 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (
         where: { id: friendshipId }
       })
 
-      await prisma.$disconnect()
 
       logger.info('Friend request declined', {
         friendshipId,
@@ -161,7 +156,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAuth(async (
   try {
     const friendshipId = params.friendshipId
 
-    const prisma = new PrismaClient()
+    
 
     // Find the friendship
     const friendship = await prisma.friendship.findUnique({
@@ -177,7 +172,6 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAuth(async (
     })
 
     if (!friendship) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Friendship not found' },
         { status: 404 }
@@ -186,7 +180,6 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAuth(async (
 
     // Check if user is part of this friendship
     if (friendship.initiatorId !== user.id && friendship.receiverId !== user.id) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'You are not part of this friendship' },
         { status: 403 }
@@ -198,7 +191,6 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAuth(async (
       where: { id: friendshipId }
     })
 
-    await prisma.$disconnect()
 
     const action = friendship.status === 'PENDING' ? 'cancelled' : 'removed'
 

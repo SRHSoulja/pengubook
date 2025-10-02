@@ -1,8 +1,6 @@
 import { Server as HTTPServer } from 'http'
 import { Server as SocketIOServer, Socket } from 'socket.io'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 interface AuthenticatedSocket extends Socket {
   userId?: string

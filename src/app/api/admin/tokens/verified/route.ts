@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
 // GET - Get all verified tokens
 export async function GET(request: NextRequest) {
   try {
-    const prisma = new PrismaClient()
+    
 
     const verifiedTokens = await prisma.verifiedToken.findMany({
       orderBy: { verifiedAt: 'desc' }
     })
 
-    await prisma.$disconnect()
     return NextResponse.json(verifiedTokens)
   } catch (error) {
     console.error('Error fetching verified tokens:', error)
@@ -23,7 +22,7 @@ export async function GET(request: NextRequest) {
 // POST - Verify a token (admin only)
 export async function POST(request: NextRequest) {
   try {
-    const prisma = new PrismaClient()
+    
     const { tokenAddress, symbol, name, userId } = await request.json()
 
     if (!tokenAddress) {
@@ -54,7 +53,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    await prisma.$disconnect()
     return NextResponse.json(verifiedToken)
   } catch (error) {
     console.error('Error verifying token:', error)
@@ -65,7 +63,7 @@ export async function POST(request: NextRequest) {
 // DELETE - Remove verification from a token
 export async function DELETE(request: NextRequest) {
   try {
-    const prisma = new PrismaClient()
+    
     const { searchParams } = new URL(request.url)
     const tokenAddress = searchParams.get('address')
 
@@ -77,7 +75,6 @@ export async function DELETE(request: NextRequest) {
       where: { tokenAddress: tokenAddress.toLowerCase() }
     })
 
-    await prisma.$disconnect()
     return NextResponse.json({ success: true })
   } catch (error: any) {
     if (error.code === 'P2025') {

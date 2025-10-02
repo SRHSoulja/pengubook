@@ -1,10 +1,8 @@
 import { NextRequest } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { ethers } from 'ethers'
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
-
-const prisma = new PrismaClient()
 
 export interface AuthenticatedUser {
   id: string

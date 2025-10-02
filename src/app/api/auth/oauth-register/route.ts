@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { getToken } from 'next-auth/jwt'
 
 export const dynamic = 'force-dynamic'
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if user already exists by provider account ID OR if a wallet user exists (prevent duplicates)
     let user = await prisma.user.findFirst({
@@ -55,7 +55,6 @@ export async function POST(request: NextRequest) {
 
       if (walletUser) {
         console.log('[OAuth Register] Wallet user exists, preventing duplicate creation. Returning existing wallet user.')
-        await prisma.$disconnect()
         return NextResponse.json({
           success: true,
           user: {
@@ -126,7 +125,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

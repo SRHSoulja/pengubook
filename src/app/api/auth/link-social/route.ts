@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   console.log('[LinkSocial] Request received:', {
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     try {
       // Find the wallet user
@@ -57,7 +57,6 @@ export async function POST(request: NextRequest) {
           walletAddress: walletAddress.slice(0, 10) + '...',
           timestamp: new Date().toISOString()
         })
-        await prisma.$disconnect()
         return NextResponse.json(
           { error: 'Wallet user not found' },
           { status: 404 }
@@ -206,7 +205,6 @@ export async function POST(request: NextRequest) {
         return { updateData, updatedUser, verifyUser }
       })
 
-      await prisma.$disconnect()
 
       return NextResponse.json({
         success: true,
@@ -224,7 +222,6 @@ export async function POST(request: NextRequest) {
         provider,
         timestamp: new Date().toISOString()
       })
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Failed to link account', details: dbError.message },
         { status: 500 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth } from '@/lib/auth-middleware'
 import { checkAchievementProgress } from '@/lib/achievements'
 import { logger, logAPI } from '@/lib/logger'
@@ -12,7 +12,7 @@ export const GET = withAuth(async (request: NextRequest, user: any) => {
     const { searchParams } = new URL(request.url)
     const targetUserId = searchParams.get('userId') || user.id
 
-    const prisma = new PrismaClient()
+    
 
     // Get target user's profile data for achievement calculations
     const targetUser = await prisma.user.findUnique({
@@ -40,7 +40,6 @@ export const GET = withAuth(async (request: NextRequest, user: any) => {
     })
 
     if (!targetUser) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -158,7 +157,6 @@ export const GET = withAuth(async (request: NextRequest, user: any) => {
     const earnedAchievements = achievementProgress.filter(a => a.earned).length
     const completionPercentage = Math.floor((earnedAchievements / totalAchievements) * 100)
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

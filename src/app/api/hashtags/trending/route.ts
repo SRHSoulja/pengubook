@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { getTrendingHashtags } from '@/lib/hashtag-processor'
 
 export const dynamic = 'force-dynamic'
@@ -10,11 +10,10 @@ export async function GET(request: NextRequest) {
     const timeframe = (searchParams.get('timeframe') as 'hour' | 'day' | 'week' | 'month') || 'day'
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50)
 
-    const prisma = new PrismaClient()
+    
 
     const trendingHashtags = await getTrendingHashtags(timeframe, limit, prisma)
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

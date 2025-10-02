@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 // XP requirements for each level
 export const LEVEL_REQUIREMENTS = {

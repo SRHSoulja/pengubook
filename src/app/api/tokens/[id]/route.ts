@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAdminAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 
@@ -14,7 +14,7 @@ export const PUT = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: Ne
 
     logAPI.request('tokens/update', { tokenId: id, updatedBy: user.id.slice(0, 8) + '...' })
 
-    const prisma = new PrismaClient()
+    
 
     // Check if token exists
     const existingToken = await prisma.token.findUnique({
@@ -22,7 +22,6 @@ export const PUT = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: Ne
     })
 
     if (!existingToken) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Token not found' },
         { status: 404 }
@@ -37,7 +36,6 @@ export const PUT = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: Ne
     if (contractAddress !== undefined) {
       // Validate contract address format
       if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddress)) {
-        await prisma.$disconnect()
         return NextResponse.json(
           { error: 'Invalid contract address format' },
           { status: 400 }
@@ -47,7 +45,6 @@ export const PUT = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: Ne
     }
     if (decimals !== undefined) {
       if (decimals < 0 || decimals > 18) {
-        await prisma.$disconnect()
         return NextResponse.json(
           { error: 'Decimals must be between 0 and 18' },
           { status: 400 }
@@ -75,7 +72,6 @@ export const PUT = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: Ne
       })
 
       if (duplicateToken) {
-        await prisma.$disconnect()
         return NextResponse.json(
           { error: 'Token with this symbol or contract address already exists' },
           { status: 409 }
@@ -89,7 +85,6 @@ export const PUT = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: Ne
       data: updateData
     })
 
-    await prisma.$disconnect()
 
     logger.info(`Token updated: ${updatedToken.symbol}`, {
       tokenId: updatedToken.id,
@@ -126,7 +121,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request:
 
     logAPI.request('tokens/delete', { tokenId: id, deletedBy: user.id.slice(0, 8) + '...' })
 
-    const prisma = new PrismaClient()
+    
 
     // Check if token exists
     const existingToken = await prisma.token.findUnique({
@@ -141,7 +136,6 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request:
     })
 
     if (!existingToken) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Token not found' },
         { status: 404 }
@@ -150,7 +144,6 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request:
 
     // Check if token has been used in tips
     if (existingToken._count.tips > 0) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: `Cannot delete token that has been used in ${existingToken._count.tips} tip(s). Disable it instead.` },
         { status: 400 }
@@ -162,7 +155,6 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request:
       where: { id }
     })
 
-    await prisma.$disconnect()
 
     logger.info(`Token deleted: ${existingToken.symbol}`, {
       tokenId: existingToken.id,

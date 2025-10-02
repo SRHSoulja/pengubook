@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 
@@ -14,7 +14,7 @@ export const GET = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextReq
 
     logAPI.request('conversations', { userId: user.id.slice(0, 8) + '...', limit })
 
-    const prisma = new PrismaClient()
+    
 
     // Find conversations where user is a participant
     const conversations = await prisma.conversation.findMany({
@@ -51,7 +51,6 @@ export const GET = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextReq
       skip: offset
     })
 
-    await prisma.$disconnect()
 
     // Format conversations with participant info and unread counts
     const formattedConversations = await Promise.all(
@@ -173,7 +172,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Verify all participants exist and are not banned
     const participants = await prisma.user.findMany({
@@ -191,7 +190,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (participants.length !== participantIds.length) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'One or more participants not found or banned' },
         { status: 400 }
@@ -213,7 +211,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
       })
 
       if (blocks) {
-        await prisma.$disconnect()
         return NextResponse.json(
           { error: 'Cannot create conversation - user relationship blocked' },
           { status: 403 }
@@ -230,7 +227,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
       })
 
       if (!targetProfile?.allowDirectMessages || targetProfile?.dmPrivacyLevel === 'NONE') {
-        await prisma.$disconnect()
         return NextResponse.json(
           { error: 'User is not accepting direct messages' },
           { status: 403 }
@@ -249,7 +245,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
         })
 
         if (!friendship) {
-          await prisma.$disconnect()
           return NextResponse.json(
             { error: 'User only accepts messages from friends' },
             { status: 403 }
@@ -276,7 +271,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
       })
 
       if (existingConversation) {
-        await prisma.$disconnect()
         return NextResponse.json(
           { error: 'Conversation with this user already exists', conversationId: existingConversation.id },
           { status: 409 }
@@ -313,7 +307,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
       }
     })
 
-    await prisma.$disconnect()
 
     logger.info('Conversation created', {
       conversationId: conversation.id,

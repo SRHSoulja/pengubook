@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,7 +12,7 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '10')
 
-    const prisma = new PrismaClient()
+    
 
     const shares = await prisma.share.findMany({
       where: { userId },
@@ -66,7 +66,6 @@ export async function GET(
       }
     }))
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

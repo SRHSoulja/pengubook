@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Get other users (excluding current user)
     const suggestedUsers = await prisma.user.findMany({
@@ -54,7 +54,6 @@ export async function GET(request: NextRequest) {
       take: limit
     })
 
-    await prisma.$disconnect()
 
     // Format the response to match the expected structure
     const formattedUsers = suggestedUsers.map(user => ({

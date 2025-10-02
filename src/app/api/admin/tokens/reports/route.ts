@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
 // GET - Get all token reports (admin only)
 export async function GET(request: NextRequest) {
   try {
-    const prisma = new PrismaClient()
+    
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') || 'PENDING'
@@ -44,7 +44,6 @@ export async function GET(request: NextRequest) {
 
     const groupedArray = Object.values(grouped).sort((a: any, b: any) => b.reportCount - a.reportCount)
 
-    await prisma.$disconnect()
     return NextResponse.json(groupedArray)
   } catch (error) {
     console.error('Error fetching token reports:', error)
@@ -55,7 +54,7 @@ export async function GET(request: NextRequest) {
 // PATCH - Update report status
 export async function PATCH(request: NextRequest) {
   try {
-    const prisma = new PrismaClient()
+    
     const { tokenAddress, status, userId } = await request.json()
 
     if (!tokenAddress || !status) {
@@ -72,7 +71,6 @@ export async function PATCH(request: NextRequest) {
       }
     })
 
-    await prisma.$disconnect()
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error updating report status:', error)

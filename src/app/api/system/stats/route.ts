@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
@@ -10,14 +11,9 @@ export async function GET() {
       }, { status: 503 })
     }
 
-    const { PrismaClient } = await import('@prisma/client')
-    const prisma = new PrismaClient()
-
     // Get system stats
     const totalUsers = await prisma.user.count()
     const totalTips = await prisma.tip.count().catch(() => 0) // In case tips table doesn't exist yet
-
-    await prisma.$disconnect()
 
     // Calculate uptime (since app start)
     const uptimeMs = process.uptime() * 1000

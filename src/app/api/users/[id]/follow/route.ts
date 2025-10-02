@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,7 +26,7 @@ export async function POST(
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if both users exist
     const [follower, following] = await Promise.all([
@@ -41,7 +41,6 @@ export async function POST(
     ])
 
     if (!follower) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Follower user not found' },
         { status: 404 }
@@ -49,7 +48,6 @@ export async function POST(
     }
 
     if (!following) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User to follow not found' },
         { status: 404 }
@@ -57,7 +55,6 @@ export async function POST(
     }
 
     if (follower.isBanned) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Banned users cannot follow others' },
         { status: 403 }
@@ -75,7 +72,6 @@ export async function POST(
     })
 
     if (existingFollow) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Already following this user' },
         { status: 409 }
@@ -157,7 +153,6 @@ export async function POST(
       }
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,
@@ -196,7 +191,7 @@ export async function DELETE(
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if follow relationship exists
     const existingFollow = await prisma.follow.findUnique({
@@ -209,7 +204,6 @@ export async function DELETE(
     })
 
     if (!existingFollow) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Follow relationship not found' },
         { status: 404 }
@@ -257,7 +251,6 @@ export async function DELETE(
       }
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

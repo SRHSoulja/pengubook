@@ -12,11 +12,10 @@ export async function GET() {
     }
 
     const { PrismaClient } = await import('@prisma/client')
-    const prisma = new PrismaClient()
+    
 
     // Test database connection
     const userCount = await prisma.user.count()
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

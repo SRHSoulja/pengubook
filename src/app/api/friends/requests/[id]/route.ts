@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,7 +26,7 @@ export async function PUT(
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Find the friendship request
     const friendship = await prisma.friendship.findUnique({
@@ -48,7 +48,6 @@ export async function PUT(
     })
 
     if (!friendship) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Friend request not found' },
         { status: 404 }
@@ -57,7 +56,6 @@ export async function PUT(
 
     // Verify user is the receiver of the request
     if (friendship.receiverId !== userId) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Only the receiver can respond to this friend request' },
         { status: 403 }
@@ -66,7 +64,6 @@ export async function PUT(
 
     // Check if request is still pending
     if (friendship.status !== 'PENDING') {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Friend request has already been responded to' },
         { status: 409 }
@@ -194,7 +191,6 @@ export async function PUT(
       }
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,
@@ -228,7 +224,7 @@ export async function DELETE(
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Find the friendship
     const friendship = await prisma.friendship.findUnique({
@@ -242,7 +238,6 @@ export async function DELETE(
     })
 
     if (!friendship) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Friendship not found' },
         { status: 404 }
@@ -251,7 +246,6 @@ export async function DELETE(
 
     // Verify user is involved in this friendship
     if (friendship.initiatorId !== userId && friendship.receiverId !== userId) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'You can only delete your own friendship requests' },
         { status: 403 }
@@ -320,7 +314,6 @@ export async function DELETE(
       }
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

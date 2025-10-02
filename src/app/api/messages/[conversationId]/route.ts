@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 
@@ -16,7 +16,7 @@ export const GET = withRateLimit(120, 60 * 1000)(withAuth(async (request: NextRe
 
     logAPI.request('messages', { conversationId, userId: user.id.slice(0, 8) + '...', limit })
 
-    const prisma = new PrismaClient()
+    
 
     // Verify user is participant in conversation
     const conversation = await prisma.conversation.findUnique({
@@ -29,7 +29,6 @@ export const GET = withRateLimit(120, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (!conversation) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Conversation not found' },
         { status: 404 }
@@ -38,7 +37,6 @@ export const GET = withRateLimit(120, 60 * 1000)(withAuth(async (request: NextRe
 
     const participantIds = JSON.parse(conversation.participants || '[]')
     if (!participantIds.includes(user.id)) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'You are not a participant in this conversation' },
         { status: 403 }
@@ -95,7 +93,6 @@ export const GET = withRateLimit(120, 60 * 1000)(withAuth(async (request: NextRe
       skip: offset
     })
 
-    await prisma.$disconnect()
 
     const formattedMessages = messages.map(message => ({
       id: message.id,
@@ -164,7 +161,7 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Verify user is participant in conversation
     const conversation = await prisma.conversation.findUnique({
@@ -177,7 +174,6 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (!conversation) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Conversation not found' },
         { status: 404 }
@@ -186,7 +182,6 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
 
     const participantIds = JSON.parse(conversation.participants || '[]')
     if (!participantIds.includes(user.id)) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'You are not a participant in this conversation' },
         { status: 403 }
@@ -243,7 +238,6 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
       })
     }
 
-    await prisma.$disconnect()
 
     logger.info('Message sent', {
       messageId: message.id,

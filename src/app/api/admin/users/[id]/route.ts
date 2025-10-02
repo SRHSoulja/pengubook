@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAdminAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 
@@ -18,7 +18,7 @@ export const PUT = withRateLimit(30, 60 * 1000)(withAdminAuth(async (request: Ne
       changes: { isBanned, level, isAdmin }
     })
 
-    const prisma = new PrismaClient()
+    
 
     // Check if target user exists
     const targetUser = await prisma.user.findUnique({
@@ -27,7 +27,6 @@ export const PUT = withRateLimit(30, 60 * 1000)(withAdminAuth(async (request: Ne
     })
 
     if (!targetUser) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -36,7 +35,6 @@ export const PUT = withRateLimit(30, 60 * 1000)(withAdminAuth(async (request: Ne
 
     // Prevent non-super-admins from modifying other admins
     if (targetUser.isAdmin && !user.isSuperAdmin && targetUser.id !== user.id) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Cannot modify other admin accounts' },
         { status: 403 }
@@ -64,7 +62,6 @@ export const PUT = withRateLimit(30, 60 * 1000)(withAdminAuth(async (request: Ne
       }
     })
 
-    await prisma.$disconnect()
 
     logger.info('User updated by admin', {
       targetUserId: id,
@@ -96,7 +93,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request:
       deletedBy: user.id.slice(0, 8) + '...'
     })
 
-    const prisma = new PrismaClient()
+    
 
     // Check if target user exists
     const targetUser = await prisma.user.findUnique({
@@ -105,7 +102,6 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request:
     })
 
     if (!targetUser) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -114,7 +110,6 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request:
 
     // Prevent deletion of admin accounts (unless super admin)
     if (targetUser.isAdmin && !user.isSuperAdmin) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Cannot delete admin accounts' },
         { status: 403 }
@@ -123,7 +118,6 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request:
 
     // Prevent self-deletion
     if (targetUser.id === user.id) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Cannot delete your own account' },
         { status: 400 }
@@ -135,7 +129,6 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request:
       where: { id }
     })
 
-    await prisma.$disconnect()
 
     logger.info('User deleted by admin', {
       deletedUserId: id,

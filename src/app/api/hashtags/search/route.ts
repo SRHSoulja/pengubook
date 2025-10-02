@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { searchHashtags } from '@/lib/hashtag-processor'
 
 export const dynamic = 'force-dynamic'
@@ -17,11 +17,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     const hashtags = await searchHashtags(query.trim(), limit, prisma)
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,7 +19,7 @@ export async function POST(
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if post exists
     const post = await prisma.post.findUnique({
@@ -37,7 +37,6 @@ export async function POST(
     })
 
     if (!post) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Post not found' },
         { status: 404 }
@@ -51,7 +50,6 @@ export async function POST(
     })
 
     if (!user) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -59,7 +57,6 @@ export async function POST(
     }
 
     if (user.isBanned) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Banned users cannot like posts' },
         { status: 403 }
@@ -77,7 +74,6 @@ export async function POST(
     })
 
     if (existingLike) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Post already liked' },
         { status: 409 }
@@ -138,7 +134,6 @@ export async function POST(
       where: { postId }
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,
@@ -177,7 +172,7 @@ export async function DELETE(
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if post exists
     const post = await prisma.post.findUnique({
@@ -186,7 +181,6 @@ export async function DELETE(
     })
 
     if (!post) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Post not found' },
         { status: 404 }
@@ -204,7 +198,6 @@ export async function DELETE(
     })
 
     if (!existingLike) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Like not found' },
         { status: 404 }
@@ -250,7 +243,6 @@ export async function DELETE(
       where: { postId }
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

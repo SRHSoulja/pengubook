@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,7 +19,7 @@ export async function POST(
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if community exists
     const community = await prisma.community.findUnique({
@@ -45,7 +45,6 @@ export async function POST(
     })
 
     if (!community) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Community not found' },
         { status: 404 }
@@ -64,7 +63,6 @@ export async function POST(
     })
 
     if (!user) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -72,7 +70,6 @@ export async function POST(
     }
 
     if (user.isBanned) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Banned users cannot join communities' },
         { status: 403 }
@@ -90,7 +87,6 @@ export async function POST(
     })
 
     if (existingMembership) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User is already a member of this community' },
         { status: 409 }
@@ -99,7 +95,6 @@ export async function POST(
 
     // Check community visibility
     if (community.visibility === 'PRIVATE') {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'This is a private community. You need an invitation to join.' },
         { status: 403 }
@@ -181,7 +176,6 @@ export async function POST(
       })
     }
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,
@@ -220,7 +214,7 @@ export async function DELETE(
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if community exists
     const community = await prisma.community.findUnique({
@@ -234,7 +228,6 @@ export async function DELETE(
     })
 
     if (!community) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Community not found' },
         { status: 404 }
@@ -252,7 +245,6 @@ export async function DELETE(
     })
 
     if (!membership) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User is not a member of this community' },
         { status: 404 }
@@ -261,7 +253,6 @@ export async function DELETE(
 
     // Prevent community creator from leaving their own community
     if (community.creatorId === userId) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Community creators cannot leave their own community. Transfer ownership or delete the community instead.' },
         { status: 403 }
@@ -296,7 +287,6 @@ export async function DELETE(
       }
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

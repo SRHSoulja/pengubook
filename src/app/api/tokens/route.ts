@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth, withAdminAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 import { schemas } from '@/lib/validation'
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     logAPI.request('tokens', { enabledOnly })
 
-    const prisma = new PrismaClient()
+    
 
     const tokens = await prisma.token.findMany({
       where: enabledOnly ? { isEnabled: true } : undefined,
@@ -23,7 +23,6 @@ export async function GET(request: NextRequest) {
       ]
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,
@@ -76,7 +75,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request: N
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if token already exists
     const existingToken = await prisma.token.findFirst({
@@ -89,7 +88,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request: N
     })
 
     if (existingToken) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Token with this symbol or contract address already exists' },
         { status: 409 }
@@ -108,7 +106,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request: N
       }
     })
 
-    await prisma.$disconnect()
 
     logger.info(`Token added: ${newToken.symbol}`, {
       tokenId: newToken.id,

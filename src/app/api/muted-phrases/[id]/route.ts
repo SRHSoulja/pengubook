@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 
@@ -21,7 +21,7 @@ export const DELETE = withAuth(async (
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if the muted phrase exists and belongs to the user
     const mutedPhrase = await prisma.mutedPhrase.findUnique({
@@ -30,7 +30,6 @@ export const DELETE = withAuth(async (
     })
 
     if (!mutedPhrase) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Muted phrase not found' },
         { status: 404 }
@@ -39,7 +38,6 @@ export const DELETE = withAuth(async (
 
     // Verify ownership
     if (mutedPhrase.userId !== user.id) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'You can only delete your own muted phrases' },
         { status: 403 }
@@ -51,7 +49,6 @@ export const DELETE = withAuth(async (
       where: { id: mutedPhraseId }
     })
 
-    await prisma.$disconnect()
 
     logger.info('Muted phrase deleted', {
       mutedPhraseId,

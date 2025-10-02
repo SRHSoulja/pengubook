@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     const whereClause: any = { status }
 
@@ -74,7 +74,6 @@ export async function GET(request: NextRequest) {
       take: limit
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,
@@ -112,7 +111,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if both users exist
     const [initiator, receiver] = await Promise.all([
@@ -127,7 +126,6 @@ export async function POST(request: NextRequest) {
     ])
 
     if (!initiator) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Initiator user not found' },
         { status: 404 }
@@ -135,7 +133,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (!receiver) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Receiver user not found' },
         { status: 404 }
@@ -143,7 +140,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (initiator.isBanned || receiver.isBanned) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Banned users cannot send or receive friend requests' },
         { status: 403 }
@@ -161,7 +157,6 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingFriendship) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Friend request already exists or users are already friends' },
         { status: 409 }
@@ -215,7 +210,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

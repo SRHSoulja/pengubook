@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { checkAchievementProgress } from './achievements'
 
 export interface AchievementCheckResult {
@@ -10,7 +10,7 @@ export async function checkAndAwardAchievements(
   userId: string,
   triggerType?: 'post' | 'like' | 'follow' | 'tip' | 'profile' | 'all'
 ): Promise<AchievementCheckResult> {
-  const prisma = new PrismaClient()
+  
   const newAchievements: string[] = []
 
   try {
@@ -29,7 +29,6 @@ export async function checkAndAwardAchievements(
     })
 
     if (!user) {
-      await prisma.$disconnect()
       return { newAchievements: [], totalEarned: 0 }
     }
 
@@ -144,7 +143,6 @@ export async function checkAndAwardAchievements(
     // Get total earned achievements count
     const totalEarned = user.userAchievements.length + newAchievements.length
 
-    await prisma.$disconnect()
 
     return {
       newAchievements,
@@ -153,14 +151,13 @@ export async function checkAndAwardAchievements(
 
   } catch (error) {
     console.error('Error checking achievements:', error)
-    await prisma.$disconnect()
     return { newAchievements: [], totalEarned: 0 }
   }
 }
 
 // Helper function to update user's likes count in profile (for achievement tracking)
 export async function updateUserLikesCount(userId: string): Promise<void> {
-  const prisma = new PrismaClient()
+  
 
   try {
     // Count total likes received on user's posts
@@ -186,9 +183,7 @@ export async function updateUserLikesCount(userId: string): Promise<void> {
       }
     })
 
-    await prisma.$disconnect()
   } catch (error) {
     console.error('Error updating user likes count:', error)
-    await prisma.$disconnect()
   }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0')
     const userId = searchParams.get('userId') // For checking membership
 
-    const prisma = new PrismaClient()
+    
 
     const whereClause: any = {
       visibility
@@ -96,7 +96,6 @@ export async function GET(request: NextRequest) {
       skip: offset
     })
 
-    await prisma.$disconnect()
 
     const formattedCommunities = communities.map(community => ({
       id: community.id,
@@ -194,7 +193,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if creator exists and is not banned
     const creator = await prisma.user.findUnique({
@@ -203,7 +202,6 @@ export async function POST(request: NextRequest) {
     })
 
     if (!creator) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Creator user not found' },
         { status: 404 }
@@ -211,7 +209,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (creator.isBanned) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Banned users cannot create communities' },
         { status: 403 }
@@ -220,7 +217,6 @@ export async function POST(request: NextRequest) {
 
     // Check minimum level requirement for community creation (unless admin)
     if (!creator.isAdmin && creator.level < 5) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'You must be at least level 5 to create a community. Visit /levels to see how to level up!' },
         { status: 403 }
@@ -233,7 +229,6 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingCommunity) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'A community with this name already exists' },
         { status: 409 }
@@ -293,7 +288,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    await prisma.$disconnect()
 
     const formattedCommunity = {
       id: newCommunity.id,

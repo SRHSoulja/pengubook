@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { PrismaClient } = await import('@prisma/client')
-    const prisma = new PrismaClient()
+    
 
     const { walletAddress } = await request.json()
 
@@ -48,7 +48,6 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

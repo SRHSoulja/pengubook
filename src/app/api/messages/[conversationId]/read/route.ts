@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 
@@ -32,7 +32,7 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
       messageCount: messageIds.length
     })
 
-    const prisma = new PrismaClient()
+    
 
     // Verify user is participant in conversation
     const conversation = await prisma.conversation.findUnique({
@@ -43,7 +43,6 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (!conversation) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Conversation not found' },
         { status: 404 }
@@ -52,7 +51,6 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
 
     const participantIds = JSON.parse(conversation.participants || '[]')
     if (!participantIds.includes(user.id)) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'You are not a participant in this conversation' },
         { status: 403 }
@@ -74,7 +72,6 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (messages.length !== messageIds.length) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'One or more messages not found in this conversation' },
         { status: 400 }
@@ -85,7 +82,6 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
     const messagesFromOthers = messages.filter(msg => msg.senderId !== user.id)
 
     if (messagesFromOthers.length === 0) {
-      await prisma.$disconnect()
       return NextResponse.json({
         success: true,
         message: 'No messages to mark as read (all messages are from you)',
@@ -104,7 +100,6 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
       skipDuplicates: true
     })
 
-    await prisma.$disconnect()
 
     logger.info('Messages marked as read', {
       conversationId,
@@ -140,7 +135,7 @@ export const PUT = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
       userId: user.id.slice(0, 8) + '...'
     })
 
-    const prisma = new PrismaClient()
+    
 
     // Verify user is participant in conversation
     const conversation = await prisma.conversation.findUnique({
@@ -151,7 +146,6 @@ export const PUT = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
     })
 
     if (!conversation) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Conversation not found' },
         { status: 404 }
@@ -160,7 +154,6 @@ export const PUT = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
 
     const participantIds = JSON.parse(conversation.participants || '[]')
     if (!participantIds.includes(user.id)) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'You are not a participant in this conversation' },
         { status: 403 }
@@ -186,7 +179,6 @@ export const PUT = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
     })
 
     if (unreadMessages.length === 0) {
-      await prisma.$disconnect()
       return NextResponse.json({
         success: true,
         message: 'No unread messages to mark as read',
@@ -205,7 +197,6 @@ export const PUT = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
       skipDuplicates: true
     })
 
-    await prisma.$disconnect()
 
     logger.info('All messages marked as read', {
       conversationId,

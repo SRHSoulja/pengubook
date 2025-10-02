@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { filterContent } from '@/lib/content-filter'
 
 export const dynamic = 'force-dynamic'
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Verify user exists
     const user = await prisma.user.findUnique({
@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
     })
 
     if (!user) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -36,7 +35,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (user.isBanned) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Banned users cannot access feed' },
         { status: 403 }
@@ -224,7 +222,6 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    await prisma.$disconnect()
 
     const formattedPosts = posts.map(post => {
       // Check if post content should be filtered

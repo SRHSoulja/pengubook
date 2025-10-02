@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { logger, logAPI } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     try {
       // Search users by username, display name, discord name, twitter handle, or wallet address
@@ -90,7 +90,6 @@ export async function GET(request: NextRequest) {
 
       logger.debug('Search completed', { query, resultsCount: users.length }, 'UserSearch')
 
-      await prisma.$disconnect()
 
       // Format results for frontend
       const searchResults = users.map(user => ({
@@ -122,7 +121,6 @@ export async function GET(request: NextRequest) {
       })
     } catch (dbError: any) {
       logAPI.error('users/search', dbError)
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Search failed', details: dbError.message },
         { status: 500 }

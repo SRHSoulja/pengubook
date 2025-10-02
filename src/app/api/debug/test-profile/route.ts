@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    const prisma = new PrismaClient()
+    
 
     // Get all users with their social accounts for testing
     const users = await prisma.user.findMany({
@@ -26,7 +26,6 @@ export async function GET(request: NextRequest) {
       take: 10
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

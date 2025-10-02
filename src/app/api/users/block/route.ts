@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger } from '@/lib/logger'
 
@@ -25,7 +25,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if target user exists
     const targetUser = await prisma.user.findUnique({
@@ -34,7 +34,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (!targetUser) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -52,7 +51,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (existingBlock) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'User is already blocked' },
         { status: 409 }
@@ -77,7 +75,6 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
       }
     })
 
-    await prisma.$disconnect()
 
     logger.info('User blocked', {
       blockerId: user.id.slice(0, 8) + '...',
@@ -112,7 +109,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAuth(async (request: Next
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Find and delete the block
     const deletedBlock = await prisma.block.deleteMany({
@@ -122,7 +119,6 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAuth(async (request: Next
       }
     })
 
-    await prisma.$disconnect()
 
     if (deletedBlock.count === 0) {
       return NextResponse.json(
@@ -153,7 +149,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAuth(async (request: Next
 // Get blocked users list
 export const GET = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextRequest, user: any) => {
   try {
-    const prisma = new PrismaClient()
+    
 
     const blocks = await prisma.block.findMany({
       where: {
@@ -174,7 +170,6 @@ export const GET = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
       }
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,

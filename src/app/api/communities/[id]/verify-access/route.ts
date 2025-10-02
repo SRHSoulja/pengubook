@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 import { checkTokenGateAccess } from '@/lib/blockchain'
@@ -30,7 +30,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
 
     logAPI.request('community/verify-access', { communityId, walletAddress: walletAddress.slice(0, 10) + '...' })
 
-    const prisma = new PrismaClient()
+    
 
     // Get community with token gating info
     const community = await prisma.community.findUnique({
@@ -50,7 +50,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (!community) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Community not found' },
         { status: 404 }
@@ -59,7 +58,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
 
     // If community is not token gated, allow access
     if (!community.isTokenGated) {
-      await prisma.$disconnect()
       return NextResponse.json({
         success: true,
         hasAccess: true,
@@ -80,7 +78,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
     })
 
     if (!userWallet?.walletAddress || userWallet.walletAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Wallet address does not match your account' },
         { status: 403 }
@@ -89,7 +86,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
 
     // Check token gate requirements
     if (!community.tokenContractAddress) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Community token gating is misconfigured' },
         { status: 500 }
@@ -137,7 +133,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
         tokenSymbol: community.tokenSymbol
       }, 'TokenGating')
 
-      await prisma.$disconnect()
 
       return NextResponse.json({
         success: true,
@@ -157,7 +152,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
     } catch (blockchainError: any) {
       logger.error('Blockchain verification failed', { error: blockchainError.message, communityId, walletAddress }, 'TokenGating')
 
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Unable to verify token ownership. Please try again later.', details: blockchainError.message },
         { status: 503 }

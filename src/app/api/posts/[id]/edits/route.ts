@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,7 +10,7 @@ export async function GET(
   try {
     const { id: postId } = params
 
-    const prisma = new PrismaClient()
+    
 
     // Check if post exists
     const post = await prisma.post.findUnique({
@@ -19,7 +19,6 @@ export async function GET(
     })
 
     if (!post) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Post not found' },
         { status: 404 }
@@ -45,7 +44,6 @@ export async function GET(
       }
     })
 
-    await prisma.$disconnect()
 
     const formattedEdits = edits.map(edit => ({
       id: edit.id,

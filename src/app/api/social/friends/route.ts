@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const prisma = new PrismaClient()
+    
 
     // Check if friendship already exists
     const existingFriendship = await prisma.friendship.findFirst({
@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingFriendship) {
-      await prisma.$disconnect()
       return NextResponse.json(
         { error: 'Friendship already exists or request pending' },
         { status: 409 }
@@ -51,7 +50,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    await prisma.$disconnect()
 
     return NextResponse.json({
       success: true,
