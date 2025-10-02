@@ -180,7 +180,21 @@ export async function PUT(request: NextRequest) {
     if (displayName !== undefined) updateData.displayName = displayName
     if (username !== undefined) updateData.username = username
     if (bio !== undefined) updateData.bio = bio
-    if (avatarSource !== undefined) updateData.avatarSource = avatarSource
+
+    // Handle avatar source and update avatar URL accordingly
+    if (avatarSource !== undefined) {
+      updateData.avatarSource = avatarSource
+
+      // Update the avatar field based on the selected source
+      if (avatarSource === 'discord' && existingUser.discordAvatar) {
+        updateData.avatar = existingUser.discordAvatar
+      } else if (avatarSource === 'twitter' && existingUser.twitterAvatar) {
+        updateData.avatar = existingUser.twitterAvatar
+      } else {
+        // Default avatar (null or empty string - will use gradient fallback in UI)
+        updateData.avatar = null
+      }
+    }
 
     console.log('[UserProfile] Updating user with data:', {
       updateData,
