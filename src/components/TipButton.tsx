@@ -47,14 +47,26 @@ export default function TipButton({ userId }: TipButtonProps) {
   }, [])
 
   useEffect(() => {
+    console.log('[TipButton] useEffect triggered:', {
+      showModal,
+      hasClient: !!client,
+      hasAddress: !!client?.account?.address,
+      userId
+    })
     if (showModal && client?.account?.address) {
+      console.log('[TipButton] Calling fetchTokens and fetchRecipientData')
       fetchTokens()
       fetchRecipientData()
     }
   }, [showModal, userId, client?.account?.address])
 
   const fetchTokens = async () => {
-    if (!client?.account?.address) return
+    if (!client?.account?.address) {
+      console.log('[TipButton] No client address available')
+      return
+    }
+
+    console.log('[TipButton] Fetching tokens for:', client.account.address.slice(0, 10) + '...')
 
     try {
       setLoadingTokens(true)
@@ -62,6 +74,13 @@ export default function TipButton({ userId }: TipButtonProps) {
       // Fetch wallet balance with user's hidden tokens filtered
       const response = await fetch(`/api/wallet/balance?address=${client.account.address}&userId=${userId}`)
       const data = await response.json()
+
+      console.log('[TipButton] Token fetch response:', {
+        ok: response.ok,
+        nativeBalance: data.nativeBalance,
+        tokensCount: data.tokens?.length,
+        tokens: data.tokens
+      })
 
       if (response.ok) {
         // Set native ETH balance
@@ -77,9 +96,11 @@ export default function TipButton({ userId }: TipButtonProps) {
             return (b.valueUsd || 0) - (a.valueUsd || 0)
           })
 
+        console.log('[TipButton] Available tokens after filtering:', availableTokens.length)
         setTokens(availableTokens)
         setSelectedToken('ETH') // Default to ETH
       } else {
+        console.error('[TipButton] Failed to load tokens:', data)
         setStatus('Failed to load wallet tokens')
       }
     } catch (error) {
