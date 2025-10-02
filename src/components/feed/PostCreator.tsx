@@ -5,6 +5,7 @@ import { PostType, Visibility, PostCreateRequest } from '@/types'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
 import GiphyPicker from '@/components/GiphyPicker'
 import dynamic from 'next/dynamic'
+import { Theme } from 'emoji-picker-react'
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false })
 
@@ -185,7 +186,7 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
                 </button>
                 {showEmojiPicker && (
                   <div className="absolute bottom-full mb-2 right-0 z-50">
-                    <EmojiPicker onEmojiClick={handleEmojiSelect} theme="dark" />
+                    <EmojiPicker onEmojiClick={handleEmojiSelect} theme={Theme.DARK} />
                   </div>
                 )}
               </div>
