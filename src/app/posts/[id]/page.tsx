@@ -233,7 +233,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 mb-8">
             {/* Post Header */}
             <div className="flex items-center gap-3 mb-4">
-              <Link href={`/profile/${post.author.walletAddress || post.author.id}`} className="flex items-center gap-3 hover:opacity-80">
+              <Link href={`/profile/${post.author.id}`} className="flex items-center gap-3 hover:opacity-80">
                 <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold">
                   {post.author.avatar ? (
                     <img

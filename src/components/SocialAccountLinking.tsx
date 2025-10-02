@@ -36,9 +36,9 @@ export default function SocialAccountLinking() {
       } : null,
       userData: user ? {
         userId: user.id?.slice(0, 10) + '...',
-        walletAddress: user.walletAddress?.slice(0, 10) + '...',
-        hasDiscord: !!user.discordId || !!user.discordName,
-        hasTwitter: !!user.twitterId || !!user.twitterHandle
+        walletAddress: (user as any).walletAddress?.slice(0, 10) + '...',
+        hasDiscord: !!(user as any).discordId || !!user.discordName,
+        hasTwitter: !!(user as any).twitterId || !!user.twitterHandle
       } : null,
       timestamp: new Date().toISOString()
     })

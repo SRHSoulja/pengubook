@@ -130,9 +130,6 @@ export default function MobileBottomNav() {
       <ThemeCustomizer
         isOpen={showThemeCustomizer}
         onClose={() => setShowThemeCustomizer(false)}
-        onThemeChange={(theme) => {
-          console.log('Theme changed:', theme)
-        }}
       />
     </>
   )

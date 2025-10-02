@@ -28,8 +28,8 @@ export async function POST(request: NextRequest) {
     const existingFriendship = await prisma.friendship.findFirst({
       where: {
         OR: [
-          { userId: initiatorId, friendId: receiverId },
-          { userId: receiverId, friendId: initiatorId }
+          { initiatorId: initiatorId, receiverId: receiverId },
+          { initiatorId: receiverId, receiverId: initiatorId }
         ]
       }
     })
@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
     // Create friend request
     await prisma.friendship.create({
       data: {
-        userId: initiatorId,
-        friendId: receiverId,
+        initiatorId: initiatorId,
+        receiverId: receiverId,
         status: 'PENDING'
       }
     })

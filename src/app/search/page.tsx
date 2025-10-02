@@ -27,7 +27,7 @@ interface SearchResult {
 
 export default function SearchPage() {
   const searchParams = useSearchParams()
-  const query = searchParams.get('q') || ''
+  const query = searchParams?.get('q') || ''
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState(query)
@@ -151,7 +151,7 @@ export default function SearchPage() {
                   results.map((user) => (
                     <Link
                       key={user.id}
-                      href={`/profile/${user.walletAddress || user.id}`}
+                      href={`/profile/${user.id}`}
                       className="flex items-center gap-4 p-6 hover:bg-white/5 transition-colors"
                     >
                       {/* Avatar */}

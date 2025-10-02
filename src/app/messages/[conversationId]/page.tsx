@@ -136,7 +136,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-wallet-address': user.walletAddress
+            'x-wallet-address': (user as any)?.walletAddress || ''
           },
           body: JSON.stringify({
             content: newMessage.trim() || 'GIF',

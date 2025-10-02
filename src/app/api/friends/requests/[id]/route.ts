@@ -194,7 +194,7 @@ export async function PUT(
   } catch (error: any) {
     console.error('[Friends] PUT request error:', error)
     return NextResponse.json(
-      { error: `Failed to ${body?.action || 'update'} friend request`, details: error.message },
+      { error: 'Failed to update friend request', details: error.message },
       { status: 500 }
     )
   }

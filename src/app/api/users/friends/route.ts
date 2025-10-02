@@ -130,7 +130,7 @@ export const GET = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
 
 
     // Format the response
-    const formattedFriendships = friendships.map(friendship => {
+    const formattedFriendships = friendships.map((friendship: any) => {
       const isInitiator = friendship.initiatorId === user.id
       const friend = isInitiator ? friendship.receiver : friendship.initiator
 

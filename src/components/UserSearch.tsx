@@ -115,7 +115,7 @@ export default function UserSearch() {
               {results.map((user) => (
                 <Link
                   key={user.id}
-                  href={`/profile/${user.walletAddress || user.id}`}
+                  href={`/profile/${user.id}`}
                   onClick={handleResultClick}
                   className="flex items-center gap-3 p-3 hover:bg-white/10 transition-colors border-b border-white/5 last:border-b-0"
                 >

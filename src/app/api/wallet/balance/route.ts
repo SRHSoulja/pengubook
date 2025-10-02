@@ -354,7 +354,7 @@ export async function GET(request: NextRequest) {
 
     // Check cache first (DISABLED FOR DEBUGGING)
     const cacheKey = walletAddress.toLowerCase()
-    const cached = null // cache.get(cacheKey)
+    const cached: any = null // cache.get(cacheKey)
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
       console.log('Returning cached wallet balance for:', walletAddress)
 
@@ -468,7 +468,7 @@ export async function GET(request: NextRequest) {
     const tokenBalanceResults = await Promise.all(tokenBalancePromises)
 
     // Filter out null results
-    let tokenBalances: TokenBalance[] = tokenBalanceResults.filter((token): token is TokenBalance => token !== null)
+    let tokenBalances: any[] = tokenBalanceResults.filter(token => token !== null)
 
     // Get blacklisted tokens
     const blacklistedTokens = await prisma.blacklistedToken.findMany({

@@ -80,7 +80,7 @@ export const GET = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextReq
         })
 
         // Calculate unread count for this user
-        const unreadCount = await tempPrisma.message.count({
+        const unreadCount = await prisma.message.count({
           where: {
             conversationId: conv.id,
             senderId: {
@@ -93,8 +93,6 @@ export const GET = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextReq
             }
           }
         })
-
-        await tempPrisma.$disconnect()
 
         return {
           id: conv.id,

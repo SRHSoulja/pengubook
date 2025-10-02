@@ -257,7 +257,7 @@ export default function DiscoverPage() {
                           {/* Actions */}
                           <div className="flex flex-col gap-2">
                             <Link
-                              href={`/profile/${suggestion.user.walletAddress || suggestion.user.id}`}
+                              href={`/profile/${suggestion.user.id}`}
                               className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition-colors text-center text-sm"
                             >
                               View Profile

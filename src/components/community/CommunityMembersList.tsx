@@ -84,7 +84,7 @@ export default function CommunityMembersList({
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 {/* Avatar */}
-                <Link href={`/profile/${member.user.walletAddress || member.user.id}`}>
+                <Link href={`/profile/${member.user.member.user.id}`}>
                   <div className="relative">
                     {member.user.avatar ? (
                       <img
@@ -112,7 +112,7 @@ export default function CommunityMembersList({
                 {/* User Info */}
                 <div className="flex-1">
                   <div className="flex items-center space-x-2">
-                    <Link href={`/profile/${member.user.walletAddress || member.user.id}`}>
+                    <Link href={`/profile/${member.user.member.user.id}`}>
                       <h4 className="text-white font-semibold hover:text-purple-400 transition-colors">
                         {member.user.displayName}
                       </h4>

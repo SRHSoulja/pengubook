@@ -44,24 +44,6 @@ export async function GET(
             discordName: true,
             twitterHandle: true
           }
-        },
-        likes: {
-          select: {
-            userId: true,
-            user: {
-              select: {
-                id: true,
-                username: true,
-                displayName: true,
-                avatar: true
-              }
-            }
-          }
-        },
-        _count: {
-          select: {
-            likes: true
-          }
         }
       },
       orderBy: {
@@ -77,14 +59,7 @@ export async function GET(
       content: comment.content,
       createdAt: comment.createdAt,
       updatedAt: comment.updatedAt,
-      author: comment.user,
-      likes: comment.likes.map(like => ({
-        userId: like.userId,
-        user: like.user
-      })),
-      stats: {
-        likes: comment._count.likes
-      }
+      author: comment.user
     }))
 
     return NextResponse.json({

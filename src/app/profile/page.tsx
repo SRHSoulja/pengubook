@@ -12,7 +12,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!authLoading && isAuthenticated && user?.id) {
       // Redirect to the full profile view using wallet address
-      router.replace(`/profile/${user.walletAddress || user.id}`)
+      router.replace(`/profile/${user.id}`)
     }
   }, [authLoading, isAuthenticated, user, router])
 

@@ -173,7 +173,6 @@ export const POST = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: N
         isPublic: updatedTip.isPublic,
         status: updatedTip.status,
         createdAt: updatedTip.createdAt,
-        updatedAt: updatedTip.updatedAt,
         fromUser: updatedTip.fromUser,
         toUser: updatedTip.toUser,
         token: updatedTip.token

@@ -62,13 +62,15 @@ export async function POST(request: NextRequest) {
 // GET - Get user's token reports
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized - User ID required' }, { status: 401 })
     }
 
     const reports = await prisma.tokenReport.findMany({
-      where: { reporterId: session.user.id },
+      where: { reporterId: userId },
       select: {
         id: true,
         tokenAddress: true,

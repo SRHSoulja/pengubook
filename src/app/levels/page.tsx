@@ -20,7 +20,7 @@ export default function LevelsPage() {
     )
   }
 
-  const levelInfo = getLevelInfo(user.xp, user.level)
+  const levelInfo = getLevelInfo((user as any).xp || 0, user.level)
   const currentBenefits = getLevelBenefits(user.level)
   const selectedBenefits = getLevelBenefits(selectedLevel)
 
@@ -52,7 +52,7 @@ export default function LevelsPage() {
                     {user.level}
                   </div>
                   <h3 className="text-lg font-semibold text-white">{getLevelTitle(user.level)}</h3>
-                  <p className="text-gray-300">{user.xp} XP</p>
+                  <p className="text-gray-300">{(user as any).xp || 0} XP</p>
                 </div>
 
                 {!levelInfo.isMaxLevel && (

@@ -58,7 +58,7 @@ export default function ProfileEditPage() {
         const data = await response.json()
         console.log('Profile updated successfully:', data)
         await refetchUser()
-        router.push(`/profile/${user.walletAddress || user.id}`)
+        router.push(`/profile/${user.id}`)
       } else {
         const errorData = await response.json()
         console.error('Failed to update profile:', errorData)
@@ -109,7 +109,7 @@ export default function ProfileEditPage() {
                 <h1 className="text-3xl font-bold text-white">Edit Profile</h1>
               </div>
               <Link
-                href={`/profile/${user.walletAddress || user.id}`}
+                href={`/profile/${user.id}`}
                 className="bg-gray-500 text-white px-6 py-2 rounded-xl hover:bg-gray-600 transition-colors"
               >
                 ❄️ Cancel
