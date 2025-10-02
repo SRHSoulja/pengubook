@@ -29,17 +29,52 @@ export async function POST(request: NextRequest) {
 
     const prisma = new PrismaClient()
 
-    // Check if user already exists by provider account ID
+    // Check if user already exists by provider account ID OR if a wallet user exists (prevent duplicates)
     let user = await prisma.user.findFirst({
       where: {
         OR: [
           { id: token.sub },
           token.provider === 'discord' ? { discordId: token.providerAccountId } : {},
           token.provider === 'twitter' ? { twitterId: token.providerAccountId } : {}
-        ]
+        ].filter(condition => Object.keys(condition).length > 0)
       },
       include: { profile: true }
     })
+
+    // IMPORTANT: If a wallet user exists, return it instead of creating a duplicate OAuth-only user
+    if (!user) {
+      const walletUser = await prisma.user.findFirst({
+        where: {
+          AND: [
+            { walletAddress: { not: null } },
+            { walletAddress: { not: '' } }
+          ]
+        },
+        include: { profile: true }
+      })
+
+      if (walletUser) {
+        console.log('[OAuth Register] Wallet user exists, preventing duplicate creation. Returning existing wallet user.')
+        await prisma.$disconnect()
+        return NextResponse.json({
+          success: true,
+          user: {
+            id: walletUser.id,
+            username: walletUser.username,
+            displayName: walletUser.displayName,
+            walletAddress: walletUser.walletAddress || '',
+            bio: walletUser.bio || '',
+            avatar: walletUser.avatar || '',
+            level: walletUser.level,
+            isAdmin: walletUser.isAdmin,
+            isBanned: walletUser.isBanned,
+            discordName: walletUser.discordName,
+            twitterHandle: walletUser.twitterHandle,
+            profile: walletUser.profile
+          }
+        })
+      }
+    }
 
     if (!user) {
       // Create new user from OAuth data
