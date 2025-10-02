@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 const ABSTRACT_RPC_URL = 'https://api.mainnet.abs.xyz'
 const DEXSCREENER_API = 'https://api.dexscreener.com'
 const ABSCAN_API = 'https://api.abscan.org/api'
