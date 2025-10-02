@@ -3,9 +3,9 @@ import { prisma } from '@/lib/prisma'
 
 export interface AuthenticatedUser {
   id: string
-  walletAddress: string
-  username: string
-  displayName: string
+  walletAddress: string | null
+  username: string | null
+  displayName: string | null
   level: number
   isBanned: boolean
 }

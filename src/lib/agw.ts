@@ -15,7 +15,8 @@ export class AGWProvider {
       this.client = await createAbstractClient({
         chain: abstract,
         transport: http(),
-      })
+        signer: {} as any, // AGW handles signing
+      } as any)
 
       // Get the connected account from AGW
       const account = await this.client.account
@@ -33,7 +34,7 @@ export class AGWProvider {
   async getBalance(address: string): Promise<string> {
     if (!this.client) throw new Error('AGW client not initialized')
     try {
-      const balance = await this.client.getBalance({ address: address as `0x${string}` })
+      const balance = await (this.client as any).getBalance({ address: address as `0x${string}` })
       return (Number(balance) / 1e18).toString()
     } catch (error) {
       console.error('Failed to get balance:', error)
@@ -50,7 +51,7 @@ export class AGWProvider {
         throw new Error('ERC-20 transfers not implemented yet')
       } else {
         // Native token transfer via AGW
-        const hash = await this.client.sendTransaction({
+        const hash = await (this.client as any).sendTransaction({
           to: to as `0x${string}`,
           value: BigInt(Math.floor(parseFloat(amount) * 1e18)),
         })

@@ -103,8 +103,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Handle OAuth session
   useEffect(() => {
     console.log('OAuth status:', oauthStatus, 'Session:', oauthSession)
-    if (oauthStatus === 'authenticated' && oauthSession?.user?.id) {
-      console.log('OAuth user authenticated with NextAuth ID:', oauthSession.user.id)
+    if (oauthStatus === 'authenticated' && (oauthSession?.user as any)?.id) {
+      console.log('OAuth user authenticated with NextAuth ID:', (oauthSession.user as any).id)
 
       // Check if we're in the linking flow (sessionStorage has linkToUserId OR pengubook-auth from social linking)
       const isLinkingFlow = typeof window !== 'undefined' && (
@@ -220,9 +220,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refetchUser = () => {
     if (walletAddress) {
       fetchUser(walletAddress)
-    } else if (oauthSession?.user?.id) {
+    } else if ((oauthSession?.user as any)?.id) {
       // Try to fetch by NextAuth ID
-      fetchUserByNextAuthId(oauthSession.user.id)
+      fetchUserByNextAuthId((oauthSession?.user as any).id)
     }
   }
 

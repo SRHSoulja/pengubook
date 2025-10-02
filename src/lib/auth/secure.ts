@@ -6,9 +6,9 @@ import crypto from 'crypto'
 
 export interface AuthenticatedUser {
   id: string
-  walletAddress: string
-  username: string
-  displayName: string
+  walletAddress: string | null
+  username: string | null
+  displayName: string | null
   level: number
   isBanned: boolean
   isAdmin: boolean
@@ -92,7 +92,7 @@ async function validateSessionToken(token: string): Promise<AuthenticatedUser> {
     }
 
     // Verify wallet address matches session
-    if (user.walletAddress.toLowerCase() !== decoded.walletAddress.toLowerCase()) {
+    if (user.walletAddress && decoded.walletAddress && user.walletAddress.toLowerCase() !== decoded.walletAddress.toLowerCase()) {
       throw new AuthenticationError('Session wallet mismatch')
     }
 
@@ -189,7 +189,7 @@ export function generateSessionToken(user: AuthenticatedUser): string {
 
   const sessionData: SessionData = {
     userId: user.id,
-    walletAddress: user.walletAddress,
+    walletAddress: user.walletAddress || '',
     issuedAt: Date.now(),
     expiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
     sessionId: crypto.randomUUID()

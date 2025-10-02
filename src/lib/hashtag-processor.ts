@@ -14,7 +14,7 @@ export function extractHashtags(content: string): string[] {
     .filter(tag => tag.length >= 2 && tag.length <= 50)
 
   // Remove duplicates
-  return [...new Set(hashtags)]
+  return Array.from(new Set(hashtags))
 }
 
 export async function processHashtagsForPost(
