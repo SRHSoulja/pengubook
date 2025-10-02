@@ -53,12 +53,12 @@ export default function TipButton({ userId }: TipButtonProps) {
       hasAddress: !!client?.account?.address,
       userId
     })
-    if (showModal && client?.account?.address) {
+    if (showModal) {
       console.log('[TipButton] Calling fetchTokens and fetchRecipientData')
       fetchTokens()
       fetchRecipientData()
     }
-  }, [showModal, userId, client?.account?.address])
+  }, [showModal, userId])
 
   const fetchTokens = async () => {
     if (!client?.account?.address) {
