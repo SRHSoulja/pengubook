@@ -71,9 +71,11 @@ export async function POST(request: NextRequest) {
       if (provider === 'discord') {
         updateData.discordId = null
         updateData.discordName = null
+        updateData.discordAvatar = null
       } else if (provider === 'twitter') {
         updateData.twitterId = null
         updateData.twitterHandle = null
+        updateData.twitterAvatar = null
       }
 
       console.log('[UnlinkSocial] Unlinking provider:', {
