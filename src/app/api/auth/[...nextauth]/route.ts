@@ -133,8 +133,13 @@ const handler = NextAuth({
         if (account.provider === 'twitter') {
           // Twitter gives us username in profile.data.username (X API v2)
           actualUsername = (profile as any)?.data?.username || (profile as any)?.username || (profile as any)?.screen_name || user?.name
-          // Twitter profile image (X API v2)
-          avatarUrl = (profile as any)?.data?.profile_image_url || user?.image || ''
+          // Twitter profile image (X API v2) - replace _normal with _400x400 for better quality
+          let twitterAvatar = (profile as any)?.data?.profile_image_url || user?.image || ''
+          if (twitterAvatar) {
+            // Replace _normal.jpg with _400x400.jpg for higher quality
+            twitterAvatar = twitterAvatar.replace('_normal.', '_400x400.')
+          }
+          avatarUrl = twitterAvatar
         } else if (account.provider === 'discord') {
           // Discord username is in profile.username
           actualUsername = (profile as any)?.username || user?.name
