@@ -53,33 +53,8 @@ export async function GET(
       }
     })
 
-    // Fetch recent posts separately
-    const recentPosts = await prisma.post.findMany({
-      where: { communityId: id },
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            displayName: true,
-            avatar: true,
-            level: true,
-            isAdmin: true
-          }
-        },
-        _count: {
-          select: {
-            likes: true,
-            comments: true,
-            shares: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      take: 10
-    })
+    // Posts are not linked to communities in the schema
+    const recentPosts: any[] = []
 
     if (!community) {
       return NextResponse.json(
