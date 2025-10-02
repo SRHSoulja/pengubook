@@ -49,16 +49,6 @@ export async function GET(request: NextRequest) {
     const communities = await prisma.community.findMany({
       where: whereClause,
       include: {
-        creator: {
-          select: {
-            id: true,
-            username: true,
-            displayName: true,
-            avatar: true,
-            level: true,
-            isAdmin: true
-          }
-        },
         members: userId ? {
           where: { userId },
           select: {
@@ -82,8 +72,7 @@ export async function GET(request: NextRequest) {
         },
         _count: {
           select: {
-            members: true,
-            posts: true
+            members: true
           }
         }
       },
