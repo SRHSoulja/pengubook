@@ -105,10 +105,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('OAuth status:', oauthStatus, 'Session:', oauthSession)
     if (oauthStatus === 'authenticated' && oauthSession?.user?.id) {
       console.log('OAuth user authenticated with NextAuth ID:', oauthSession.user.id)
-      // Create/update our user record based on NextAuth user
-      createOrUpdateOAuthUser(oauthSession.user)
+
+      // ONLY create OAuth user if we don't have a wallet user already
+      // If we have a wallet user, the social linking flow will handle the connection
+      if (!walletAddress && !user) {
+        console.log('No wallet user found, creating OAuth user')
+        createOrUpdateOAuthUser(oauthSession.user)
+      } else {
+        console.log('Wallet user exists, skipping OAuth user creation (use link-social instead)')
+      }
     }
-  }, [oauthSession, oauthStatus])
+  }, [oauthSession, oauthStatus, walletAddress, user])
 
   // Fetch user data when wallet address is available
   useEffect(() => {

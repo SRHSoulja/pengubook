@@ -152,6 +152,8 @@ export async function PUT(request: NextRequest) {
       username,
       bio: bio?.slice(0, 50) + '...',
       interests: Array.isArray(interests) ? interests.join(', ') : interests,
+      avatarSource,
+      receivedAvatarSource: !!avatarSource,
       timestamp: new Date().toISOString()
     })
 
@@ -185,14 +187,24 @@ export async function PUT(request: NextRequest) {
     if (avatarSource !== undefined) {
       updateData.avatarSource = avatarSource
 
+      console.log('[UserProfile] Avatar source change:', {
+        newSource: avatarSource,
+        discordAvatar: existingUser.discordAvatar,
+        twitterAvatar: existingUser.twitterAvatar,
+        timestamp: new Date().toISOString()
+      })
+
       // Update the avatar field based on the selected source
       if (avatarSource === 'discord' && existingUser.discordAvatar) {
         updateData.avatar = existingUser.discordAvatar
+        console.log('[UserProfile] Setting avatar to Discord:', existingUser.discordAvatar)
       } else if (avatarSource === 'twitter' && existingUser.twitterAvatar) {
         updateData.avatar = existingUser.twitterAvatar
+        console.log('[UserProfile] Setting avatar to Twitter:', existingUser.twitterAvatar)
       } else {
         // Default avatar (null or empty string - will use gradient fallback in UI)
         updateData.avatar = null
+        console.log('[UserProfile] Setting avatar to default (null)')
       }
     }
 
