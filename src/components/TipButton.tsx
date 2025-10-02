@@ -82,8 +82,9 @@ export default function TipButton({ userId }: TipButtonProps) {
         tokens: data.tokens
       })
 
-      if (response.ok) {
+      if (response.ok && data) {
         // Set native ETH balance
+        console.log('[TipButton] Setting nativeToken to:', data.nativeBalance)
         setNativeToken(data.nativeBalance)
 
         // Filter tokens with balance > 0 and sort by value
