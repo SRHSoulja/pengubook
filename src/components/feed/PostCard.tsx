@@ -9,6 +9,8 @@ import ReportButton from '@/components/ReportButton'
 import FilteredContent from '@/components/FilteredContent'
 import { detectMediaType, getYouTubeEmbedUrl, isYouTubeUrl, getGiphyEmbedUrl, isGiphyUrl } from '@/lib/media-utils'
 import { getEffectiveAvatar, getAvatarFallback } from '@/lib/avatar-utils'
+import PostInteractionsModal from '@/components/PostInteractionsModal'
+import PostEditHistoryModal from '@/components/PostEditHistoryModal'
 
 interface PostCardProps {
   post: Post
@@ -134,6 +136,9 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
   const [isInteracting, setIsInteracting] = useState<string | null>(null)
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [showInteractionsModal, setShowInteractionsModal] = useState(false)
+  const [interactionsTab, setInteractionsTab] = useState<'likes' | 'shares'>('likes')
+  const [showEditHistoryModal, setShowEditHistoryModal] = useState(false)
   const shareMenuRef = useRef<HTMLDivElement>(null)
 
   const formatDate = (date: Date | string) => {
@@ -378,6 +383,18 @@ via @PenguBook`
           </div>
           <div className="flex items-center space-x-2 text-sm text-gray-400">
             <span className="font-mono">{formatDate(post.createdAt)}</span>
+            {post.updatedAt && new Date(post.updatedAt).getTime() !== new Date(post.createdAt).getTime() && (
+              <>
+                <span className="text-neon-cyan">•</span>
+                <button
+                  onClick={() => setShowEditHistoryModal(true)}
+                  className="text-gray-400 hover:text-cyan-400 transition-colors cursor-pointer italic"
+                  title="View edit history"
+                >
+                  (edited)
+                </button>
+              </>
+            )}
             <span className="text-neon-cyan">•</span>
             <span className="hover:animate-float">{getContentTypeEmoji(post.contentType || 'TEXT')}</span>
             <span className="text-neon-cyan">•</span>
@@ -460,9 +477,25 @@ via @PenguBook`
 
       {/* Engagement stats */}
       <div className="flex items-center space-x-6 text-sm text-gray-400 mb-4 pb-4 border-b border-white/10">
-        <span>{Object.values(reactionCounts).reduce((sum, count) => sum + count, 0)} reactions</span>
+        <button
+          onClick={() => {
+            setInteractionsTab('likes')
+            setShowInteractionsModal(true)
+          }}
+          className="hover:text-pink-400 transition-colors cursor-pointer"
+        >
+          {Object.values(reactionCounts).reduce((sum, count) => sum + count, 0)} reactions
+        </button>
         <span>{commentsCount} {commentsCount === 1 ? 'comment' : 'comments'}</span>
-        <span>{sharesCount} {sharesCount === 1 ? 'share' : 'shares'}</span>
+        <button
+          onClick={() => {
+            setInteractionsTab('shares')
+            setShowInteractionsModal(true)
+          }}
+          className="hover:text-blue-400 transition-colors cursor-pointer"
+        >
+          {sharesCount} {sharesCount === 1 ? 'share' : 'shares'}
+        </button>
       </div>
 
       {/* Enhanced reaction buttons */}
@@ -668,6 +701,21 @@ via @PenguBook`
           )}
         </div>
       )}
+
+      {/* Post Interactions Modal */}
+      <PostInteractionsModal
+        postId={post.id}
+        isOpen={showInteractionsModal}
+        onClose={() => setShowInteractionsModal(false)}
+        initialTab={interactionsTab}
+      />
+
+      {/* Post Edit History Modal */}
+      <PostEditHistoryModal
+        postId={post.id}
+        isOpen={showEditHistoryModal}
+        onClose={() => setShowEditHistoryModal(false)}
+      />
     </div>
   )
 }
