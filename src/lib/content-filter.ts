@@ -2,8 +2,8 @@ interface MutedPhrase {
   id: string
   phrase: string
   isRegex: boolean
-  muteType: 'HIDE' | 'WARN'
-  scope: 'ALL' | 'POSTS' | 'COMMENTS'
+  muteType: string
+  scope: string
   expiresAt: Date | null
 }
 
