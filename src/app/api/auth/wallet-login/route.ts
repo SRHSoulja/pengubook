@@ -3,25 +3,34 @@ import { createPublicClient, http, isAddress, hashMessage, getAddress, isHex, to
 import { prisma } from '@/lib/prisma'
 
 // Environment-driven chain configuration
-const CHAIN_ID = Number(process.env.ABSTRACT_CHAIN_ID ?? process.env.NEXT_PUBLIC_ABSTRACT_CHAIN_ID)
-const RPC_URL = process.env.ABSTRACT_RPC_URL ?? process.env.NEXT_PUBLIC_ABSTRACT_RPC_URL
+// NOTE: These are evaluated lazily to avoid build-time errors when env vars aren't set
+function getChainConfig() {
+  const CHAIN_ID = Number(process.env.ABSTRACT_CHAIN_ID ?? process.env.NEXT_PUBLIC_ABSTRACT_CHAIN_ID)
+  const RPC_URL = process.env.ABSTRACT_RPC_URL ?? process.env.NEXT_PUBLIC_ABSTRACT_RPC_URL
 
-if (!CHAIN_ID || !RPC_URL) {
-  throw new Error('ABSTRACT_CHAIN_ID / ABSTRACT_RPC_URL missing')
+  if (!CHAIN_ID || !RPC_URL) {
+    throw new Error('ABSTRACT_CHAIN_ID / ABSTRACT_RPC_URL missing')
+  }
+
+  return { CHAIN_ID, RPC_URL }
 }
 
-const abstractChain = defineChain({
-  id: CHAIN_ID,
-  name: 'Abstract',
-  network: 'abstract',
-  nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-  rpcUrls: { default: { http: [RPC_URL] } },
-})
+function getPublicClient() {
+  const { CHAIN_ID, RPC_URL } = getChainConfig()
 
-const publicClient = createPublicClient({
-  chain: abstractChain,
-  transport: http(RPC_URL),
-})
+  const abstractChain = defineChain({
+    id: CHAIN_ID,
+    name: 'Abstract',
+    network: 'abstract',
+    nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+    rpcUrls: { default: { http: [RPC_URL] } },
+  })
+
+  return createPublicClient({
+    chain: abstractChain,
+    transport: http(RPC_URL),
+  })
+}
 
 // EIP-1271 magic values
 const MAGIC_BYTES32 = '0x1626ba7e' as const // isValidSignature(bytes32,bytes)
@@ -78,6 +87,10 @@ export async function POST(request: NextRequest) {
       }, { status: 503 })
     }
 
+    // Initialize client (lazy to avoid build-time errors)
+    const publicClient = getPublicClient()
+    const { CHAIN_ID } = getChainConfig()
+
     const body = await request.json()
     const { message, signature, walletAddress, chainId: clientChainId } = body || {}
 
@@ -110,7 +123,7 @@ export async function POST(request: NextRequest) {
 
     console.log('[AGW Verify] start', {
       clientChainId,
-      serverChainId: publicClient.chain?.id,
+      serverChainId: CHAIN_ID,
       addr: addr.slice(0, 10) + '…',
       sigLen: signature?.length,
     })
@@ -277,9 +290,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (Number(clientChainId) !== publicClient.chain?.id) {
+    if (Number(clientChainId) !== CHAIN_ID) {
       return NextResponse.json(
-        { error: `Chain mismatch: expected ${publicClient.chain?.id}` },
+        { error: `Chain mismatch: expected ${CHAIN_ID}` },
         { status: 400 }
       )
     }
@@ -476,7 +489,7 @@ export async function POST(request: NextRequest) {
 
     // 8) All variants failed - log the attempt
     console.error('[AGW Verify] ❌ All variants failed', {
-      chainId: publicClient.chain?.id,
+      chainId: CHAIN_ID,
       addr,
       is6492: !!unwrapped,
     })
