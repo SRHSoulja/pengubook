@@ -2,10 +2,10 @@
 
 import { useLoginWithAbstract, useAbstractClient } from '@abstract-foundation/agw-react'
 import { useState, useEffect, useRef } from 'react'
-import { signOut } from 'next-auth/react'
 import { useAuth } from '@/providers/AuthProvider'
 import UserSearch from './UserSearch'
 import ThemeCustomizer from './ThemeCustomizer'
+import { performLogout } from '@/lib/utils/logout'
 
 export default function Navbar() {
   const { logout } = useLoginWithAbstract()
@@ -84,17 +84,10 @@ export default function Navbar() {
   }
 
   const handleLogout = async () => {
-    // Logout from both Abstract wallet and NextAuth
-    if (client?.account?.address) {
-      logout()
-    }
-    if (oauthSession) {
-      await signOut({ redirect: false })
-    }
-    // Clear session storage
-    sessionStorage.removeItem('pengubook-auth')
-    sessionStorage.removeItem('pengubook-oauth-auth')
-    window.location.href = '/'
+    await performLogout({
+      agwLogout: logout,
+      redirectTo: '/'
+    })
   }
 
   return (
