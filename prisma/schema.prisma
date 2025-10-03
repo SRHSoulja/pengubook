@@ -46,6 +46,7 @@ model User {
   likes                 Like[]
   messagesSent          Message[]            @relation("MessageSender")
   messageReadReceipts   MessageReadReceipt[] @relation("MessageReadReceipts")
+  messageReactions      MessageReaction[]    @relation("MessageReactions")
   notificationsSent     Notification[]       @relation("NotificationFrom")
   notificationsReceived Notification[]       @relation("NotificationTo")
   posts                 Post[]
@@ -177,6 +178,7 @@ model Comment {
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  reports   Report[]
 
   @@index([postId])
   @@index([createdAt])
@@ -312,6 +314,8 @@ model Message {
   sender         User                 @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
   conversation   Conversation         @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   readReceipts   MessageReadReceipt[]
+  reactions      MessageReaction[]
+  reports        Report[]
 
   @@index([conversationId])
   @@index([senderId])
@@ -332,6 +336,21 @@ model MessageReadReceipt {
   @@index([messageId])
   @@index([userId])
   @@index([readAt])
+}
+
+model MessageReaction {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+  user      User     @relation("MessageReactions", fields: [userId], references: [id], onDelete: Cascade)
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model Advertisement {
@@ -588,6 +607,8 @@ model Report {
   reporterId  String
   targetId    String?  // User being reported (for user reports)
   postId      String?  // Post being reported (for content reports)
+  commentId   String?  // Comment being reported
+  messageId   String?  // Message being reported
   reason      String   // SPAM, HARASSMENT, INAPPROPRIATE_CONTENT, COPYRIGHT, etc.
   description String?  // Additional details from reporter
   status      String   @default("PENDING") // PENDING, INVESTIGATING, RESOLVED, DISMISSED
@@ -597,10 +618,14 @@ model Report {
   reporter    User     @relation("ReportSubmitter", fields: [reporterId], references: [id], onDelete: Cascade)
   target      User?    @relation("ReportTarget", fields: [targetId], references: [id], onDelete: Cascade)
   post        Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment     Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  message     Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@index([reporterId])
   @@index([targetId])
   @@index([postId])
+  @@index([commentId])
+  @@index([messageId])
   @@index([status])
   @@index([reason])
   @@index([createdAt])
@@ -633,6 +658,39 @@ model HiddenToken {
   @@unique([userId, tokenAddress])
   @@index([userId])
   @@index([tokenAddress])
+}
+
+model AuthNonce {
+  id            String   @id @default(cuid())
+  nonce         String   @unique
+  walletAddress String?  // Set when nonce is used for verification
+  ipAddress     String
+  userAgent     String
+  used          Boolean  @default(false)
+  usedAt        DateTime?
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([nonce])
+  @@index([ipAddress, createdAt])
+  @@index([expiresAt])
+  @@index([used, expiresAt])
+  @@index([walletAddress])
+}
+
+model AuthAttempt {
+  id            String   @id @default(cuid())
+  walletAddress String
+  ipAddress     String
+  userAgent     String?
+  success       Boolean
+  failureReason String?
+  metadata      String?  // JSON string for additional context
+  createdAt     DateTime @default(now())
+
+  @@index([walletAddress, createdAt])
+  @@index([ipAddress, createdAt])
+  @@index([success, createdAt])
 }
 
 model BlacklistedToken {

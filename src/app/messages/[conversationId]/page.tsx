@@ -9,12 +9,23 @@ import GiphyPicker from '@/components/GiphyPicker'
 import { getEffectiveAvatar, getAvatarFallback } from '@/lib/avatar-utils'
 import Link from 'next/link'
 
+interface MessageReaction {
+  id: string
+  emoji: string
+  user: {
+    id: string
+    username: string
+    displayName: string
+  }
+}
+
 interface Message {
   id: string
   content: string
   messageType: string
   mediaUrls: string[]
   createdAt: string
+  reactions?: MessageReaction[]
   sender: {
     id: string
     username: string
@@ -34,7 +45,14 @@ export default function ConversationPage({ params }: ConversationPageProps) {
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [showGiphyPicker, setShowGiphyPicker] = useState(false)
+  const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null)
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [reportingMessageId, setReportingMessageId] = useState<string | null>(null)
+  const [reportReason, setReportReason] = useState('')
+  const [submittingReport, setSubmittingReport] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const REACTION_EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🙏']
 
   // Initialize WebSocket for real-time messaging
   const {
@@ -119,6 +137,36 @@ export default function ConversationPage({ params }: ConversationPageProps) {
     }
   }
 
+  const toggleReaction = async (messageId: string, emoji: string) => {
+    if (!user?.walletAddress) return
+
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+      if (user.walletAddress) headers['x-wallet-address'] = user.walletAddress
+      if (user.id) headers['x-user-id'] = user.id
+
+      const response = await fetch(`/api/message-reactions/${messageId}/reactions`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ emoji })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId
+            ? { ...msg, reactions: data.reactions }
+            : msg
+        ))
+        setShowReactionPicker(null)
+      }
+    } catch (error) {
+      console.error('Failed to toggle reaction:', error)
+    }
+  }
+
   const sendMessage = async (e: React.FormEvent, messageType = 'TEXT', mediaUrls: string[] = []) => {
     e.preventDefault()
     if ((!newMessage.trim() && mediaUrls.length === 0) || sending) return
@@ -165,6 +213,49 @@ export default function ConversationPage({ params }: ConversationPageProps) {
   const handleGifSelect = (gifUrl: string) => {
     sendMessage({ preventDefault: () => {} } as React.FormEvent, 'GIF', [gifUrl])
     setShowGiphyPicker(false)
+  }
+
+  const openReportModal = (messageId: string) => {
+    setReportingMessageId(messageId)
+    setShowReportModal(true)
+  }
+
+  const submitReport = async () => {
+    if (!user || !reportReason.trim() || !reportingMessageId) return
+
+    try {
+      setSubmittingReport(true)
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+      if (user.walletAddress) headers['x-wallet-address'] = user.walletAddress
+      if (user.id) headers['x-user-id'] = user.id
+
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          messageId: reportingMessageId,
+          reason: reportReason
+        }),
+        credentials: 'include'
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        alert('Report submitted successfully. Our team will review it.')
+        setShowReportModal(false)
+        setReportReason('')
+        setReportingMessageId(null)
+      } else {
+        alert(data.error || 'Failed to submit report')
+      }
+    } catch (error) {
+      console.error('Failed to submit report:', error)
+      alert('Failed to submit report')
+    } finally {
+      setSubmittingReport(false)
+    }
   }
 
   const formatMessageTime = (dateString: string) => {
@@ -289,6 +380,59 @@ export default function ConversationPage({ params }: ConversationPageProps) {
                         <div className={`text-xs mt-2 ${message.sender.id === user?.id ? 'text-cyan-100' : 'text-gray-300'}`}>
                           {formatMessageTime(message.createdAt)}
                         </div>
+
+                        {/* Reactions */}
+                        {message.reactions && message.reactions.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {message.reactions.map((reaction) => (
+                              <span
+                                key={reaction.id}
+                                className="inline-flex items-center px-2 py-1 bg-white/10 rounded-full text-xs"
+                                title={reaction.user.displayName || reaction.user.username}
+                              >
+                                {reaction.emoji}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Reaction and Report buttons (only on received messages) */}
+                        {message.sender.id !== user?.id && (
+                          <div className="flex items-center gap-3 mt-2">
+                            <div className="relative">
+                              <button
+                                onClick={() => setShowReactionPicker(showReactionPicker === message.id ? null : message.id)}
+                                className="text-lg opacity-40 hover:opacity-100 transition-opacity"
+                                title="React to message"
+                              >
+                                😊
+                              </button>
+
+                              {/* Reaction picker */}
+                              {showReactionPicker === message.id && (
+                                <div className="absolute left-0 top-8 bg-gray-800 border border-white/20 rounded-lg p-2 flex gap-2 z-10">
+                                  {REACTION_EMOJIS.map((emoji) => (
+                                    <button
+                                      key={emoji}
+                                      onClick={() => toggleReaction(message.id, emoji)}
+                                      className="text-2xl hover:scale-125 transition-transform"
+                                    >
+                                      {emoji}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            <button
+                              onClick={() => openReportModal(message.id)}
+                              className="text-sm opacity-40 hover:opacity-100 hover:text-red-400 transition-all"
+                              title="Report message"
+                            >
+                              ⚠️
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -367,6 +511,73 @@ export default function ConversationPage({ params }: ConversationPageProps) {
         onSelect={handleGifSelect}
         onClose={() => setShowGiphyPicker(false)}
       />
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white">Report Message</h2>
+              <button
+                onClick={() => {
+                  setShowReportModal(false)
+                  setReportReason('')
+                  setReportingMessageId(null)
+                }}
+                className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-white mb-3 font-medium">Why are you reporting this message?</label>
+              <div className="space-y-2">
+                {[
+                  { value: 'SPAM', label: 'Spam or misleading' },
+                  { value: 'HARASSMENT', label: 'Harassment or hate speech' },
+                  { value: 'VIOLENCE', label: 'Violence or dangerous content' },
+                  { value: 'INAPPROPRIATE_CONTENT', label: 'Inappropriate content' },
+                  { value: 'FALSE_INFORMATION', label: 'Scam or fraud' },
+                  { value: 'OTHER', label: 'Other' }
+                ].map((reason) => (
+                  <button
+                    key={reason.value}
+                    onClick={() => setReportReason(reason.value)}
+                    className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
+                      reportReason === reason.value
+                        ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                        : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-transparent'
+                    }`}
+                  >
+                    {reason.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowReportModal(false)
+                  setReportReason('')
+                  setReportingMessageId(null)
+                }}
+                className="flex-1 px-4 py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitReport}
+                disabled={!reportReason || submittingReport}
+                className="flex-1 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors"
+              >
+                {submittingReport ? 'Submitting...' : 'Submit Report'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

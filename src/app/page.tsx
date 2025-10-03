@@ -5,6 +5,7 @@ import { useAuth } from '@/providers/AuthProvider'
 import { useTheme } from '@/providers/ThemeProvider'
 import WalletConnect from '@/components/WalletConnect'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
+import MinimalAgwSignTest from '@/components/MinimalAgwSignTest'
 
 export default function Home() {
   const { user, loading, isAuthenticated } = useAuth()
@@ -266,6 +267,9 @@ export default function Home() {
 
                   {/* Wallet Connect */}
                   <WalletConnect />
+
+                  {/* AGW Sign Test - Debug Only */}
+                  {process.env.NEXT_PUBLIC_SHOW_AGW_TEST === 'true' && <MinimalAgwSignTest />}
 
                   {/* Info Items - Simplified */}
                   <div className="space-y-3 pt-2">

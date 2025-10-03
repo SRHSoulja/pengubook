@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
-import { awardXP } from '@/lib/leveling'
+import { awardXPForComment } from '@/lib/leveling'
 
 export const dynamic = 'force-dynamic'
 
@@ -185,7 +185,7 @@ export async function POST(
 
     // Award XP for creating a comment
     try {
-      const xpResult = await awardXP(authorId, 'COMMENT_POSTED', prisma)
+      const xpResult = await awardXPForComment(authorId, prisma)
       console.log(`[Comments] User ${authorId} earned ${xpResult.xpGained} XP for posting a comment`)
       if (xpResult.leveledUp) {
         console.log(`[Comments] User ${authorId} leveled up from ${xpResult.oldLevel} to ${xpResult.newLevel}!`)

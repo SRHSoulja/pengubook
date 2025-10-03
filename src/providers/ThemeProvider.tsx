@@ -123,24 +123,31 @@ const defaultTheme: Theme = predefinedThemes[0] // Abstract Green
 interface ThemeContextType {
   currentTheme: Theme
   predefinedThemes: Theme[]
+  customThemes: Theme[]
   setTheme: (theme: Theme) => void
   applyTheme: (theme: Theme) => void
+  saveCustomTheme: (theme: Theme, slotIndex: number) => void
+  deleteCustomTheme: (slotIndex: number) => void
   themeKey: string
 }
 
 const ThemeContext = createContext<ThemeContextType>({
   currentTheme: defaultTheme,
   predefinedThemes,
+  customThemes: [],
   setTheme: () => {},
   applyTheme: () => {},
+  saveCustomTheme: () => {},
+  deleteCustomTheme: () => {},
   themeKey: 'default'
 })
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [currentTheme, setCurrentTheme] = useState<Theme>(defaultTheme)
   const [themeKey, setThemeKey] = useState<string>('default')
+  const [customThemes, setCustomThemes] = useState<Theme[]>([])
 
-  // Load saved theme on mount
+  // Load saved theme and custom themes on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('pengubook-theme')
     if (savedTheme) {
@@ -151,6 +158,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         setCurrentTheme(foundTheme)
       } catch (e) {
         console.error('Failed to parse saved theme')
+      }
+    }
+
+    // Load custom themes from localStorage
+    const savedCustomThemes = localStorage.getItem('pengubook-custom-themes')
+    if (savedCustomThemes) {
+      try {
+        const themes = JSON.parse(savedCustomThemes)
+        setCustomThemes(themes)
+      } catch (e) {
+        console.error('Failed to parse custom themes')
       }
     }
   }, [])
@@ -195,8 +213,49 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setTheme(theme)
   }
 
+  const saveCustomTheme = (theme: Theme, slotIndex: number) => {
+    // Create a copy of custom themes array with 3 slots
+    const newCustomThemes = [...customThemes]
+
+    // Ensure we have 3 slots (fill with null if needed)
+    while (newCustomThemes.length < 3) {
+      newCustomThemes.push({
+        id: `custom-${newCustomThemes.length}`,
+        name: 'Empty Slot',
+        description: 'No custom theme saved',
+        colors: { from: '#1e1b4b', via: '#7c2d12', to: '#312e81', accent: '#00ffff', text: '#ffffff', glass: 'rgba(255, 255, 255, 0.1)' },
+        emoji: '➕'
+      })
+    }
+
+    // Update the specific slot
+    newCustomThemes[slotIndex] = {
+      ...theme,
+      id: `custom-${slotIndex}`
+    }
+
+    setCustomThemes(newCustomThemes)
+    localStorage.setItem('pengubook-custom-themes', JSON.stringify(newCustomThemes))
+  }
+
+  const deleteCustomTheme = (slotIndex: number) => {
+    const newCustomThemes = [...customThemes]
+
+    // Reset the slot to empty
+    newCustomThemes[slotIndex] = {
+      id: `custom-${slotIndex}`,
+      name: 'Empty Slot',
+      description: 'No custom theme saved',
+      colors: { from: '#1e1b4b', via: '#7c2d12', to: '#312e81', accent: '#00ffff', text: '#ffffff', glass: 'rgba(255, 255, 255, 0.1)' },
+      emoji: '➕'
+    }
+
+    setCustomThemes(newCustomThemes)
+    localStorage.setItem('pengubook-custom-themes', JSON.stringify(newCustomThemes))
+  }
+
   return (
-    <ThemeContext.Provider value={{ currentTheme, predefinedThemes, setTheme, applyTheme, themeKey }}>
+    <ThemeContext.Provider value={{ currentTheme, predefinedThemes, customThemes, setTheme, applyTheme, saveCustomTheme, deleteCustomTheme, themeKey }}>
       {children}
     </ThemeContext.Provider>
   )

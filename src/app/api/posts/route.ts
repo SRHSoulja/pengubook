@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
-import { awardXP } from '@/lib/leveling'
+import { awardXPForPost } from '@/lib/leveling'
 import { checkAndAwardAchievements } from '@/lib/achievement-checker'
 import { processHashtagsForPost } from '@/lib/hashtag-processor'
 import { updatePostStreak } from '@/lib/streak-tracker'
@@ -188,7 +188,7 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
 
     // Award XP for creating a post
     try {
-      const xpResult = await awardXP(authorId, 'POST_CREATED', prisma)
+      const xpResult = await awardXPForPost(authorId, prisma)
       console.log(`[Posts] User ${authorId} earned ${xpResult.xpGained} XP for creating a post`)
       if (xpResult.leveledUp) {
         console.log(`[Posts] User ${authorId} leveled up from ${xpResult.oldLevel} to ${xpResult.newLevel}!`)

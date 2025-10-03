@@ -75,10 +75,10 @@ export default function PenguinLoadingScreen({ icon, iconAlt }: PenguinLoadingSc
     >
       {/* Animated background elements - Abstract green themed */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Floating gradient orbs - Abstract green colors */}
-        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-full blur-3xl animate-blob"></div>
-        <div className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-r from-green-500/15 to-emerald-500/15 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-gradient-to-r from-emerald-400/20 to-cyan-500/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+        {/* Floating gradient orbs - Theme colored */}
+        <div className="absolute top-20 left-10 w-96 h-96 rounded-full blur-3xl animate-blob" style={{ background: `linear-gradient(to right, ${currentTheme.colors.from}20, ${currentTheme.colors.via}20)` }}></div>
+        <div className="absolute top-40 right-20 w-80 h-80 rounded-full blur-3xl animate-blob animation-delay-2000" style={{ background: `linear-gradient(to right, ${currentTheme.colors.via}15, ${currentTheme.colors.to}15)` }}></div>
+        <div className="absolute bottom-20 left-1/3 w-72 h-72 rounded-full blur-3xl animate-blob animation-delay-4000" style={{ background: `linear-gradient(to right, ${currentTheme.colors.from}20, ${currentTheme.colors.to}20)` }}></div>
 
         {/* Grid overlay */}
         <div className="absolute inset-0 web3-grid-bg opacity-30"></div>
@@ -92,9 +92,9 @@ export default function PenguinLoadingScreen({ icon, iconAlt }: PenguinLoadingSc
           </div>
           <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
             <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
             </div>
           </div>
         </div>
@@ -104,14 +104,14 @@ export default function PenguinLoadingScreen({ icon, iconAlt }: PenguinLoadingSc
           <h1 className="text-4xl font-bold text-white mb-2">
             Connecting to the Colony{dots}
           </h1>
-          <p className="text-emerald-200 text-lg">
+          <p className="text-white/80 text-lg">
             Waddling through the Abstract network...
           </p>
         </div>
 
         {/* Fun fact */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-emerald-500/30 p-6">
-          <h3 className="text-emerald-300 font-semibold mb-3 text-lg">
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
+          <h3 className="text-white/90 font-semibold mb-3 text-lg">
             🧠 Penguin Fun Fact
           </h3>
           <p className="text-white text-base leading-relaxed">
@@ -121,29 +121,29 @@ export default function PenguinLoadingScreen({ icon, iconAlt }: PenguinLoadingSc
 
         {/* Loading progress */}
         <div className="space-y-3">
-          <div className="flex items-center justify-center space-x-2 text-emerald-300">
-            <div className="w-3 h-3 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+          <div className="flex items-center justify-center space-x-2 text-white/80">
+            <div className="w-3 h-3 border-2 border-white/60 border-t-transparent rounded-full animate-spin"></div>
             <span className="text-sm font-medium">Setting up your Abstract Global Wallet connection</span>
           </div>
 
           <div className="w-full bg-white/10 rounded-full h-2">
-            <div className="bg-gradient-to-r from-emerald-500 to-green-500 h-2 rounded-full animate-pulse w-3/4"></div>
+            <div className="h-2 rounded-full animate-pulse w-3/4" style={{ background: `linear-gradient(to right, ${currentTheme.colors.from}, ${currentTheme.colors.to})` }}></div>
           </div>
         </div>
 
         {/* Fun penguin activities */}
         <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="bg-white/5 rounded-xl p-4 border border-emerald-500/20">
+          <div className="bg-white/5 rounded-xl p-4 border border-white/20">
             <div className="text-2xl mb-2">🏊‍♂️</div>
-            <div className="text-xs text-emerald-200">Swimming through blocks</div>
+            <div className="text-xs text-white/70">Swimming through blocks</div>
           </div>
-          <div className="bg-white/5 rounded-xl p-4 border border-green-500/20">
+          <div className="bg-white/5 rounded-xl p-4 border border-white/20">
             <div className="text-2xl mb-2">🔐</div>
-            <div className="text-xs text-emerald-200">Encrypting fish data</div>
+            <div className="text-xs text-white/70">Encrypting fish data</div>
           </div>
-          <div className="bg-white/5 rounded-xl p-4 border border-cyan-500/20">
+          <div className="bg-white/5 rounded-xl p-4 border border-white/20">
             <div className="text-2xl mb-2">🌐</div>
-            <div className="text-xs text-emerald-200">Syncing with colony</div>
+            <div className="text-xs text-white/70">Syncing with colony</div>
           </div>
         </div>
       </div>

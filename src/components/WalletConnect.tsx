@@ -1,117 +1,106 @@
 'use client'
 
-import { useLoginWithAbstract, useAbstractClient } from '@abstract-foundation/agw-react'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLoginWithAbstract } from '@abstract-foundation/agw-react'
+import { useState } from 'react'
+import { useAuth } from '@/providers/AuthProvider'
 
 export default function WalletConnect() {
-  const router = useRouter()
-  const { login, logout } = useLoginWithAbstract()
-  const { data: client, isLoading: clientLoading } = useAbstractClient()
+  const { login } = useLoginWithAbstract()
+  const { loading: authLoading, walletStatus, verifyWallet } = useAuth()
   const [isConnecting, setIsConnecting] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [registrationStatus, setRegistrationStatus] = useState('')
-  const [loginStep, setLoginStep] = useState('')
-
-  // Check if we're connected by seeing if we have a client with an address
-  const isConnected = !!(client?.account?.address)
-
-  console.log('AGW State:', {
-    isConnected,
-    isConnecting,
-    client: !!client,
-    clientLoading,
-    address: client?.account?.address,
-    user: !!user
-  })
-
-  // Auto-register when wallet connects
-  useEffect(() => {
-    if (isConnected && client?.account?.address && !user && isConnecting) {
-      setLoginStep('Creating your account...')
-      handleUserRegistration(client.account.address)
-    }
-  }, [isConnected, client?.account?.address, user, isConnecting])
-
-  const handleUserRegistration = async (walletAddress: string) => {
-    try {
-      const response = await fetch('/api/auth/wallet-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress })
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        setUser(data.user)
-        setLoginStep('Success! Redirecting...')
-        // Store auth immediately for persistence
-        sessionStorage.setItem('pengubook-auth', JSON.stringify({
-          walletAddress,
-          sessionToken: data.sessionToken,
-          timestamp: Date.now()
-        }))
-        // Redirect immediately to avoid flash
-        router.push('/dashboard')
-      } else {
-        setLoginStep('')
-        setRegistrationStatus('Login failed. Please try again.')
-        setIsConnecting(false)
-      }
-    } catch (error) {
-      setLoginStep('')
-      setRegistrationStatus('Something went wrong. Please try again.')
-      setIsConnecting(false)
-    }
-  }
+  const [error, setError] = useState('')
 
   const handleLogin = async () => {
     try {
-      console.log('Attempting AGW login...')
+      console.log('Initiating AGW login...')
       setIsConnecting(true)
-      setLoginStep('Waiting for signature...')
+      setError('')
+
+      // AGW login - user will need to manually verify after
       await login()
-      // Don't show "signature received" yet - wait for actual connection
-      setLoginStep('Connecting to Abstract...')
-    } catch (error) {
+
+      console.log('AGW login completed, ready for verification')
+      setIsConnecting(false)
+    } catch (error: any) {
       console.error('AGW login failed:', error)
       setIsConnecting(false)
-      setLoginStep('')
-      setRegistrationStatus('Login failed. Please try again.')
+      setError(error.message || 'Login failed. Please try again.')
     }
   }
 
-
-  const handleLogout = () => {
-    logout()
-    setUser(null)
-    setRegistrationStatus('')
-    setLoginStep('')
-    setIsConnecting(false)
+  const handleVerify = async () => {
+    try {
+      setError('')
+      await verifyWallet()
+    } catch (error: any) {
+      console.error('Verification failed:', error)
+      setError(error.message || 'Verification failed. Please try again.')
+    }
   }
 
-  // Clean redirect logic - this shouldn't happen now since we redirect to /connecting
-  useEffect(() => {
-    if (isConnected && client && user) {
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 500)
-    }
-  }, [isConnected, client, user, router])
+  const isLoading = isConnecting || authLoading
+
+  // Show authenticated status
+  if (walletStatus === 'authenticated') {
+    return null // Component not needed when authenticated
+  }
+
+  // Show verify button if wallet is connected but not verified
+  if (walletStatus === 'connected') {
+    return (
+      <div className="space-y-4">
+        <button
+          onClick={handleVerify}
+          disabled={isLoading}
+          className="group relative w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 text-white px-8 py-4 rounded-xl font-display font-bold text-lg shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transform translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+
+          <div className="relative flex items-center justify-center gap-3">
+            {isLoading ? (
+              <>
+                <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Verifying...</span>
+              </>
+            ) : (
+              <>
+                <span>🔐</span>
+                <span>Verify Wallet</span>
+                <span className="text-2xl">→</span>
+              </>
+            )}
+          </div>
+        </button>
+
+        <div className="glass-card bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-emerald-500/30 rounded-xl p-4 text-center">
+          <div className="text-emerald-200 text-sm">
+            ✅ Wallet connected! Click "Verify Wallet" to sign and authenticate.
+          </div>
+        </div>
+
+        {error && (
+          <div className="glass-card bg-gradient-to-r from-red-500/10 to-orange-500/10 border-red-500/30 rounded-xl p-4 text-center">
+            <div className="text-red-200 text-sm">
+              {error}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
       <button
         onClick={handleLogin}
-        disabled={isConnecting || clientLoading}
+        disabled={isLoading || walletStatus === 'verifying'}
         className="group relative w-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl font-display font-bold text-lg shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
       >
         {/* Animated shine effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transform translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
 
         <div className="relative flex items-center justify-center gap-3">
-          {isConnecting || clientLoading ? (
+          {isLoading ? (
             <>
               <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
               <span>Connecting to Abstract...</span>
@@ -126,17 +115,11 @@ export default function WalletConnect() {
         </div>
       </button>
 
-      {(loginStep || registrationStatus) && (
-        <div className="glass-card bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-cyan-500/30 rounded-xl p-4 text-center">
-          {loginStep && (
-            <div className="text-cyan-200 text-sm font-semibold flex items-center justify-center gap-3">
-              <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-              <span>{loginStep}</span>
-            </div>
-          )}
-          {registrationStatus && (
-            <div className="text-cyan-100 text-sm mt-2">{registrationStatus}</div>
-          )}
+      {error && (
+        <div className="glass-card bg-gradient-to-r from-red-500/10 to-orange-500/10 border-red-500/30 rounded-xl p-4 text-center">
+          <div className="text-red-200 text-sm">
+            {error}
+          </div>
         </div>
       )}
     </div>

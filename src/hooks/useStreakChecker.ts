@@ -11,10 +11,10 @@ export function useStreakChecker() {
   const { user, walletAddress } = useAuth()
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const lastCheckRef = useRef<number>(0)
+  const ranFor = useRef<string | null>(null)
 
   useEffect(() => {
     if (!user?.id || !walletAddress) {
-      // Clear interval if user logs out
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
         intervalRef.current = null
@@ -22,7 +22,12 @@ export function useStreakChecker() {
       return
     }
 
-    // Function to check streak
+    // Only run once per user
+    if (ranFor.current === user.id) {
+      return
+    }
+    ranFor.current = user.id
+
     const checkStreak = async () => {
       const now = Date.now()
       const today = new Date().toDateString()
@@ -57,15 +62,8 @@ export function useStreakChecker() {
           sessionStorage.setItem('last-streak-update', now.toString())
           sessionStorage.setItem('last-streak-date', today)
 
-          // If new achievements were unlocked, you could show a notification here
-          if (data.newAchievements && data.newAchievements.length > 0) {
+          if (process.env.NODE_ENV === 'development' && data.newAchievements && data.newAchievements.length > 0) {
             console.log('🏆 New streak achievements unlocked:', data.newAchievements)
-            // Optional: Trigger a toast notification or achievement popup
-          }
-
-          // Log streak update
-          if (data.streak) {
-            console.log(`✅ Login streak updated: ${data.streak.currentCount} days`)
           }
         }
       } catch (error) {

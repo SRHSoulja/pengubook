@@ -6,6 +6,8 @@ import { useAuth } from '@/providers/AuthProvider'
 interface ReportButtonProps {
   targetId?: string      // For reporting users
   postId?: string        // For reporting posts
+  commentId?: string     // For reporting comments
+  messageId?: string     // For reporting messages
   targetName?: string    // Display name of what's being reported
   size?: 'sm' | 'md' | 'lg'
   className?: string
@@ -27,6 +29,8 @@ const reportReasons = [
 export default function ReportButton({
   targetId,
   postId,
+  commentId,
+  messageId,
   targetName,
   size = 'md',
   className = ''
@@ -61,6 +65,8 @@ export default function ReportButton({
         body: JSON.stringify({
           targetId,
           postId,
+          commentId,
+          messageId,
           reason,
           description: description.trim() || null
         })
@@ -129,7 +135,7 @@ export default function ReportButton({
             ) : (
               <>
                 <h3 className="text-lg font-semibold mb-4 text-white">
-                  Report {postId ? 'Post' : 'User'}
+                  Report {postId ? 'Post' : commentId ? 'Comment' : messageId ? 'Message' : 'User'}
                   {targetName && (
                     <span className="text-gray-400 text-sm block">
                       {targetName}

@@ -43,23 +43,60 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       console.error('[Auth] JWT token validation failed:', error)
     }
 
-    // Method 2: Authorization header (Bearer token with wallet address)
+    // Method 2: Authorization header (Bearer token - REMOVED FOR SECURITY)
+    // Previously accepted raw wallet addresses as Bearer tokens
+    // This was a critical security vulnerability
+    // Bearer tokens should be session tokens validated against database
     if (!userId && authHeader?.startsWith('Bearer ')) {
       const bearerToken = authHeader.substring(7)
-      // In a production app, you'd verify wallet signature here
-      // For now, we'll treat the bearer token as a wallet address
-      if (bearerToken.startsWith('0x') && bearerToken.length === 42) {
-        walletAddress = bearerToken
+
+      // Check if this is a session token (not a wallet address)
+      if (!bearerToken.startsWith('0x')) {
+        // Validate session token against database
+        try {
+          const session = await prisma.session.findUnique({
+            where: { sessionToken: bearerToken },
+            include: { user: true }
+          })
+
+          if (session && session.expires > new Date()) {
+            userId = session.userId
+            walletAddress = session.user.walletAddress
+          }
+        } catch (error) {
+          console.error('[Auth] Session token validation failed:', error)
+        }
+      }
+      // If it looks like a wallet address, reject it (security)
+      else {
+        console.warn('[Auth] Rejected Bearer token that looks like wallet address')
       }
     }
 
-    // Method 3: Direct wallet address header
+    // Method 3: Direct wallet address header - WITH NORMALIZATION
     if (!userId && walletHeader) {
-      walletAddress = walletHeader
+      const { validateAndNormalizeAddress, isValidAddress } = await import('@/lib/utils/address')
+
+      if (isValidAddress(walletHeader)) {
+        try {
+          walletAddress = validateAndNormalizeAddress(walletHeader)
+        } catch (error) {
+          return {
+            success: false,
+            error: 'Invalid wallet address format',
+            status: 400
+          }
+        }
+      }
     }
 
-    // Method 4: Direct user ID header (for internal API calls)
+    // Method 4: Direct user ID header (for internal API calls only - consider removing)
     if (!userId && userIdHeader) {
+      // Log this usage as it's a potential security risk
+      console.warn('[Auth] Direct user ID header used:', {
+        userId: userIdHeader.slice(0, 8) + '...',
+        ip: request.headers.get('x-forwarded-for') || 'unknown'
+      })
       userId = userIdHeader
     }
 

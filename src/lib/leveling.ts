@@ -26,7 +26,53 @@ export const LEVEL_REQUIREMENTS = {
   20: 350000
 }
 
-// XP rewards for different actions
+// XP earning configuration interface
+export interface XPEarningConfig {
+  createPost: number
+  createComment: number
+  receiveReaction: number
+  giveReaction: number
+  postShared: number
+  sharePost: number
+  dailyLogin: number
+  profileComplete: number
+  receiveTip: number
+  sendTip: number
+}
+
+// Default XP rewards
+const DEFAULT_XP_CONFIG: XPEarningConfig = {
+  createPost: 10,
+  createComment: 5,
+  receiveReaction: 2,
+  giveReaction: 1,
+  postShared: 5,
+  sharePost: 3,
+  dailyLogin: 10,
+  profileComplete: 50,
+  receiveTip: 20,
+  sendTip: 5
+}
+
+// Load XP earning configuration from file (server-side only)
+async function loadXPConfig(): Promise<XPEarningConfig> {
+  // Only import fs on server-side
+  if (typeof window === 'undefined') {
+    try {
+      const { promises: fs } = await import('fs')
+      const path = await import('path')
+      const configPath = path.join(process.cwd(), 'data', 'xp-earning.json')
+      const data = await fs.readFile(configPath, 'utf-8')
+      return JSON.parse(data)
+    } catch (error) {
+      // If file doesn't exist or can't be read, return default config
+      return DEFAULT_XP_CONFIG
+    }
+  }
+  return DEFAULT_XP_CONFIG
+}
+
+// Legacy XP rewards mapping (for backwards compatibility)
 export const XP_REWARDS = {
   POST_CREATED: 10,
   COMMENT_POSTED: 5,
@@ -73,8 +119,8 @@ export function getLevelProgress(xp: number, currentLevel: number): number {
   return Math.floor((progressXp / requiredXp) * 100)
 }
 
-// Award XP to a user
-export async function awardXP(userId: string, action: keyof typeof XP_REWARDS, prisma?: PrismaClient): Promise<{
+// Award XP to a user with custom amount
+export async function awardXPAmount(userId: string, xpAmount: number, prisma?: PrismaClient): Promise<{
   xpGained: number
   newXp: number
   oldLevel: number
@@ -85,8 +131,6 @@ export async function awardXP(userId: string, action: keyof typeof XP_REWARDS, p
   const shouldDisconnect = !prisma
 
   try {
-    const xpGained = XP_REWARDS[action]
-
     // Get current user data
     const user = await db.user.findUnique({
       where: { id: userId },
@@ -98,7 +142,7 @@ export async function awardXP(userId: string, action: keyof typeof XP_REWARDS, p
     }
 
     const oldLevel = user.level
-    const newXp = user.xp + xpGained
+    const newXp = user.xp + xpAmount
     const newLevel = calculateLevel(newXp)
     const leveledUp = newLevel > oldLevel
 
@@ -112,7 +156,7 @@ export async function awardXP(userId: string, action: keyof typeof XP_REWARDS, p
     })
 
     return {
-      xpGained,
+      xpGained: xpAmount,
       newXp,
       oldLevel,
       newLevel,
@@ -123,6 +167,78 @@ export async function awardXP(userId: string, action: keyof typeof XP_REWARDS, p
       await db.$disconnect()
     }
   }
+}
+
+// Award XP for creating a post
+export async function awardXPForPost(userId: string, prisma?: PrismaClient) {
+  const config = await loadXPConfig()
+  return awardXPAmount(userId, config.createPost, prisma)
+}
+
+// Award XP for creating a comment
+export async function awardXPForComment(userId: string, prisma?: PrismaClient) {
+  const config = await loadXPConfig()
+  return awardXPAmount(userId, config.createComment, prisma)
+}
+
+// Award XP for receiving a reaction
+export async function awardXPForReceivingReaction(userId: string, prisma?: PrismaClient) {
+  const config = await loadXPConfig()
+  return awardXPAmount(userId, config.receiveReaction, prisma)
+}
+
+// Award XP for giving a reaction
+export async function awardXPForGivingReaction(userId: string, prisma?: PrismaClient) {
+  const config = await loadXPConfig()
+  return awardXPAmount(userId, config.giveReaction, prisma)
+}
+
+// Award XP for having post shared
+export async function awardXPForPostShared(userId: string, prisma?: PrismaClient) {
+  const config = await loadXPConfig()
+  return awardXPAmount(userId, config.postShared, prisma)
+}
+
+// Award XP for sharing a post
+export async function awardXPForSharing(userId: string, prisma?: PrismaClient) {
+  const config = await loadXPConfig()
+  return awardXPAmount(userId, config.sharePost, prisma)
+}
+
+// Award XP for daily login
+export async function awardXPForDailyLogin(userId: string, prisma?: PrismaClient) {
+  const config = await loadXPConfig()
+  return awardXPAmount(userId, config.dailyLogin, prisma)
+}
+
+// Award XP for completing profile
+export async function awardXPForProfileComplete(userId: string, prisma?: PrismaClient) {
+  const config = await loadXPConfig()
+  return awardXPAmount(userId, config.profileComplete, prisma)
+}
+
+// Award XP for receiving a tip
+export async function awardXPForReceivingTip(userId: string, prisma?: PrismaClient) {
+  const config = await loadXPConfig()
+  return awardXPAmount(userId, config.receiveTip, prisma)
+}
+
+// Award XP for sending a tip
+export async function awardXPForSendingTip(userId: string, prisma?: PrismaClient) {
+  const config = await loadXPConfig()
+  return awardXPAmount(userId, config.sendTip, prisma)
+}
+
+// Legacy function for backwards compatibility
+export async function awardXP(userId: string, action: keyof typeof XP_REWARDS, prisma?: PrismaClient): Promise<{
+  xpGained: number
+  newXp: number
+  oldLevel: number
+  newLevel: number
+  leveledUp: boolean
+}> {
+  const xpGained = XP_REWARDS[action]
+  return awardXPAmount(userId, xpGained, prisma)
 }
 
 // Get level info for display

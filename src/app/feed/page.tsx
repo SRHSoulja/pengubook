@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import { useTheme } from '@/providers/ThemeProvider'
 import Navbar from '@/components/Navbar'
@@ -9,6 +9,10 @@ import SocialFeed from '@/components/SocialFeed'
 import Link from 'next/link'
 import GiphyPicker from '@/components/GiphyPicker'
 import TrendingHashtags from '@/components/TrendingHashtags'
+import dynamic from 'next/dynamic'
+import { Theme } from 'emoji-picker-react'
+
+const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false })
 
 export default function FeedPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
@@ -22,7 +26,8 @@ export default function FeedPage() {
     mediaUrls: [] as string[]
   })
   const [showGiphyPicker, setShowGiphyPicker] = useState(false)
-
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const createPost = async () => {
     if (!user || !newPost.content.trim()) return
@@ -85,6 +90,26 @@ export default function FeedPage() {
     }))
   }
 
+  const handleEmojiSelect = (emojiData: any) => {
+    const emoji = emojiData.emoji
+    const textarea = textareaRef.current
+    if (textarea) {
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const newContent = newPost.content.substring(0, start) + emoji + newPost.content.substring(end)
+      setNewPost(prev => ({ ...prev, content: newContent }))
+
+      // Set cursor position after emoji
+      setTimeout(() => {
+        textarea.focus()
+        textarea.setSelectionRange(start + emoji.length, start + emoji.length)
+      }, 0)
+    } else {
+      setNewPost(prev => ({ ...prev, content: prev.content + emoji }))
+    }
+    setShowEmojiPicker(false)
+  }
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
@@ -131,6 +156,31 @@ export default function FeedPage() {
             </p>
           </div>
 
+          {/* Search Bar */}
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-4 mb-8">
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              const searchInput = e.currentTarget.querySelector('input') as HTMLInputElement
+              if (searchInput?.value.trim()) {
+                window.location.href = `/feed/search?q=${encodeURIComponent(searchInput.value.trim())}`
+              }
+            }}>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search posts, keywords, or #hashtags..."
+                  className="w-full px-4 py-3 pr-12 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 transition-all"
+                />
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-1.5 rounded-lg transition-colors text-sm font-semibold"
+                >
+                  🔍 Search
+                </button>
+              </div>
+            </form>
+          </div>
+
           {/* Create Post */}
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 mb-8">
             <div className="flex items-center gap-3 mb-4">
@@ -168,6 +218,7 @@ export default function FeedPage() {
                 />
 
                 <textarea
+                  ref={textareaRef}
                   placeholder="What's on your mind?"
                   value={newPost.content}
                   onChange={(e) => setNewPost(prev => ({ ...prev, content: e.target.value }))}
@@ -212,6 +263,27 @@ export default function FeedPage() {
                   >
                     🎭 GIF
                   </button>
+
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      😀 Emoji
+                    </button>
+
+                    {showEmojiPicker && (
+                      <div className="absolute bottom-full left-0 mb-2 z-50">
+                        <EmojiPicker
+                          onEmojiClick={handleEmojiSelect}
+                          theme={Theme.DARK}
+                          width={350}
+                          height={450}
+                        />
+                      </div>
+                    )}
+                  </div>
 
                   <button
                     onClick={createPost}

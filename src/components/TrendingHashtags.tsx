@@ -55,8 +55,8 @@ export default function TrendingHashtags({
     if (onHashtagClick) {
       onHashtagClick(tag)
     } else {
-      // Default behavior: search for the hashtag
-      window.location.href = `/search?q=%23${tag}`
+      // Default behavior: search for the hashtag in feed
+      window.location.href = `/feed/search?q=%23${tag}`
     }
   }
 

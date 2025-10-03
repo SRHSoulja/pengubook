@@ -11,6 +11,53 @@ function extractUrlsFromContent(content: string): string[] {
   return matches || []
 }
 
+// Helper function to render text with clickable hashtags
+function renderTextWithHashtags(text: string): JSX.Element[] {
+  const hashtagRegex = /#[\w]+/g
+  const parts: JSX.Element[] = []
+  let lastIndex = 0
+  let match
+
+  while ((match = hashtagRegex.exec(text)) !== null) {
+    // Add text before hashtag
+    if (match.index > lastIndex) {
+      parts.push(
+        <span key={`text-${lastIndex}`}>
+          {text.substring(lastIndex, match.index)}
+        </span>
+      )
+    }
+
+    // Add clickable hashtag
+    const hashtag = match[0]
+    parts.push(
+      <span
+        key={`hashtag-${match.index}`}
+        className="text-cyan-400 hover:text-cyan-300 cursor-pointer font-semibold hover:underline transition-colors"
+        onClick={(e) => {
+          e.stopPropagation()
+          window.location.href = `/feed/search?q=${encodeURIComponent(hashtag)}`
+        }}
+      >
+        {hashtag}
+      </span>
+    )
+
+    lastIndex = match.index + hashtag.length
+  }
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push(
+      <span key={`text-${lastIndex}`}>
+        {text.substring(lastIndex)}
+      </span>
+    )
+  }
+
+  return parts
+}
+
 // Function to render content with YouTube and Giphy embeds
 function renderContentWithEmbeds(content: string): JSX.Element {
   const urls = extractUrlsFromContent(content)
@@ -19,7 +66,7 @@ function renderContentWithEmbeds(content: string): JSX.Element {
   if (mediaUrls.length === 0) {
     return (
       <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">
-        {content}
+        {renderTextWithHashtags(content)}
       </p>
     )
   }
@@ -36,7 +83,7 @@ function renderContentWithEmbeds(content: string): JSX.Element {
         const textBefore = remainingContent.substring(0, urlIndex)
         elements.push(
           <p key={`text-before-${index}`} className="text-gray-200 whitespace-pre-wrap leading-relaxed">
-            {textBefore}
+            {renderTextWithHashtags(textBefore)}
           </p>
         )
       }
@@ -89,7 +136,7 @@ function renderContentWithEmbeds(content: string): JSX.Element {
   if (remainingContent.trim()) {
     elements.push(
       <p key="remaining-text" className="text-gray-200 whitespace-pre-wrap leading-relaxed">
-        {remainingContent}
+        {renderTextWithHashtags(remainingContent)}
       </p>
     )
   }
@@ -109,6 +156,7 @@ interface Post {
   sharesCount: number
   isLiked: boolean
   isShared: boolean
+  isBookmarked?: boolean
   createdAt: string
   updatedAt: string
   author: {
@@ -150,6 +198,18 @@ interface SocialFeedProps {
   limit?: number
 }
 
+// Default reaction emojis
+const defaultReactionEmojis: { [key: string]: string } = {
+  HAPPY: '😀',
+  LAUGH: '😂',
+  LOVE: '😍',
+  SHOCK: '😮',
+  CRY: '😢',
+  ANGER: '😡',
+  THUMBS_UP: '👍',
+  THUMBS_DOWN: '👎'
+}
+
 export default function SocialFeed({ userId, communityId, authorId, limit = 10 }: SocialFeedProps) {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
@@ -163,11 +223,31 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
   const [showShareMenu, setShowShareMenu] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const shareMenuRef = useRef<HTMLDivElement>(null)
+  const [postReactions, setPostReactions] = useState<{ [postId: string]: { counts: { [key: string]: number }, userReactions: Set<string> } }>({})
+  const [reactingTo, setReactingTo] = useState<string | null>(null)
+  const [reactionEmojis, setReactionEmojis] = useState<{ [key: string]: string }>(defaultReactionEmojis)
 
   // DEBUG: Log component mount and userId
   useEffect(() => {
     console.log('SocialFeed mounted with userId:', userId)
   }, [userId])
+
+  // Load custom reaction emojis
+  useEffect(() => {
+    const loadReactionEmojis = async () => {
+      try {
+        const response = await fetch('/api/admin/reaction-emojis')
+        const data = await response.json()
+        if (data.success && data.config) {
+          setReactionEmojis(data.config)
+        }
+      } catch (error) {
+        console.error('Failed to load reaction emojis:', error)
+        // Use defaults on error
+      }
+    }
+    loadReactionEmojis()
+  }, [])
 
   useEffect(() => {
     fetchPosts(1, true)
@@ -259,6 +339,74 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
       console.error('Failed to fetch posts:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Load reactions for all posts
+  useEffect(() => {
+    const loadReactions = async () => {
+      for (const post of posts) {
+        try {
+          const response = await fetch(`/api/posts/${post.id}/reactions`)
+          const result = await response.json()
+          if (result.success) {
+            setPostReactions(prev => ({
+              ...prev,
+              [post.id]: {
+                counts: result.data.counts || {},
+                userReactions: new Set()
+              }
+            }))
+          }
+        } catch (error) {
+          console.error(`Error loading reactions for post ${post.id}:`, error)
+        }
+      }
+    }
+
+    if (posts.length > 0) {
+      loadReactions()
+    }
+  }, [posts.length])
+
+  const handleReaction = async (postId: string, reactionType: string) => {
+    if (!userId || reactingTo) return
+
+    setReactingTo(postId)
+
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+
+      if (userId) {
+        headers['x-user-id'] = userId
+      }
+
+      const response = await fetch(`/api/posts/${postId}/reactions`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ reactionType }),
+        credentials: 'include'
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setPostReactions(prev => ({
+          ...prev,
+          [postId]: {
+            counts: result.data.counts || {},
+            userReactions: result.data.toggled
+              ? new Set([...(prev[postId]?.userReactions || []), reactionType])
+              : new Set([...(prev[postId]?.userReactions || [])].filter(r => r !== reactionType))
+          }
+        }))
+      }
+    } catch (error) {
+      console.error('Error reacting to post:', error)
+    } finally {
+      setReactingTo(null)
     }
   }
 
@@ -614,20 +762,39 @@ via @PenguBook`
             </div>
           )}
 
+          {/* Emoji Reactions */}
+          <div className="mb-4 pb-4 border-b border-white/10">
+            <div className="flex items-center flex-wrap gap-2">
+              {['HAPPY', 'LAUGH', 'LOVE', 'SHOCK', 'CRY', 'ANGER', 'THUMBS_UP', 'THUMBS_DOWN'].map((reactionType) => {
+                const reactions = postReactions[post.id]
+                const count = reactions?.counts[reactionType] || 0
+                const userReacted = reactions?.userReactions.has(reactionType) || false
+
+                return (
+                  <button
+                    key={reactionType}
+                    onClick={() => handleReaction(post.id, reactionType)}
+                    disabled={reactingTo === post.id}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all hover:scale-105 ${
+                      userReacted
+                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                        : 'bg-white/10 text-gray-300 hover:bg-white/20 border border-transparent'
+                    }`}
+                  >
+                    {reactionEmojis[reactionType]?.startsWith('http') ? (
+                      <img src={reactionEmojis[reactionType]} alt={reactionType} className="w-6 h-6 object-contain" />
+                    ) : (
+                      <span className="text-lg">{reactionEmojis[reactionType] || defaultReactionEmojis[reactionType]}</span>
+                    )}
+                    {count > 0 && <span className="text-sm font-mono">{count}</span>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
           {/* Post Actions */}
           <div className="flex items-center gap-6 pt-4 border-t border-white/10">
-            <button
-              onClick={() => likePost(post.id)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                post.isLiked
-                  ? 'bg-red-500/20 text-red-300'
-                  : 'bg-white/10 text-gray-300 hover:bg-white/20'
-              }`}
-            >
-              <span>{post.isLiked ? '❤️' : '🤍'}</span>
-              <span>{post.likesCount}</span>
-            </button>
-
             <Link
               href={`/posts/${post.id}`}
               className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
@@ -727,6 +894,97 @@ via @PenguBook`
                 </div>
               )}
             </div>
+
+            {/* Bookmark button */}
+            <button
+              onClick={async () => {
+                if (!userId) return
+                try {
+                  const headers: Record<string, string> = {
+                    'Content-Type': 'application/json'
+                  }
+                  if (walletAddress) headers['x-wallet-address'] = walletAddress
+                  if (userId) headers['x-user-id'] = userId
+
+                  const response = await fetch('/api/bookmarks', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ postId: post.id })
+                  })
+
+                  if (response.ok) {
+                    const data = await response.json()
+                    setPosts(prev => prev.map(p =>
+                      p.id === post.id
+                        ? { ...p, isBookmarked: data.isBookmarked }
+                        : p
+                    ))
+                  }
+                } catch (error) {
+                  console.error('Failed to toggle bookmark:', error)
+                }
+              }}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                post.isBookmarked
+                  ? 'bg-yellow-500/20 text-yellow-300'
+                  : 'bg-white/10 text-gray-300 hover:bg-white/20'
+              }`}
+              title={post.isBookmarked ? 'Remove bookmark' : 'Bookmark post'}
+            >
+              <span>{post.isBookmarked ? '🔖' : '📌'}</span>
+            </button>
+
+            {/* Report button - only show for other users' posts */}
+            {post.author.id !== userId && (
+              <button
+                onClick={async () => {
+                  const reason = prompt('Select a reason for reporting:\n\n1. SPAM\n2. HARASSMENT\n3. INAPPROPRIATE_CONTENT\n4. COPYRIGHT\n5. IMPERSONATION\n6. VIOLENCE\n7. HATE_SPEECH\n8. SELF_HARM\n9. FALSE_INFORMATION\n10. OTHER\n\nEnter the number (1-10):')
+                  if (!reason) return
+
+                  const reasons = ['SPAM', 'HARASSMENT', 'INAPPROPRIATE_CONTENT', 'COPYRIGHT', 'IMPERSONATION', 'VIOLENCE', 'HATE_SPEECH', 'SELF_HARM', 'FALSE_INFORMATION', 'OTHER']
+                  const selectedReason = reasons[parseInt(reason) - 1]
+                  if (!selectedReason) {
+                    alert('Invalid selection')
+                    return
+                  }
+
+                  const description = prompt('Additional details (optional):')
+
+                  try {
+                    const headers: Record<string, string> = {
+                      'Content-Type': 'application/json'
+                    }
+                    if (walletAddress) headers['x-wallet-address'] = walletAddress
+                    if (userId) headers['x-user-id'] = userId
+
+                    const response = await fetch('/api/reports', {
+                      method: 'POST',
+                      headers,
+                      body: JSON.stringify({
+                        postId: post.id,
+                        targetId: post.author.id,
+                        reason: selectedReason,
+                        description
+                      })
+                    })
+
+                    if (response.ok) {
+                      alert('Report submitted successfully. Our team will review it.')
+                    } else {
+                      const data = await response.json()
+                      alert(data.error || 'Failed to submit report')
+                    }
+                  } catch (error) {
+                    console.error('Failed to submit report:', error)
+                    alert('Failed to submit report')
+                  }
+                }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-red-500/20 hover:text-red-300 transition-colors"
+                title="Report post"
+              >
+                <span>⚠️</span>
+              </button>
+            )}
 
             <div className="flex-1"></div>
 

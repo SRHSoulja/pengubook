@@ -5,6 +5,66 @@ import { useAuth } from '@/providers/AuthProvider'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import ReportButton from '@/components/ReportButton'
+
+// Helper function to render text with clickable hashtags
+function renderTextWithHashtags(text: string): JSX.Element[] {
+  const hashtagRegex = /#[\w]+/g
+  const parts: JSX.Element[] = []
+  let lastIndex = 0
+  let match
+
+  while ((match = hashtagRegex.exec(text)) !== null) {
+    // Add text before hashtag
+    if (match.index > lastIndex) {
+      parts.push(
+        <span key={`text-${lastIndex}`}>
+          {text.substring(lastIndex, match.index)}
+        </span>
+      )
+    }
+
+    // Add clickable hashtag
+    const hashtag = match[0]
+    parts.push(
+      <span
+        key={`hashtag-${match.index}`}
+        className="text-cyan-400 hover:text-cyan-300 cursor-pointer font-semibold hover:underline transition-colors"
+        onClick={(e) => {
+          e.stopPropagation()
+          window.location.href = `/feed/search?q=${encodeURIComponent(hashtag)}`
+        }}
+      >
+        {hashtag}
+      </span>
+    )
+
+    lastIndex = match.index + hashtag.length
+  }
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push(
+      <span key={`text-${lastIndex}`}>
+        {text.substring(lastIndex)}
+      </span>
+    )
+  }
+
+  return parts
+}
+
+// Default reaction emojis
+const defaultReactionEmojis: { [key: string]: string } = {
+  HAPPY: '😀',
+  LAUGH: '😂',
+  LOVE: '😍',
+  SHOCK: '😮',
+  CRY: '😢',
+  ANGER: '😡',
+  THUMBS_UP: '👍',
+  THUMBS_DOWN: '👎'
+}
 
 interface Post {
   id: string
@@ -20,6 +80,7 @@ interface Post {
     username: string
     displayName: string
     avatar: string
+    walletAddress?: string
     level: number
     isAdmin: boolean
     discordName?: string
@@ -72,10 +133,134 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
   const [showEditHistory, setShowEditHistory] = useState(false)
   const [editHistory, setEditHistory] = useState<any[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
+  const [reactionEmojis, setReactionEmojis] = useState<{ [key: string]: string }>(defaultReactionEmojis)
+  const [reactions, setReactions] = useState<{ counts: { [key: string]: number }, userReactions: Set<string> }>({ counts: {}, userReactions: new Set() })
+  const [reactingTo, setReactingTo] = useState(false)
+  const [isBookmarked, setIsBookmarked] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [reportReason, setReportReason] = useState('')
+  const [submittingReport, setSubmittingReport] = useState(false)
+
+  // Load custom reaction emojis
+  useEffect(() => {
+    const loadReactionEmojis = async () => {
+      try {
+        const response = await fetch('/api/admin/reaction-emojis')
+        const data = await response.json()
+        if (data.success && data.config) {
+          setReactionEmojis(data.config)
+        }
+      } catch (error) {
+        console.error('Failed to load reaction emojis:', error)
+      }
+    }
+    loadReactionEmojis()
+  }, [])
 
   useEffect(() => {
     fetchPost()
   }, [params.id])
+
+  // Load reactions for this post
+  useEffect(() => {
+    if (post) {
+      fetchReactions()
+      checkBookmarkStatus()
+    }
+  }, [post?.id])
+
+  const checkBookmarkStatus = async () => {
+    if (!user) return
+
+    try {
+      const headers: Record<string, string> = {}
+      if (user.walletAddress) headers['x-wallet-address'] = user.walletAddress
+      if (user.id) headers['x-user-id'] = user.id
+
+      const response = await fetch('/api/bookmarks', {
+        headers,
+        credentials: 'include'
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        const bookmarked = data.bookmarks.some((b: any) => b.post?.id === params.id)
+        setIsBookmarked(bookmarked)
+      }
+    } catch (error) {
+      console.error('Failed to check bookmark status:', error)
+    }
+  }
+
+  const toggleBookmark = async () => {
+    if (!user) {
+      alert('Please sign in to bookmark posts')
+      return
+    }
+
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+      if (user.walletAddress) headers['x-wallet-address'] = user.walletAddress
+      if (user.id) headers['x-user-id'] = user.id
+
+      const response = await fetch('/api/bookmarks', {
+        method: isBookmarked ? 'DELETE' : 'POST',
+        headers,
+        body: JSON.stringify({ postId: params.id }),
+        credentials: 'include'
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setIsBookmarked(!isBookmarked)
+      } else {
+        alert(data.error || 'Failed to toggle bookmark')
+      }
+    } catch (error) {
+      console.error('Failed to toggle bookmark:', error)
+      alert('Failed to toggle bookmark')
+    }
+  }
+
+  const submitReport = async () => {
+    if (!user || !reportReason.trim()) return
+
+    try {
+      setSubmittingReport(true)
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+      if (user.walletAddress) headers['x-wallet-address'] = user.walletAddress
+      if (user.id) headers['x-user-id'] = user.id
+
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          reportedContentId: params.id,
+          reportedContentType: 'POST',
+          reason: reportReason
+        }),
+        credentials: 'include'
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        alert('Report submitted successfully. Our team will review it.')
+        setShowReportModal(false)
+        setReportReason('')
+      } else {
+        alert(data.error || 'Failed to submit report')
+      }
+    } catch (error) {
+      console.error('Failed to submit report:', error)
+      alert('Failed to submit report')
+    } finally {
+      setSubmittingReport(false)
+    }
+  }
 
   const fetchPost = async () => {
     try {
@@ -128,6 +313,85 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
       alert('Failed to load edit history')
     } finally {
       setLoadingHistory(false)
+    }
+  }
+
+  const fetchReactions = async () => {
+    try {
+      const response = await fetch(`/api/posts/${params.id}/reactions`)
+      const data = await response.json()
+
+      if (data.success) {
+        const userReactionTypes = new Set<string>()
+        if (user) {
+          data.data.reactions.forEach((r: any) => {
+            if (r.userId === user.id) {
+              userReactionTypes.add(r.reactionType)
+            }
+          })
+        }
+        setReactions({
+          counts: data.data.counts,
+          userReactions: userReactionTypes
+        })
+      }
+    } catch (error) {
+      console.error('Failed to fetch reactions:', error)
+    }
+  }
+
+  const handleReaction = async (reactionType: string) => {
+    if (!user) {
+      alert('Please sign in to react to posts')
+      return
+    }
+
+    try {
+      setReactingTo(true)
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+
+      if (user.walletAddress) {
+        headers['x-wallet-address'] = user.walletAddress
+      }
+      if (user.id) {
+        headers['x-user-id'] = user.id
+      }
+
+      const response = await fetch(`/api/posts/${params.id}/reactions`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ reactionType }),
+        credentials: 'include'
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        // Update local state
+        const userReacted = reactions.userReactions.has(reactionType)
+        const newUserReactions = new Set(reactions.userReactions)
+
+        if (userReacted) {
+          newUserReactions.delete(reactionType)
+        } else {
+          newUserReactions.add(reactionType)
+        }
+
+        setReactions({
+          counts: data.data.counts,
+          userReactions: newUserReactions
+        })
+      } else {
+        alert(data.error || 'Failed to react')
+      }
+    } catch (error) {
+      console.error('Failed to react:', error)
+      alert('Failed to react')
+    } finally {
+      setReactingTo(false)
     }
   }
 
@@ -233,7 +497,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 mb-8">
             {/* Post Header */}
             <div className="flex items-center gap-3 mb-4">
-              <Link href={`/profile/${post.author.id}`} className="flex items-center gap-3 hover:opacity-80">
+              <Link href={`/profile/${post.author.walletAddress || post.author.id}`} className="flex items-center gap-3 hover:opacity-80">
                 <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold">
                   {post.author.avatar ? (
                     <img
@@ -290,7 +554,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
             {/* Post Content */}
             <div className="mb-6">
               <p className="text-gray-200 whitespace-pre-wrap leading-relaxed text-lg">
-                {post.content}
+                {renderTextWithHashtags(post.content)}
               </p>
             </div>
 
@@ -314,12 +578,38 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
               </div>
             )}
 
+            {/* Emoji Reactions */}
+            <div className="mb-4 pb-4 border-b border-white/10">
+              <div className="flex items-center flex-wrap gap-2">
+                {['HAPPY', 'LAUGH', 'LOVE', 'SHOCK', 'CRY', 'ANGER', 'THUMBS_UP', 'THUMBS_DOWN'].map((reactionType) => {
+                  const count = reactions.counts[reactionType] || 0
+                  const userReacted = reactions.userReactions.has(reactionType)
+
+                  return (
+                    <button
+                      key={reactionType}
+                      onClick={() => handleReaction(reactionType)}
+                      disabled={reactingTo}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all hover:scale-105 ${
+                        userReacted
+                          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                          : 'bg-white/10 text-gray-300 hover:bg-white/20 border border-transparent'
+                      }`}
+                    >
+                      {reactionEmojis[reactionType]?.startsWith('http') ? (
+                        <img src={reactionEmojis[reactionType]} alt={reactionType} className="w-6 h-6 object-contain" />
+                      ) : (
+                        <span className="text-lg">{reactionEmojis[reactionType] || defaultReactionEmojis[reactionType]}</span>
+                      )}
+                      {count > 0 && <span className="text-sm font-mono">{count}</span>}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
             {/* Post Stats */}
             <div className="flex items-center gap-6 pt-4 border-t border-white/10 text-gray-300">
-              <div className="flex items-center gap-2">
-                <span>❤️</span>
-                <span>{post.stats.likes} likes</span>
-              </div>
               <div className="flex items-center gap-2">
                 <span>💬</span>
                 <span>{post.stats.comments} comments</span>
@@ -329,6 +619,28 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
                 <span>{post.stats.shares} shares</span>
               </div>
               <div className="flex-1"></div>
+              {isAuthenticated && user && (
+                <>
+                  <button
+                    onClick={toggleBookmark}
+                    className="flex items-center gap-2 text-gray-300 hover:text-cyan-400 transition-colors"
+                    title={isBookmarked ? 'Remove bookmark' : 'Bookmark post'}
+                  >
+                    <span className="text-lg">{isBookmarked ? '🔖' : '📌'}</span>
+                    <span className="text-sm">{isBookmarked ? 'Saved' : 'Save'}</span>
+                  </button>
+                  {post.author.id !== user.id && (
+                    <button
+                      onClick={() => setShowReportModal(true)}
+                      className="flex items-center gap-2 text-gray-300 hover:text-red-400 transition-colors"
+                      title="Report post"
+                    >
+                      <span className="text-lg">⚠️</span>
+                      <span className="text-sm">Report</span>
+                    </button>
+                  )}
+                </>
+              )}
               <span className="text-xs capitalize">
                 {post.visibility.toLowerCase().replace('_', ' ')}
               </span>
@@ -489,6 +801,13 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
                           <button className="text-gray-400 hover:text-white text-sm transition-colors">
                             Reply
                           </button>
+                          {comment.author.id !== user?.id && (
+                            <ReportButton
+                              commentId={comment.id}
+                              targetName={`Comment by ${comment.author.displayName}`}
+                              size="sm"
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
@@ -497,6 +816,68 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
               )}
             </div>
           </div>
+
+          {/* Report Modal */}
+          {showReportModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 max-w-md w-full">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-white">Report Post</h2>
+                  <button
+                    onClick={() => setShowReportModal(false)}
+                    className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-white mb-3 font-medium">Why are you reporting this post?</label>
+                  <div className="space-y-2">
+                    {[
+                      'Spam or misleading',
+                      'Harassment or hate speech',
+                      'Violence or dangerous content',
+                      'Inappropriate content',
+                      'Copyright violation',
+                      'Other'
+                    ].map((reason) => (
+                      <button
+                        key={reason}
+                        onClick={() => setReportReason(reason)}
+                        className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
+                          reportReason === reason
+                            ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                            : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-transparent'
+                        }`}
+                      >
+                        {reason}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowReportModal(false)
+                      setReportReason('')
+                    }}
+                    className="flex-1 px-4 py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={submitReport}
+                    disabled={!reportReason || submittingReport}
+                    className="flex-1 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {submittingReport ? 'Submitting...' : 'Submit Report'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

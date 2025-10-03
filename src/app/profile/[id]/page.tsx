@@ -8,6 +8,7 @@ import FriendButton from '@/components/FriendButton'
 import UserActions from '@/components/UserActions'
 import WalletBalance from '@/components/WalletBalance'
 import Navbar from '@/components/Navbar'
+import SocialFeed from '@/components/SocialFeed'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -121,6 +122,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [editingPost, setEditingPost] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [walletBalanceCollapsed, setWalletBalanceCollapsed] = useState(false)
   const [viewingHistory, setViewingHistory] = useState<string | null>(null)
   const [editHistory, setEditHistory] = useState<PostEdit[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
@@ -489,11 +491,22 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           {/* Wallet Balance */}
           {profile.walletAddress && (
             <div className="mb-8">
-              <WalletBalance
-                walletAddress={profile.walletAddress}
-                userId={profile.id}
-                isOwnProfile={currentUser?.id === profile.id}
-              />
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-white">💰 Wallet Balance</h3>
+                <button
+                  onClick={() => setWalletBalanceCollapsed(!walletBalanceCollapsed)}
+                  className="text-cyan-400 hover:text-cyan-300 transition-colors text-sm font-medium"
+                >
+                  {walletBalanceCollapsed ? '▼ Expand' : '▲ Collapse'}
+                </button>
+              </div>
+              {!walletBalanceCollapsed && (
+                <WalletBalance
+                  walletAddress={profile.walletAddress}
+                  userId={profile.id}
+                  isOwnProfile={currentUser?.id === profile.id}
+                />
+              )}
             </div>
           )}
 
@@ -524,108 +537,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           {/* Content */}
           <div className="space-y-6">
             {activeTab === 'posts' && (
-              <div className="space-y-6">
-                {posts.length > 0 ? (
-                  posts.map((post) => (
-                    <div key={post.id} className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold">
-                            {post.author.avatar ? (
-                              <img src={post.author.avatar} alt={post.author.displayName} className="w-full h-full object-cover rounded-xl" />
-                            ) : (
-                              <span>🐧</span>
-                            )}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-white">{post.author.displayName}</span>
-                              {post.author.isAdmin && <span className="text-blue-400">✓</span>}
-                            </div>
-                            <div className="text-sm text-gray-300">
-                              @{post.author.username} • {new Date(post.createdAt).toLocaleDateString()}
-                            </div>
-                          </div>
-                        </div>
-
-                        {currentUser && currentUser.id === post.author.id && (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => startEditing(post)}
-                              className="text-gray-400 hover:text-white p-1"
-                            >
-                              ✏️
-                            </button>
-                            <button
-                              onClick={() => viewEditHistory(post.id)}
-                              className="text-gray-400 hover:text-white p-1"
-                              title="View edit history"
-                            >
-                              📝
-                            </button>
-                            <button
-                              onClick={() => deletePost(post.id)}
-                              disabled={deleting === post.id}
-                              className="text-red-400 hover:text-red-300 p-1 disabled:opacity-50"
-                            >
-                              {deleting === post.id ? '⏳' : '🗑️'}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      {editingPost === post.id ? (
-                        <div className="space-y-4">
-                          <textarea
-                            value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
-                            className="w-full p-4 bg-black/20 border border-white/20 rounded-xl text-white placeholder-gray-400 resize-none"
-                            rows={4}
-                          />
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => saveEdit(post.id)}
-                              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={cancelEditing}
-                              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-white whitespace-pre-wrap">{post.content}</div>
-                      )}
-
-                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
-                        <div className="flex items-center gap-6">
-                          <button
-                            onClick={() => toggleLike(post.id)}
-                            className={`flex items-center gap-2 transition-colors ${
-                              post.isLiked ? 'text-red-400' : 'text-gray-400 hover:text-red-400'
-                            }`}
-                          >
-                            <span>{post.isLiked ? '❤️' : '🤍'}</span>
-                            <span>{post.stats.likes}</span>
-                          </button>
-                          <span className="text-gray-400">💬 {post.stats.comments}</span>
-                          <span className="text-gray-400">🔄 {post.stats.shares}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center text-gray-400 py-12">
-                    <div className="text-6xl mb-4">📝</div>
-                    <h3 className="text-xl font-semibold mb-2">No posts yet</h3>
-                    <p>This penguin hasn't shared anything yet!</p>
-                  </div>
-                )}
-              </div>
+              <SocialFeed userId={currentUser?.id} authorId={profile?.id} limit={20} />
             )}
 
             {activeTab === 'shared' && (

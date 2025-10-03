@@ -1,9 +1,11 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
 import { useSession } from 'next-auth/react'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
+
+const OAUTH_ENABLED = false
 
 interface User {
   id: string
@@ -30,6 +32,8 @@ interface AuthContextType {
   walletAddress: string | null
   sessionToken: string | null
   oauthSession: any | null
+  walletStatus: 'disconnected' | 'connected' | 'verifying' | 'authenticated'
+  verifyWallet: () => Promise<void>
   refetchUser: () => void
 }
 
@@ -40,17 +44,25 @@ const AuthContext = createContext<AuthContextType>({
   walletAddress: null,
   sessionToken: null,
   oauthSession: null,
+  walletStatus: 'disconnected',
+  verifyWallet: async () => {},
   refetchUser: () => {}
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: client } = useAbstractClient()
-  const { data: oauthSession, status: oauthStatus } = useSession()
+  const { data: oauthSession, status: oauthStatus } = OAUTH_ENABLED ? useSession() : { data: null, status: 'unauthenticated' }
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [initialLoad, setInitialLoad] = useState(true)
   const [walletAddress, setWalletAddress] = useState<string | null>(null)
   const [sessionToken, setSessionToken] = useState<string | null>(null)
+  const [walletStatus, setWalletStatus] = useState<'disconnected' | 'connected' | 'verifying' | 'authenticated'>('disconnected')
+
+  // Track verification and profile fetching to prevent loops
+  const attemptedVerifyForAddr = useRef<string | null>(null)
+  const fetchedProfileFor = useRef<string | null>(null)
+  const inflightRef = useRef<Promise<any> | null>(null)
 
   // Check for existing auth on mount
   useEffect(() => {
@@ -61,78 +73,110 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const authData = JSON.parse(storedAuth)
         // Check if auth is still valid (within 24 hours)
         if (Date.now() - authData.timestamp < 24 * 60 * 60 * 1000) {
+          console.log('[AuthProvider] Found valid stored auth, setting walletAddress')
           setWalletAddress(authData.walletAddress)
-          setSessionToken(authData.sessionToken)
+          if (authData.sessionToken) {
+            setSessionToken(authData.sessionToken)
+          }
+        } else {
+          console.log('[AuthProvider] Stored auth expired, clearing sessionStorage')
+          sessionStorage.removeItem('pengubook-auth')
         }
       }
     } catch (error) {
-      console.log('No valid stored auth')
+      console.log('[AuthProvider] No valid stored auth found')
     }
   }, [])
 
-  // Add timeout to prevent infinite loading, but consider OAuth status
+  // Add timeout to prevent infinite loading
   useEffect(() => {
+    if (!OAUTH_ENABLED) {
+      const timeout = setTimeout(() => {
+        if (initialLoad) {
+          setInitialLoad(false)
+          setLoading(false)
+        }
+      }, 3000)
+      return () => clearTimeout(timeout)
+    }
+
+    // OAuth timeout handling
     const timeout = setTimeout(() => {
       if (initialLoad && oauthStatus !== 'loading') {
-        console.log('Auth timeout reached, oauth status:', oauthStatus)
         setInitialLoad(false)
         setLoading(false)
       }
-    }, 3000) // 3 second timeout to account for OAuth
-
+    }, 3000)
     return () => clearTimeout(timeout)
   }, [initialLoad, oauthStatus])
 
-  // Update wallet address when client changes and auto-register wallet users
+  // Update wallet status when client changes (NO auto-verify)
   useEffect(() => {
     if (client !== undefined) {
-      if (client?.account?.address) {
-        setWalletAddress(client.account.address)
-        // Auto-register/login wallet user if not already authenticated
-        if (!user || user.walletAddress !== client.account.address) {
-          handleWalletLogin(client.account.address)
+      const address = client?.account?.address
+
+      if (address) {
+        // Check if stored auth is for a different wallet address
+        if (walletAddress && walletAddress.toLowerCase() !== address.toLowerCase()) {
+          console.log('[AuthProvider] Different wallet detected, clearing stored auth')
+          sessionStorage.removeItem('pengubook-auth')
+          setWalletAddress(null)
+          setUser(null)
+          setWalletStatus('connected')
+          attemptedVerifyForAddr.current = null
+        } else if (user && user.walletAddress === address) {
+          // User already authenticated with this address
+          console.log('[AuthProvider] User already authenticated with this address')
+          setWalletAddress(address)
+          setWalletStatus('authenticated')
+          setLoading(false)
+          setInitialLoad(false)
+        } else if (walletStatus !== 'authenticated' && walletStatus !== 'verifying') {
+          // Wallet connected but not verified yet
+          console.log('[AuthProvider] Wallet connected, ready for verification')
+          setWalletStatus('connected')
+          setLoading(false)
+          setInitialLoad(false)
         }
-      } else if (!walletAddress) {
-        // Only clear if we don't have a stored address
-        setLoading(false)
-        setInitialLoad(false)
+      } else {
+        // No wallet connected
+        if (walletStatus !== 'disconnected') {
+          console.log('[AuthProvider] Wallet disconnected')
+          setWalletStatus('disconnected')
+          attemptedVerifyForAddr.current = null
+        }
+        if (!walletAddress && !oauthSession) {
+          setLoading(false)
+          setInitialLoad(false)
+        }
       }
     }
-  }, [client?.account?.address, user?.walletAddress])
+  }, [client?.account?.address, user?.walletAddress, walletStatus, walletAddress, oauthSession])
 
   // Handle OAuth session
   useEffect(() => {
-    console.log('OAuth status:', oauthStatus, 'Session:', oauthSession)
-    if (oauthStatus === 'authenticated' && (oauthSession?.user as any)?.id) {
-      console.log('OAuth user authenticated with NextAuth ID:', (oauthSession.user as any).id)
+    if (!OAUTH_ENABLED) return
 
-      // Check if we're in the linking flow (sessionStorage has linkToUserId OR pengubook-auth from social linking)
+    if (oauthStatus === 'authenticated' && (oauthSession?.user as any)?.id) {
       const isLinkingFlow = typeof window !== 'undefined' && (
         sessionStorage.getItem('linkToUserId') ||
         sessionStorage.getItem('pengubook-auth')
       )
 
-      if (isLinkingFlow) {
-        console.log('In linking flow (found linkToUserId or pengubook-auth), skipping OAuth user creation (SocialAccountLinking will handle it)')
-        return
-      }
+      if (isLinkingFlow) return
 
-      // ONLY create OAuth user if we don't have a wallet user already
-      // If we have a wallet user OR wallet address, the social linking flow will handle the connection
       if (!walletAddress && !user) {
-        console.log('No wallet user found, creating OAuth user')
         createOrUpdateOAuthUser(oauthSession.user)
-      } else {
-        console.log('Wallet user exists, skipping OAuth user creation (use link-social instead)')
       }
     }
   }, [oauthSession, oauthStatus, walletAddress, user])
 
-  // Fetch user data when wallet address is available
+  // Fetch user profile exactly once after wallet address is set
   useEffect(() => {
-    if (walletAddress) {
+    if (walletAddress && fetchedProfileFor.current !== walletAddress) {
+      fetchedProfileFor.current = walletAddress
       fetchUser(walletAddress)
-    } else if (!initialLoad && oauthStatus !== 'loading') {
+    } else if (!initialLoad && (!OAUTH_ENABLED || oauthStatus !== 'loading') && !walletAddress) {
       setUser(null)
       setLoading(false)
     }
@@ -284,82 +328,137 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const handleWalletLogin = async (walletAddress: string) => {
-    try {
-      console.log('Authenticating wallet user with SIWE:', walletAddress.slice(0, 10) + '...')
-      setLoading(true)
+  // Hardened AGW-only verify helpers
+  const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
+  const isInitErr = (e: any) => String(e?.message || e).includes("Failed to initialize request")
 
-      // Get nonce for SIWE
-      const nonceRes = await fetch('/api/auth/nonce')
-      const { nonce } = await nonceRes.json()
+  // Ensure the page is visible (avoids bfcache / hidden-tab bridge races)
+  async function waitForVisible(timeoutMs = 8000) {
+    const start = Date.now()
+    while (document.visibilityState !== "visible") {
+      if (Date.now() - start > timeoutMs) throw new Error("Document not visible")
+      await sleep(120)
+    }
+  }
 
-      // Create SIWE message
-      const domain = window.location.host
-      const origin = window.location.origin
-      const statement = 'Sign in to PenguBook with your wallet'
+  async function verifyWithAgw(agw: any) {
+    // Single-flight: prevent dup nonce/sign (using ref to survive HMR)
+    if (inflightRef.current) return inflightRef.current
+    inflightRef.current = (async () => {
+      // 0) Require account
+      const addr = agw?.account?.address as `0x${string}` | undefined
+      if (!addr) throw new Error("AGW not connected")
 
-      const siweMessage = {
-        domain,
-        address: walletAddress,
-        statement,
-        uri: origin,
-        version: '1',
-        chainId: 1, // Ethereum mainnet, adjust if needed
-        nonce
+      // 1) Visibility + small settle delay
+      await waitForVisible(10_000)
+      await sleep(500)
+
+      // 2) Wait for signMessage to exist
+      const t0 = Date.now()
+      while (!agw?.signMessage) {
+        if (Date.now() - t0 > 10_000) throw new Error("AGW signMessage not available after timeout")
+        await sleep(150)
       }
 
-      const message = `${domain} wants you to sign in with your Ethereum account:
-${walletAddress}
+      // 3) Fetch ONE nonce
+      const nRes = await fetch("/api/auth/nonce", { credentials: "include" })
+      if (!nRes.ok) throw new Error("Failed to fetch nonce")
+      const { nonce } = await nRes.json()
 
-${statement}
-
-URI: ${origin}
-Version: ${siweMessage.version}
-Chain ID: ${siweMessage.chainId}
-Nonce: ${nonce}
-Issued At: ${new Date().toISOString()}`
-
-      // Request signature from wallet
-      let signature: string
-      try {
-        if (client?.transport) {
-          // Abstract Global Wallet signature
-          signature = await client.transport.request({
-            method: 'personal_sign',
-            params: [message, walletAddress]
-          })
-        } else {
-          console.error('Wallet client not available')
-          setLoading(false)
-          setInitialLoad(false)
-          return
-        }
-      } catch (signError) {
-        console.error('User rejected signature:', signError)
-        setLoading(false)
-        setInitialLoad(false)
-        return
-      }
-
-      // Authenticate with backend
-      const response = await fetch('/api/auth/wallet-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, signature })
+      // 4) Build message
+      const message = JSON.stringify({
+        domain: window.location.hostname,
+        statement: "Sign to verify your Abstract Global Wallet.",
+        nonce,
+        issuedAt: new Date().toISOString(),
       })
 
-      const data = await response.json()
+      // 5) Try sign → verify with progressive backoff
+      let lastErr: any
 
-      if (response.ok && data.user) {
-        console.log('Wallet user authenticated:', data.user.id.slice(0, 10) + '...')
+      for (let i = 1; i <= 5; i++) {
+        try {
+          if (i <= 4) {
+            await sleep(300 * i)
+          } else {
+            console.log("[AGW Auth] Forcing reconnect and retrying once…")
+            try { await agw.disconnect?.() } catch {}
+            await sleep(500)
+            await sleep(800)
+          }
 
-        // Fetch full user profile to get all fields including social avatars
-        await fetchUser(walletAddress)
-      } else {
-        console.error('Wallet login failed:', data.error)
+          await new Promise(r => requestAnimationFrame(() => r(null)))
+          if ('requestIdleCallback' in window) {
+            await new Promise(r => (window as any).requestIdleCallback(r, { timeout: 800 }))
+          }
+
+          const signature = await agw.signMessage({ message })
+
+          const vRes = await fetch("/api/auth/wallet-login", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+              message,
+              signature,
+              walletAddress: addr,
+              chainId: agw?.chain?.id,
+            })
+          })
+          const j = await vRes.json()
+          if (!vRes.ok || !j?.user) throw new Error(j?.error || "verify failed")
+
+          return j
+        } catch (e: any) {
+          lastErr = e
+          const init = isInitErr(e)
+          if (process.env.NODE_ENV === 'development') {
+            console.warn(`[AGW Auth] ${init ? "Init" : "Fatal"} error on attempt ${i}:`, e?.message)
+          }
+          if (!init && i < 5) break
+          if (i === 5) throw e
+        }
       }
+      throw lastErr
+    })().finally(() => { inflightRef.current = null })
+
+    return inflightRef.current
+  }
+
+  // Explicit verify function - user must call this
+  const verifyWallet = async () => {
+    const address = client?.account?.address
+    if (!address) {
+      console.warn('[AGW Auth] No wallet address available')
+      return
+    }
+
+    // Prevent duplicate verification attempts for same address
+    if (attemptedVerifyForAddr.current === address) {
+      console.log('[AGW Auth] Already attempted verification for this address; not looping')
+      return
+    }
+
+    attemptedVerifyForAddr.current = address
+    setWalletStatus('verifying')
+    setLoading(true)
+
+    try {
+      const result = await verifyWithAgw(client)
+
+      setWalletAddress(address)
+      setWalletStatus('authenticated')
+      setLoading(false)
+      attemptedVerifyForAddr.current = null
+
+      sessionStorage.setItem('pengubook-auth', JSON.stringify({
+        walletAddress: address,
+        timestamp: Date.now()
+      }))
+
     } catch (error) {
-      console.error('Failed to authenticate wallet user:', error)
+      console.error('[AGW Auth] Authentication failed:', error)
+      setWalletStatus('connected')
     } finally {
       setLoading(false)
       setInitialLoad(false)
@@ -374,7 +473,17 @@ Issued At: ${new Date().toISOString()}`
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated, walletAddress, sessionToken, oauthSession, refetchUser }}>
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      isAuthenticated,
+      walletAddress,
+      sessionToken,
+      oauthSession,
+      walletStatus,
+      verifyWallet,
+      refetchUser
+    }}>
       {children}
     </AuthContext.Provider>
   )

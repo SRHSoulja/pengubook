@@ -266,13 +266,13 @@ export default function DiscoverPage() {
                             >
                               View Profile
                             </Link>
-                            <div className="flex flex-col gap-2">
-                              <UserActions
-                                targetUserId={suggestion.user.id}
-                                targetUser={suggestion.user}
-                                compact={true}
-                              />
-                            </div>
+                            <UserActions
+                              targetUserId={suggestion.user.id}
+                              targetUser={suggestion.user}
+                              compact={true}
+                              showMessageButton={true}
+                              showFriendButton={true}
+                            />
                           </div>
                         </div>
                       </div>
@@ -383,7 +383,7 @@ export default function DiscoverPage() {
                     <HashtagSearch
                       placeholder="Search for hashtags..."
                       onHashtagSelect={(hashtag) => {
-                        window.location.href = `/search?q=%23${hashtag}`
+                        window.location.href = `/feed/search?q=%23${hashtag}`
                       }}
                     />
                   </div>
@@ -392,7 +392,7 @@ export default function DiscoverPage() {
                   <TrendingHashtags
                     limit={15}
                     onHashtagClick={(hashtag) => {
-                      window.location.href = `/search?q=%23${hashtag}`
+                      window.location.href = `/feed/search?q=%23${hashtag}`
                     }}
                   />
                 </div>

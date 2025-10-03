@@ -25,6 +25,53 @@ function extractUrlsFromContent(content: string): string[] {
   return matches || []
 }
 
+// Helper function to render text with clickable hashtags
+function renderTextWithHashtags(text: string): JSX.Element[] {
+  const hashtagRegex = /#[\w]+/g
+  const parts: JSX.Element[] = []
+  let lastIndex = 0
+  let match
+
+  while ((match = hashtagRegex.exec(text)) !== null) {
+    // Add text before hashtag
+    if (match.index > lastIndex) {
+      parts.push(
+        <span key={`text-${lastIndex}`}>
+          {text.substring(lastIndex, match.index)}
+        </span>
+      )
+    }
+
+    // Add clickable hashtag
+    const hashtag = match[0]
+    parts.push(
+      <span
+        key={`hashtag-${match.index}`}
+        className="text-cyan-400 hover:text-cyan-300 cursor-pointer font-semibold hover:underline transition-colors"
+        onClick={(e) => {
+          e.stopPropagation()
+          window.location.href = `/feed/search?q=${encodeURIComponent(hashtag)}`
+        }}
+      >
+        {hashtag}
+      </span>
+    )
+
+    lastIndex = match.index + hashtag.length
+  }
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push(
+      <span key={`text-${lastIndex}`}>
+        {text.substring(lastIndex)}
+      </span>
+    )
+  }
+
+  return parts
+}
+
 function renderContentWithEmbeds(content: string): JSX.Element {
   // Client-side only debug - UPDATED
   if (typeof window !== 'undefined') {
@@ -42,7 +89,7 @@ function renderContentWithEmbeds(content: string): JSX.Element {
   if (mediaUrls.length === 0) {
     return (
       <p className="text-white text-lg leading-relaxed whitespace-pre-wrap">
-        {content}
+        {renderTextWithHashtags(content)}
       </p>
     )
   }
@@ -59,7 +106,7 @@ function renderContentWithEmbeds(content: string): JSX.Element {
         const textBefore = remainingContent.substring(0, urlIndex)
         elements.push(
           <p key={`text-${index}`} className="text-white text-lg leading-relaxed whitespace-pre-wrap">
-            {textBefore}
+            {renderTextWithHashtags(textBefore)}
           </p>
         )
       }
@@ -110,7 +157,7 @@ function renderContentWithEmbeds(content: string): JSX.Element {
   if (remainingContent.trim()) {
     elements.push(
       <p key="text-end" className="text-white text-lg leading-relaxed whitespace-pre-wrap">
-        {remainingContent}
+        {renderTextWithHashtags(remainingContent)}
       </p>
     )
   }
@@ -677,9 +724,18 @@ via @PenguBook`
               </div>
               <div className="flex-1">
                 <div className="bg-white/5 rounded-lg p-3">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className="font-medium text-white text-sm">{(comment.user || comment.author)?.displayName}</span>
-                    <span className="text-xs text-gray-400">{formatDate(comment.createdAt)}</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium text-white text-sm">{(comment.user || comment.author)?.displayName}</span>
+                      <span className="text-xs text-gray-400">{formatDate(comment.createdAt)}</span>
+                    </div>
+                    {(comment.user || comment.author)?.id !== currentUserId && (
+                      <ReportButton
+                        commentId={comment.id}
+                        targetName={`Comment by ${(comment.user || comment.author)?.displayName}`}
+                        size="sm"
+                      />
+                    )}
                   </div>
                   <FilteredContent
                     shouldWarn={(comment as any).contentFilter?.shouldWarn || false}
