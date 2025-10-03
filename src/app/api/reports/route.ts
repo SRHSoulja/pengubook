@@ -5,8 +5,8 @@ import { logger, logAPI } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
-// Submit a report
-export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRequest, user: any) => {
+// Submit a report - Strict rate limit: 3 reports per hour to prevent abuse
+export const POST = withRateLimit(3, 60 * 60 * 1000)(withAuth(async (request: NextRequest, user: any) => {
   try {
     const body = await request.json()
     const { targetId, postId, commentId, messageId, reason, description } = body
@@ -142,91 +142,120 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
     }
 
     // Check for duplicate reports (same user reporting same target/post/comment/message)
+    // Database has unique constraint, but we check first to provide better error message
     const existingReport = await prisma.report.findFirst({
       where: {
         reporterId: user.id,
         ...(targetId && { targetId }),
         ...(postId && { postId }),
         ...(commentId && { commentId }),
-        ...(messageId && { messageId }),
-        status: { in: ['PENDING', 'INVESTIGATING'] }
+        ...(messageId && { messageId })
+      },
+      select: {
+        id: true,
+        status: true,
+        createdAt: true
       }
     })
 
     if (existingReport) {
+      const itemType = targetId ? 'user' : postId ? 'post' : commentId ? 'comment' : 'message'
+      const statusMessage = existingReport.status === 'PENDING' || existingReport.status === 'INVESTIGATING'
+        ? 'is currently being reviewed'
+        : `was ${existingReport.status.toLowerCase()} on ${existingReport.createdAt.toLocaleDateString()}`
+
       return NextResponse.json(
-        { error: 'You have already submitted a report for this item that is being reviewed' },
+        {
+          error: `You have already reported this ${itemType}`,
+          details: `Your previous report ${statusMessage}. You cannot submit duplicate reports.`,
+          existingReportId: existingReport.id
+        },
         { status: 409 }
       )
     }
 
     // Create the report
-    const report = await prisma.report.create({
-      data: {
-        reporterId: user.id,
-        targetId,
-        postId,
-        commentId,
-        messageId,
-        reason,
-        description: description?.trim() || null
-      },
-      include: {
-        reporter: {
-          select: {
-            id: true,
-            username: true,
-            displayName: true
-          }
+    let report
+    try {
+      report = await prisma.report.create({
+        data: {
+          reporterId: user.id,
+          targetId,
+          postId,
+          commentId,
+          messageId,
+          reason,
+          description: description?.trim() || null
         },
-        target: targetId ? {
-          select: {
-            id: true,
-            username: true,
-            displayName: true
-          }
-        } : undefined,
-        post: postId ? {
-          select: {
-            id: true,
-            content: true,
-            author: {
-              select: {
-                id: true,
-                username: true,
-                displayName: true
+        include: {
+          reporter: {
+            select: {
+              id: true,
+              username: true,
+              displayName: true
+            }
+          },
+          target: targetId ? {
+            select: {
+              id: true,
+              username: true,
+              displayName: true
+            }
+          } : undefined,
+          post: postId ? {
+            select: {
+              id: true,
+              content: true,
+              author: {
+                select: {
+                  id: true,
+                  username: true,
+                  displayName: true
+                }
               }
             }
-          }
-        } : undefined,
-        comment: commentId ? {
-          select: {
-            id: true,
-            content: true,
-            user: {
-              select: {
-                id: true,
-                username: true,
-                displayName: true
+          } : undefined,
+          comment: commentId ? {
+            select: {
+              id: true,
+              content: true,
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  displayName: true
+                }
               }
             }
-          }
-        } : undefined,
-        message: messageId ? {
-          select: {
-            id: true,
-            content: true,
-            sender: {
-              select: {
-                id: true,
-                username: true,
-                displayName: true
+          } : undefined,
+          message: messageId ? {
+            select: {
+              id: true,
+              content: true,
+              sender: {
+                select: {
+                  id: true,
+                  username: true,
+                  displayName: true
+                }
               }
             }
-          }
-        } : undefined
+          } : undefined
+        }
+      })
+    } catch (dbError: any) {
+      // Handle unique constraint violation from database
+      if (dbError.code === 'P2002') {
+        return NextResponse.json(
+          {
+            error: 'You have already reported this item',
+            details: 'Duplicate reports are not allowed. Please wait for your previous report to be reviewed.'
+          },
+          { status: 409 }
+        )
       }
-    })
+      throw dbError // Re-throw if it's a different error
+    }
 
 
     logger.info('Report submitted', {

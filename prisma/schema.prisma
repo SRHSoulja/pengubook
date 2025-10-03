@@ -629,6 +629,8 @@ model Report {
   @@index([status])
   @@index([reason])
   @@index([createdAt])
+  // Prevent duplicate reports - user can only report each unique item once
+  @@unique([reporterId, targetId, postId, commentId, messageId])
 }
 
 model MutedPhrase {
