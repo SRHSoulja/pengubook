@@ -245,21 +245,10 @@ export async function POST(request: NextRequest) {
     // ===== CRITICAL: Validate domain matches =====
     const expectedDomain = request.headers.get('host') || new URL(request.url).hostname
 
-    // Normalize domains for comparison (handle localhost with/without port)
-    const normalizeDomain = (d: string) => {
-      // Remove port from domain for comparison (localhost:3001 -> localhost)
-      return d.split(':')[0]
-    }
-
-    const normalizedExpected = normalizeDomain(expectedDomain)
-    const normalizedReceived = normalizeDomain(domain)
-
-    if (normalizedReceived !== normalizedExpected) {
+    if (domain !== expectedDomain) {
       console.warn('[Auth] ⚠️ Domain mismatch attack:', {
         expected: expectedDomain,
         received: domain,
-        normalizedExpected,
-        normalizedReceived,
         walletAddress: addr.slice(0, 10) + '...'
       })
       await prisma.authAttempt.create({

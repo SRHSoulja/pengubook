@@ -34,10 +34,12 @@ export async function GET(request: NextRequest) {
 
     let user = null
     if (walletAddress) {
+      console.log('[UserProfile] Searching for wallet address:', walletAddress)
       user = await prisma.user.findUnique({
         where: { walletAddress },
         include: { profile: true }
       })
+      console.log('[UserProfile] Wallet lookup result:', user ? `Found user ${user.id}, isAdmin: ${user.isAdmin}` : 'Not found')
     } else if (nextAuthId) {
       // Look up user by NextAuth ID - could be the user ID directly or from Account table
       user = await prisma.user.findUnique({

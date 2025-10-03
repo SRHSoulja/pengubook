@@ -194,6 +194,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const isAdminByWallet = adminWalletAddress &&
           address.toLowerCase() === adminWalletAddress.toLowerCase()
 
+        console.log('[AuthProvider] User data received:', {
+          userId: data.user.id?.slice(0, 10) + '...',
+          isAdminFromDB: data.user.isAdmin,
+          isAdminByWallet,
+          adminWalletAddress,
+          userWalletAddress: address
+        })
+
         setUser({
           ...data.user,
           isAdmin: data.user.isAdmin || isAdminByWallet
@@ -367,7 +375,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // 4) Build message
       const message = JSON.stringify({
-        domain: window.location.hostname,
+        domain: window.location.host, // Use .host to include port (localhost:3001)
         statement: "Sign to verify your Abstract Global Wallet.",
         nonce,
         issuedAt: new Date().toISOString(),
