@@ -10,6 +10,12 @@ function getChainConfig() {
   const RPC_URL = process.env.ABSTRACT_RPC_URL ?? process.env.NEXT_PUBLIC_ABSTRACT_RPC_URL
 
   if (!CHAIN_ID || !RPC_URL) {
+    console.error('[Chain Config] Missing environment variables:', {
+      ABSTRACT_CHAIN_ID: process.env.ABSTRACT_CHAIN_ID,
+      NEXT_PUBLIC_ABSTRACT_CHAIN_ID: process.env.NEXT_PUBLIC_ABSTRACT_CHAIN_ID,
+      ABSTRACT_RPC_URL: process.env.ABSTRACT_RPC_URL ? 'set' : 'missing',
+      NEXT_PUBLIC_ABSTRACT_RPC_URL: process.env.NEXT_PUBLIC_ABSTRACT_RPC_URL ? 'set' : 'missing',
+    })
     throw new Error('ABSTRACT_CHAIN_ID / ABSTRACT_RPC_URL missing')
   }
 
