@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { withAuth } from '@/lib/auth-middleware'
+import { sanitizeMediaUrls } from '@/lib/utils/url-validator'
 
 export const dynamic = 'force-dynamic'
 
@@ -186,7 +187,22 @@ export const PUT = withAuth(async (
     }
 
     if (contentType !== undefined) updateData.contentType = contentType
-    if (mediaUrls !== undefined) updateData.mediaUrls = JSON.stringify(mediaUrls)
+    if (mediaUrls !== undefined) {
+      // Validate and sanitize media URLs (security: prevent XSS, SSRF)
+      const sanitizedMediaUrls = sanitizeMediaUrls(mediaUrls)
+
+      // Warn if URLs were filtered out
+      if (sanitizedMediaUrls.length !== mediaUrls.length) {
+        console.warn('[Posts] Filtered invalid media URLs on update:', {
+          original: mediaUrls.length,
+          sanitized: sanitizedMediaUrls.length,
+          userId: user.id,
+          postId: id
+        })
+      }
+
+      updateData.mediaUrls = JSON.stringify(sanitizedMediaUrls)
+    }
     if (visibility !== undefined) updateData.visibility = visibility
 
     // Create edit history record if content is being changed

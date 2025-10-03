@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
+import { sanitizeMediaUrls } from '@/lib/utils/url-validator'
 
 export const dynamic = 'force-dynamic'
 
@@ -161,7 +162,18 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
       )
     }
 
-    
+    // Validate and sanitize media URLs (security: prevent XSS, SSRF)
+    const sanitizedMediaUrls = sanitizeMediaUrls(mediaUrls)
+
+    // Warn if URLs were filtered out
+    if (sanitizedMediaUrls.length !== mediaUrls.length) {
+      console.warn('[Messages] Filtered invalid media URLs:', {
+        original: mediaUrls.length,
+        sanitized: sanitizedMediaUrls.length,
+        userId: user.id,
+        conversationId
+      })
+    }
 
     // Verify user is participant in conversation
     const conversation = await prisma.conversation.findUnique({
@@ -195,7 +207,7 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
         senderId: user.id,
         content: content.trim(),
         messageType,
-        mediaUrls: JSON.stringify(mediaUrls)
+        mediaUrls: JSON.stringify(sanitizedMediaUrls)
       },
       include: {
         sender: {

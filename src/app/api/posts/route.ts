@@ -5,6 +5,7 @@ import { awardXPForPost } from '@/lib/leveling'
 import { checkAndAwardAchievements } from '@/lib/achievement-checker'
 import { processHashtagsForPost } from '@/lib/hashtag-processor'
 import { updatePostStreak } from '@/lib/streak-tracker'
+import { sanitizeMediaUrls } from '@/lib/utils/url-validator'
 
 export const dynamic = 'force-dynamic'
 
@@ -133,7 +134,17 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
       )
     }
 
-    
+    // Validate and sanitize media URLs (security: prevent XSS, SSRF)
+    const sanitizedMediaUrls = sanitizeMediaUrls(mediaUrls)
+
+    // Warn if URLs were filtered out
+    if (sanitizedMediaUrls.length !== mediaUrls.length) {
+      console.warn('[Posts] Filtered invalid media URLs:', {
+        original: mediaUrls.length,
+        sanitized: sanitizedMediaUrls.length,
+        userId: user.id
+      })
+    }
 
     // User is already authenticated and verified by middleware
 
@@ -143,7 +154,7 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
         authorId,
         content,
         contentType,
-        mediaUrls: JSON.stringify(mediaUrls),
+        mediaUrls: JSON.stringify(sanitizedMediaUrls),
         visibility
       },
       include: {
