@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
 import { useAuth } from '@/providers/AuthProvider'
+import { parseDecimalToWei, numberToSafeDecimalString } from '@/lib/utils/decimal-conversion'
 
 interface TipButtonProps {
   userId: string
@@ -179,15 +180,17 @@ export default function TipButton({ userId }: TipButtonProps) {
       let txHash: string
 
       if (selectedToken === 'ETH') {
-        // Native ETH transaction
-        const ethAmount = BigInt(Math.floor(requiredAmount * Math.pow(10, decimals)))
+        // Native ETH transaction - use safe decimal conversion
+        const amountString = numberToSafeDecimalString(requiredAmount, decimals)
+        const ethAmount = parseDecimalToWei(amountString, decimals)
         txHash = await client.sendTransaction({
           to: recipientData.walletAddress as `0x${string}`,
           value: ethAmount
         })
       } else {
-        // ERC-20 token transaction
-        const tokenAmount = BigInt(Math.floor(requiredAmount * Math.pow(10, decimals)))
+        // ERC-20 token transaction - use safe decimal conversion
+        const amountString = numberToSafeDecimalString(requiredAmount, decimals)
+        const tokenAmount = parseDecimalToWei(amountString, decimals)
 
         txHash = await client.writeContract({
           address: tokenAddress as `0x${string}`,

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
+import { parseDecimalToWei } from '@/lib/utils/decimal-conversion'
 
 interface TipModalProps {
   isOpen: boolean
@@ -79,16 +80,18 @@ export default function TipModal({ isOpen, onClose }: TipModalProps) {
       setStatus('🔐 Please sign the transaction in your wallet...')
 
       let txHash: string
+      const decimals = selectedTokenData?.decimals || 18
 
       if (selectedToken === 'ETH') {
-        // Native ETH transaction
+        // Native ETH transaction - use safe decimal conversion
+        const ethAmount = parseDecimalToWei(amount, decimals)
         txHash = await client.sendTransaction({
           to: recipientAddress as `0x${string}`,
-          value: BigInt(Math.floor(parseFloat(amount) * Math.pow(10, selectedTokenData?.decimals || 18)))
+          value: ethAmount
         })
       } else {
-        // ERC-20 token transaction - call the token contract
-        const tokenAmount = BigInt(Math.floor(parseFloat(amount) * Math.pow(10, selectedTokenData?.decimals || 18)))
+        // ERC-20 token transaction - use safe decimal conversion
+        const tokenAmount = parseDecimalToWei(amount, decimals)
 
         txHash = await client.writeContract({
           address: selectedTokenData.contractAddress as `0x${string}`,

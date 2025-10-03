@@ -2,6 +2,7 @@ import { createAbstractClient } from '@abstract-foundation/agw-client'
 import { abstract } from 'viem/chains'
 import { http } from 'viem'
 import type { AbstractClient } from '@abstract-foundation/agw-client'
+import { parseDecimalToWei } from './utils/decimal-conversion'
 
 export class AGWProvider {
   private client: AbstractClient | null = null
@@ -50,10 +51,11 @@ export class AGWProvider {
         // ERC-20 token transfer - would need to implement contract interaction
         throw new Error('ERC-20 transfers not implemented yet')
       } else {
-        // Native token transfer via AGW
+        // Native token transfer via AGW - use safe decimal conversion
+        const weiAmount = parseDecimalToWei(amount, 18) // ETH has 18 decimals
         const hash = await (this.client as any).sendTransaction({
           to: to as `0x${string}`,
-          value: BigInt(Math.floor(parseFloat(amount) * 1e18)),
+          value: weiAmount,
         })
         return hash
       }

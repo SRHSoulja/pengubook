@@ -2,6 +2,7 @@
 
 import { ethers } from 'ethers'
 import { logger } from './logger'
+import { formatWeiToDecimal, parseDecimalToWei } from './utils/decimal-conversion'
 
 // ERC-20 Token ABI (minimal for balance, decimals, symbol)
 const ERC20_ABI = [
@@ -377,16 +378,34 @@ export const blockchainService = process.env.NODE_ENV === 'development'
   : new RealBlockchainService()
 
 // Utility functions
+/**
+ * Format wei amount to decimal string with precision
+ * @deprecated Use formatWeiToDecimal from decimal-conversion.ts instead
+ */
 export function formatTokenAmount(amount: string, decimals: number): string {
-  const num = parseFloat(amount)
-  const divisor = Math.pow(10, decimals)
-  return (num / divisor).toFixed(6)
+  try {
+    // Convert string to BigInt and use safe formatting
+    const weiAmount = BigInt(amount)
+    return formatWeiToDecimal(weiAmount, decimals, 6)
+  } catch {
+    // Fallback for invalid input
+    return '0'
+  }
 }
 
+/**
+ * Parse decimal amount to wei string
+ * @deprecated Use parseDecimalToWei from decimal-conversion.ts instead
+ */
 export function parseTokenAmount(amount: string, decimals: number): string {
-  const num = parseFloat(amount)
-  const multiplier = Math.pow(10, decimals)
-  return (num * multiplier).toString()
+  try {
+    // Use safe decimal to wei conversion
+    const weiAmount = parseDecimalToWei(amount, decimals)
+    return weiAmount.toString()
+  } catch {
+    // Fallback for invalid input
+    return '0'
+  }
 }
 
 export function getExplorerUrl(txHash: string): string {
