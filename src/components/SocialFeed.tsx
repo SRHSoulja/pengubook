@@ -393,15 +393,20 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
       const result = await response.json()
 
       if (result.success) {
-        setPostReactions(prev => ({
-          ...prev,
-          [postId]: {
-            counts: result.data.counts || {},
-            userReactions: result.data.toggled
-              ? new Set([...(prev[postId]?.userReactions || []), reactionType])
-              : new Set([...(prev[postId]?.userReactions || [])].filter(r => r !== reactionType))
+        setPostReactions(prev => {
+          const prevReactions = prev[postId]?.userReactions || []
+          const prevArray = Array.from(prevReactions)
+
+          return {
+            ...prev,
+            [postId]: {
+              counts: result.data.counts || {},
+              userReactions: result.data.toggled
+                ? new Set([...prevArray, reactionType])
+                : new Set(prevArray.filter(r => r !== reactionType))
+            }
           }
-        }))
+        })
       }
     } catch (error) {
       console.error('Error reacting to post:', error)
@@ -903,7 +908,6 @@ via @PenguBook`
                   const headers: Record<string, string> = {
                     'Content-Type': 'application/json'
                   }
-                  if (walletAddress) headers['x-wallet-address'] = walletAddress
                   if (userId) headers['x-user-id'] = userId
 
                   const response = await fetch('/api/bookmarks', {
@@ -954,7 +958,6 @@ via @PenguBook`
                     const headers: Record<string, string> = {
                       'Content-Type': 'application/json'
                     }
-                    if (walletAddress) headers['x-wallet-address'] = walletAddress
                     if (userId) headers['x-user-id'] = userId
 
                     const response = await fetch('/api/reports', {

@@ -7,24 +7,11 @@ import { useAuth } from '@/providers/AuthProvider'
 import Navbar from '@/components/Navbar'
 import PostCard from '@/components/feed/PostCard'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
+import { Post } from '@/types'
 
-interface SearchResult {
-  id: string
-  content: string
-  contentType: string
-  mediaUrls: string[]
-  visibility: string
-  isPromoted: boolean
+interface SearchResult extends Omit<Post, 'createdAt' | 'updatedAt'> {
   createdAt: string
   updatedAt: string
-  author: {
-    id: string
-    username: string
-    displayName: string
-    avatar?: string
-    level: number
-    isAdmin: boolean
-  }
   hashtags: string[]
   stats: {
     likes: number
@@ -145,7 +132,11 @@ export default function FeedSearchPage() {
                   {results.map((post) => (
                     <PostCard
                       key={post.id}
-                      post={post}
+                      post={{
+                        ...post,
+                        createdAt: new Date(post.createdAt),
+                        updatedAt: new Date(post.updatedAt)
+                      }}
                       currentUserId={user?.id}
                       onPostUpdate={() => performSearch(query)}
                     />

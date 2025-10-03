@@ -165,7 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (isLinkingFlow) return
 
-      if (!walletAddress && !user) {
+      if (!walletAddress && !user && oauthSession) {
         createOrUpdateOAuthUser(oauthSession.user)
       }
     }

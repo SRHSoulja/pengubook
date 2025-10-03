@@ -407,9 +407,8 @@ export async function POST(request: NextRequest) {
     // 4) Choose signature to verify: unwrapped inner sig if 6492, otherwise original
     const sigToVerify = unwrapped ? unwrapped.innerSig : (signature as `0x${string}`)
 
-    // Security: Gas limit and timeout for contract calls
-    const GAS_LIMIT = 200_000n // Reasonable limit for signature verification
-    const CALL_TIMEOUT_MS = 5_000 // 5 second timeout
+    // Security: Timeout for contract calls to prevent hanging
+    const CALL_TIMEOUT_MS = 5000 // 5 second timeout
 
     // Helper to race contract call with timeout
     const callWithTimeout = async (promise: Promise<any>) => {
@@ -428,8 +427,7 @@ export async function POST(request: NextRequest) {
           address: addr,
           abi: ABI_1271_BYTES32,
           functionName: 'isValidSignature',
-          args: [digest191, sigToVerify],
-          gas: GAS_LIMIT
+          args: [digest191, sigToVerify]
         })
       ) as `0x${string}`
       if (magicA === MAGIC_BYTES32) {
@@ -447,8 +445,7 @@ export async function POST(request: NextRequest) {
           address: addr,
           abi: ABI_1271_BYTES32,
           functionName: 'isValidSignature',
-          args: [digestRaw, sigToVerify],
-          gas: GAS_LIMIT
+          args: [digestRaw, sigToVerify]
         })
       ) as `0x${string}`
       if (magicB === MAGIC_BYTES32) {
@@ -466,8 +463,7 @@ export async function POST(request: NextRequest) {
           address: addr,
           abi: ABI_1271_BYTES,
           functionName: 'isValidSignature',
-          args: [dataBytes as any, sigToVerify],
-          gas: GAS_LIMIT
+          args: [dataBytes as any, sigToVerify]
         })
       ) as `0x${string}`
       if (magicC === MAGIC_BYTES) {
