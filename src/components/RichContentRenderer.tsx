@@ -242,6 +242,7 @@ export default function RichContentRenderer({
                       title={`YouTube video ${index + 1}`}
                       className="w-full h-full"
                       frameBorder="0"
+                      sandbox="allow-scripts allow-same-origin allow-presentation"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                     />

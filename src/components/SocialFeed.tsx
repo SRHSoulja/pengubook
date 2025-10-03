@@ -99,6 +99,7 @@ function renderContentWithEmbeds(content: string): JSX.Element {
                 width="100%"
                 height="315"
                 frameBorder="0"
+                sandbox="allow-scripts allow-same-origin allow-presentation"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="rounded-lg"
@@ -119,6 +120,7 @@ function renderContentWithEmbeds(content: string): JSX.Element {
                 width="100%"
                 height="270"
                 frameBorder="0"
+                sandbox="allow-scripts allow-same-origin"
                 className="rounded-lg"
                 allowFullScreen
               ></iframe>

@@ -120,6 +120,7 @@ function renderContentWithEmbeds(content: string): JSX.Element {
               <iframe
                 src={embedUrl}
                 className="w-full h-full rounded-lg"
+                sandbox="allow-scripts allow-same-origin allow-presentation"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 title={`YouTube video ${index + 1}`}
@@ -140,6 +141,7 @@ function renderContentWithEmbeds(content: string): JSX.Element {
                 width="100%"
                 height="270"
                 className="rounded-lg"
+                sandbox="allow-scripts allow-same-origin"
                 allowFullScreen
                 title={`Giphy ${index + 1}`}
               />
@@ -478,6 +480,7 @@ via @PenguBook`
                         <iframe
                           src={getYouTubeEmbedUrl(url) || ''}
                           className="w-full h-full rounded-lg"
+                          sandbox="allow-scripts allow-same-origin allow-presentation"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
                           title={`YouTube video ${index + 1}`}
