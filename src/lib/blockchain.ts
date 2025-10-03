@@ -3,23 +3,10 @@
 import { ethers } from 'ethers'
 import { logger } from './logger'
 import { formatWeiToDecimal, parseDecimalToWei } from './utils/decimal-conversion'
+import { ETHERS_ABIS } from './constants/abis'
 
-// ERC-20 Token ABI (minimal for balance, decimals, symbol)
-const ERC20_ABI = [
-  'function balanceOf(address owner) view returns (uint256)',
-  'function decimals() view returns (uint8)',
-  'function symbol() view returns (string)',
-  'function name() view returns (string)',
-  'function totalSupply() view returns (uint256)'
-]
-
-// ERC-721 NFT ABI (minimal for ownership check)
-const ERC721_ABI = [
-  'function ownerOf(uint256 tokenId) view returns (address)',
-  'function balanceOf(address owner) view returns (uint256)',
-  'function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)',
-  'function tokenURI(uint256 tokenId) view returns (string)'
-]
+// Use centralized ABIs
+const { ERC20: ERC20_ABI, ERC721: ERC721_ABI } = ETHERS_ABIS
 
 // Types for blockchain operations
 export interface TokenBalance {

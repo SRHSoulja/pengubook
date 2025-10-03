@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
 import { parseDecimalToWei } from '@/lib/utils/decimal-conversion'
+import { ERC20_TRANSFER_ABI } from '@/lib/constants/abis'
 
 interface TipModalProps {
   isOpen: boolean
@@ -95,18 +96,7 @@ export default function TipModal({ isOpen, onClose }: TipModalProps) {
 
         txHash = await client.writeContract({
           address: selectedTokenData.contractAddress as `0x${string}`,
-          abi: [
-            {
-              name: 'transfer',
-              type: 'function',
-              stateMutability: 'nonpayable',
-              inputs: [
-                { name: 'to', type: 'address' },
-                { name: 'amount', type: 'uint256' }
-              ],
-              outputs: [{ name: '', type: 'bool' }]
-            }
-          ],
+          abi: ERC20_TRANSFER_ABI,
           functionName: 'transfer',
           args: [recipientAddress as `0x${string}`, tokenAmount]
         })

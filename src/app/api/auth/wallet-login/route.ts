@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createPublicClient, http, isAddress, hashMessage, getAddress, isHex, toBytes, defineChain, keccak256, decodeAbiParameters } from 'viem'
 import { prisma } from '@/lib/prisma'
+import { EIP1271_BYTES32_ABI, EIP1271_BYTES_ABI, EIP1271_MAGIC_VALUES } from '@/lib/constants/abis'
 
 // Environment-driven chain configuration
 // NOTE: These are evaluated lazily to avoid build-time errors when env vars aren't set
@@ -32,31 +33,8 @@ function getPublicClient() {
   })
 }
 
-// EIP-1271 magic values
-const MAGIC_BYTES32 = '0x1626ba7e' as const // isValidSignature(bytes32,bytes)
-const MAGIC_BYTES   = '0x20c13b0b' as const // isValidSignature(bytes,bytes)
-
-const ABI_1271_BYTES32 = [{
-  type: 'function',
-  name: 'isValidSignature',
-  stateMutability: 'view',
-  inputs: [
-    { name: '_hash', type: 'bytes32' },
-    { name: '_signature', type: 'bytes' },
-  ],
-  outputs: [{ name: 'magicValue', type: 'bytes4' }],
-}] as const
-
-const ABI_1271_BYTES = [{
-  type: 'function',
-  name: 'isValidSignature',
-  stateMutability: 'view',
-  inputs: [
-    { name: '_data', type: 'bytes' },
-    { name: '_signature', type: 'bytes' },
-  ],
-  outputs: [{ name: 'magicValue', type: 'bytes4' }],
-}] as const
+// Use centralized EIP-1271 constants
+const { MAGIC_BYTES32, MAGIC_BYTES } = EIP1271_MAGIC_VALUES
 
 function tryUnwrap6492(sig: `0x${string}`) {
   if (!sig?.startsWith('0x64926492')) return null
@@ -438,7 +416,7 @@ export async function POST(request: NextRequest) {
       const magicA = await callWithTimeout(
         publicClient.readContract({
           address: addr,
-          abi: ABI_1271_BYTES32,
+          abi: EIP1271_BYTES32_ABI,
           functionName: 'isValidSignature',
           args: [digest191, sigToVerify]
         })
@@ -456,7 +434,7 @@ export async function POST(request: NextRequest) {
       const magicB = await callWithTimeout(
         publicClient.readContract({
           address: addr,
-          abi: ABI_1271_BYTES32,
+          abi: EIP1271_BYTES32_ABI,
           functionName: 'isValidSignature',
           args: [digestRaw, sigToVerify]
         })
@@ -474,7 +452,7 @@ export async function POST(request: NextRequest) {
       const magicC = await callWithTimeout(
         publicClient.readContract({
           address: addr,
-          abi: ABI_1271_BYTES,
+          abi: EIP1271_BYTES_ABI,
           functionName: 'isValidSignature',
           args: [dataBytes as any, sigToVerify]
         })

@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
 import { useAuth } from '@/providers/AuthProvider'
 import { parseDecimalToWei, numberToSafeDecimalString } from '@/lib/utils/decimal-conversion'
+import { ERC20_TRANSFER_ABI } from '@/lib/constants/abis'
 
 interface TipButtonProps {
   userId: string
@@ -194,18 +195,7 @@ export default function TipButton({ userId }: TipButtonProps) {
 
         txHash = await client.writeContract({
           address: tokenAddress as `0x${string}`,
-          abi: [
-            {
-              name: 'transfer',
-              type: 'function',
-              stateMutability: 'nonpayable',
-              inputs: [
-                { name: 'to', type: 'address' },
-                { name: 'amount', type: 'uint256' }
-              ],
-              outputs: [{ name: '', type: 'bool' }]
-            }
-          ],
+          abi: ERC20_TRANSFER_ABI,
           functionName: 'transfer',
           args: [recipientData.walletAddress as `0x${string}`, tokenAmount]
         })
