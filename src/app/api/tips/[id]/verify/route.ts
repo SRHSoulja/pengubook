@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { withAdminAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
+import { verifyTipTransaction } from '@/lib/utils/transaction-verification'
 
 export const dynamic = 'force-dynamic'
 
@@ -64,16 +65,74 @@ export const POST = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: N
       )
     }
 
-    // TODO: In production, verify the transaction on-chain here
-    // Example verification steps:
-    // 1. Query blockchain for transaction by hash
-    // 2. Verify transaction exists and is confirmed
-    // 3. Verify from/to addresses match user wallet addresses
-    // 4. Verify token contract and amount match
-    // 5. Check if transaction is successful
+    // Verify transaction on-chain
+    if (!tip.fromUser.walletAddress || !tip.toUser.walletAddress) {
+      return NextResponse.json(
+        { error: 'Sender or recipient missing wallet address' },
+        { status: 400 }
+      )
+    }
 
+    logger.info('Verifying tip transaction on-chain', {
+      tipId: tip.id,
+      txHash: tip.transactionHash.slice(0, 10) + '...',
+      from: tip.fromUser.walletAddress.slice(0, 10) + '...',
+      to: tip.toUser.walletAddress.slice(0, 10) + '...'
+    }, 'TipVerification')
+
+    const verificationResult = await verifyTipTransaction(
+      tip.transactionHash,
+      tip.fromUser.walletAddress,
+      tip.toUser.walletAddress
+    )
+
+    // Check verification result
+    if (!verificationResult.exists) {
+      logger.warn('Transaction not found on-chain', {
+        tipId: tip.id,
+        txHash: tip.transactionHash,
+        error: verificationResult.error
+      }, 'TipVerification')
+
+      return NextResponse.json(
+        { error: 'Transaction not found on blockchain', details: verificationResult.error },
+        { status: 404 }
+      )
+    }
+
+    if (!verificationResult.confirmed) {
+      return NextResponse.json(
+        { error: 'Transaction not yet confirmed', details: 'Please wait for blockchain confirmation' },
+        { status: 425 } // Too Early
+      )
+    }
+
+    if (!verificationResult.success) {
+      logger.warn('Transaction failed on-chain', {
+        tipId: tip.id,
+        txHash: tip.transactionHash,
+        error: verificationResult.error
+      }, 'TipVerification')
+
+      // Auto-mark as FAILED
+      const updateData: any = {
+        status: 'FAILED'
+      }
+
+      await prisma.tip.update({
+        where: { id: tipId },
+        data: updateData
+      })
+
+      return NextResponse.json(
+        { error: 'Transaction failed on blockchain', details: verificationResult.error },
+        { status: 400 }
+      )
+    }
+
+    // Transaction verified successfully!
     const updateData: any = {
-      status
+      status: status === 'COMPLETED' ? 'COMPLETED' : status
     }
 
     // Update tip status
