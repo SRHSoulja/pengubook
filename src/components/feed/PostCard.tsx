@@ -350,7 +350,8 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
 
 via @PenguBook`
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(postUrl)}`
-    window.open(twitterUrl, '_blank', 'width=550,height=420')
+    const newWindow = window.open(twitterUrl, '_blank', 'width=550,height=420,noopener,noreferrer')
+    if (newWindow) newWindow.opener = null // Extra security for older browsers
     setShowShareMenu(false)
   }
 

@@ -192,7 +192,10 @@ export default function RichContentRenderer({
                 alt={`Media ${index + 1}`}
                 className="w-full h-auto max-h-96 object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
                 onError={() => handleImageError(imageUrl)}
-                onClick={() => window.open(imageUrl, '_blank')}
+                onClick={() => {
+                  const newWindow = window.open(imageUrl, '_blank', 'noopener,noreferrer')
+                  if (newWindow) newWindow.opener = null
+                }}
               />
 
               {images.length > 4 && index === 3 && (
