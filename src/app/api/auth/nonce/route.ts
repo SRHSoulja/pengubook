@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/prisma'
 
+// Force dynamic rendering - this endpoint needs request headers for IP-based rate limiting
+export const dynamic = 'force-dynamic'
+
 // Nonce Configuration
 const NONCE_EXPIRY_MS = 5 * 60 * 1000 // 5 minutes
 const MAX_NONCES_PER_IP = 10 // Rate limit nonce generation
