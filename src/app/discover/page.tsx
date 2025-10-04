@@ -236,7 +236,7 @@ export default function DiscoverPage() {
                               {suggestion.reason}
                             </p>
 
-                            <div className="flex items-center gap-4 text-xs text-gray-400 mb-4">
+                            <div className="flex items-center gap-4 text-xs text-gray-300 mb-4">
                               <span>👥 {suggestion.user.profile.followersCount} followers</span>
                               <span>📝 {suggestion.user.profile.postsCount} posts</span>
                               {suggestion.mutualConnections > 0 && (
@@ -330,7 +330,7 @@ export default function DiscoverPage() {
                               {recommendation.community.description}
                             </p>
 
-                            <div className="flex items-center gap-4 text-xs text-gray-400 mb-3">
+                            <div className="flex items-center gap-4 text-xs text-gray-300 mb-3">
                               <span>👥 {recommendation.community.membersCount} members</span>
                               <span>📝 {recommendation.community.postsCount} posts</span>
                             </div>

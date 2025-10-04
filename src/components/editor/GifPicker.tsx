@@ -83,7 +83,8 @@ export default function GifPicker({ isOpen, onClose, onSelectGif }: GifPickerPro
             <h3 className="text-lg font-semibold text-white">Choose a GIF</h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="text-gray-300 hover:text-white transition-colors"
+              aria-label="Close GIF picker"
             >
               ✕
             </button>
@@ -98,7 +99,7 @@ export default function GifPicker({ isOpen, onClose, onSelectGif }: GifPickerPro
               placeholder="Search for GIFs..."
               className="w-full px-4 py-2 bg-black/50 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
-            <div className="absolute right-3 top-2.5 text-gray-400">
+            <div className="absolute right-3 top-2.5 text-gray-300">
               🔍
             </div>
           </div>
@@ -121,13 +122,13 @@ export default function GifPicker({ isOpen, onClose, onSelectGif }: GifPickerPro
           {loading && (
             <div className="text-center py-8">
               <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-2" />
-              <p className="text-gray-400">Searching for GIFs...</p>
+              <p className="text-gray-300">Searching for GIFs...</p>
             </div>
           )}
 
           {!loading && !error && gifs.length === 0 && searchQuery && (
             <div className="text-center py-8">
-              <p className="text-gray-400">No GIFs found for "{searchQuery}"</p>
+              <p className="text-gray-300">No GIFs found for "{searchQuery}"</p>
             </div>
           )}
 
@@ -168,7 +169,7 @@ export default function GifPicker({ isOpen, onClose, onSelectGif }: GifPickerPro
 
         {/* Footer */}
         <div className="p-4 border-t border-white/10 text-center">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-300">
             Powered by <span className="text-purple-400">GIPHY</span>
           </p>
         </div>

@@ -702,7 +702,7 @@ via @PeBloq`
               {/* Edit History - Available for all posts */}
               <button
                 onClick={() => viewEditHistory(post.id)}
-                className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
                 title="View edit history"
               >
                 📝
@@ -915,7 +915,7 @@ via @PeBloq`
                         <div className="font-medium">
                           {post.isShared ? 'Already Shared' : 'Share Internally'}
                         </div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-gray-300">
                           {post.isShared ? 'You shared this post' : 'Share within PeBloq'}
                         </div>
                       </div>
@@ -930,7 +930,7 @@ via @PeBloq`
                         <span className="text-lg">🐦</span>
                         <div className="text-left">
                           <div className="font-medium">Share to X</div>
-                          <div className="text-xs text-gray-400">Share to @{currentUser.twitterHandle}</div>
+                          <div className="text-xs text-gray-300">Share to @{currentUser.twitterHandle}</div>
                         </div>
                       </button>
                     )}
@@ -943,7 +943,7 @@ via @PeBloq`
                       <span className="text-lg">🔗</span>
                       <div className="text-left">
                         <div className="font-medium">Copy Link</div>
-                        <div className="text-xs text-gray-400">Copy post URL to clipboard</div>
+                        <div className="text-xs text-gray-300">Copy post URL to clipboard</div>
                       </div>
                     </button>
 
@@ -964,7 +964,7 @@ via @PeBloq`
                         <span className="text-lg">📱</span>
                         <div className="text-left">
                           <div className="font-medium">More Options</div>
-                          <div className="text-xs text-gray-400">Use system share menu</div>
+                          <div className="text-xs text-gray-300">Use system share menu</div>
                         </div>
                       </button>
                     )}
@@ -1064,7 +1064,7 @@ via @PeBloq`
 
             <div className="flex-1"></div>
 
-            <span className="text-xs text-gray-400 capitalize">
+            <span className="text-xs text-gray-300 capitalize">
               {post.visibility.toLowerCase().replace('_', ' ')}
             </span>
           </div>
@@ -1099,7 +1099,7 @@ via @PeBloq`
                 <h3 className="text-xl font-bold text-white">📝 Edit History</h3>
                 <button
                   onClick={closeEditHistory}
-                  className="text-gray-400 hover:text-white text-2xl"
+                  className="text-gray-300 hover:text-white text-2xl"
                 >
                   ×
                 </button>
@@ -1118,13 +1118,13 @@ via @PeBloq`
                     <div key={edit.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-400">Edit #{editHistory.length - index}</span>
+                          <span className="text-sm text-gray-300">Edit #{editHistory.length - index}</span>
                           <span className="text-xs text-gray-500">•</span>
-                          <span className="text-sm text-gray-400">
+                          <span className="text-sm text-gray-300">
                             {new Date(edit.editedAt).toLocaleString()}
                           </span>
                         </div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-gray-300">
                           by {edit.editor.displayName}
                         </div>
                       </div>
@@ -1147,7 +1147,7 @@ via @PeBloq`
                   ))}
                 </div>
               ) : (
-                <div className="text-center text-gray-400 py-8">
+                <div className="text-center text-gray-300 py-8">
                   <div className="text-4xl mb-4">📝</div>
                   <p>No edit history</p>
                   <p className="text-sm">This post hasn't been edited yet</p>

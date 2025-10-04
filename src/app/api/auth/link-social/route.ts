@@ -1,45 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { withAuth } from '@/lib/auth-middleware'
 
-export async function POST(request: NextRequest) {
+// SECURITY: CSRF Protection via withAuth + session-based authentication
+// - User must be authenticated (HTTP-only cookie with SameSite=lax)
+// - Wallet address from authenticated session, NOT request body
+// - Prevents attackers from linking their OAuth to victim's wallet
+export const POST = withAuth(async (request: NextRequest, user: any) => {
   console.log('[LinkSocial] Request received:', {
     method: 'POST',
-    headers: {
-      'content-type': request.headers.get('content-type'),
-      'user-agent': request.headers.get('user-agent')?.slice(0, 50) + '...',
-    },
+    authenticatedUserId: user.id.slice(0, 10) + '...',
+    authenticatedWallet: user.walletAddress?.slice(0, 10) + '...',
     timestamp: new Date().toISOString()
   })
 
   try {
     const body = await request.json()
-    const { walletAddress, provider, providerAccountId, userName, actualUsername, avatarUrl } = body
+    const { provider, providerAccountId, userName, actualUsername, avatarUrl } = body
+
+    // SECURITY: Use wallet address from authenticated session, NOT from request body
+    // This prevents CSRF attacks where attacker links their OAuth to victim's wallet
+    const walletAddress = user.walletAddress?.toLowerCase()
 
     console.log('[LinkSocial] Request body:', {
-      hasWalletAddress: !!walletAddress,
-      walletAddressPrefix: walletAddress?.slice(0, 10) + '...',
+      walletAddressFromSession: walletAddress?.slice(0, 10) + '...',
       provider,
       providerAccountIdPrefix: providerAccountId?.slice(0, 10) + '...',
       userName,
       actualUsername,
-      allFields: Object.keys(body).join(', '),
       timestamp: new Date().toISOString()
     })
 
-    if (!walletAddress || !provider || !providerAccountId) {
+    if (!walletAddress) {
+      console.error('[LinkSocial] No wallet address in session:', {
+        userId: user.id.slice(0, 10) + '...',
+        timestamp: new Date().toISOString()
+      })
+      return NextResponse.json(
+        { error: 'Wallet address not found in session. Please reconnect your wallet.' },
+        { status: 400 }
+      )
+    }
+
+    if (!provider || !providerAccountId) {
       console.error('[LinkSocial] Missing required fields:', {
-        hasWalletAddress: !!walletAddress,
         hasProvider: !!provider,
         hasProviderAccountId: !!providerAccountId,
         timestamp: new Date().toISOString()
       })
       return NextResponse.json(
-        { error: 'Wallet address, provider, and provider account ID are required' },
+        { error: 'Provider and provider account ID are required' },
         { status: 400 }
       )
     }
 
-    
+
 
     try {
       // Find the wallet user
@@ -238,4 +253,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

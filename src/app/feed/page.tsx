@@ -460,7 +460,7 @@ export default function FeedPage() {
                         </button>
                       </div>
 
-                      <p className="text-gray-400 text-xs text-center mt-4">
+                      <p className="text-gray-300 text-xs text-center mt-4">
                         NSFW content will be blurred and require a click to view.
                       </p>
                     </div>

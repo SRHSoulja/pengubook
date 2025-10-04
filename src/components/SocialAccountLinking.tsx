@@ -147,14 +147,14 @@ export default function SocialAccountLinking() {
                   timestamp: new Date().toISOString()
                 })
 
-                // Try linking with stored wallet address
+                // SECURITY: No need to send walletAddress - withAuth gets it from session
                 const response = await fetch('/api/auth/link-social', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
                   },
+                  credentials: 'include', // Send HTTP-only cookies for authentication
                   body: JSON.stringify({
-                    walletAddress: walletAddress,
                     provider: (session.user as any).provider,
                     providerAccountId: (session.user as any).providerAccountId,
                     userName: session.user?.name,
@@ -212,13 +212,14 @@ export default function SocialAccountLinking() {
         })
 
         try {
+          // SECURITY: No need to send walletAddress - withAuth gets it from session
           const response = await fetch('/api/auth/link-social', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
+            credentials: 'include', // Send HTTP-only cookies for authentication
             body: JSON.stringify({
-              walletAddress: user.walletAddress,
               provider: (session.user as any).provider,
               providerAccountId: (session.user as any).providerAccountId,
               userName: session.user?.name,
@@ -325,13 +326,14 @@ export default function SocialAccountLinking() {
 
     setLoadingProvider(`unlink-${provider}`)
     try {
+      // SECURITY: No need to send walletAddress - withAuth gets it from session
       const response = await fetch('/api/auth/unlink-social', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Send HTTP-only cookies for authentication
         body: JSON.stringify({
-          walletAddress: user.walletAddress,
           provider: provider
         })
       })
@@ -368,7 +370,7 @@ export default function SocialAccountLinking() {
   if (!user) {
     return (
       <div className="glass-card p-6">
-        <p className="text-gray-400 text-center">
+        <p className="text-gray-300 text-center">
           Connect your wallet first to link social accounts
         </p>
       </div>
@@ -406,7 +408,7 @@ export default function SocialAccountLinking() {
                   Connected: {user.discordName || 'Discord Account'}
                 </p>
               ) : (
-                <p className="text-sm text-gray-400">Not connected</p>
+                <p className="text-sm text-gray-300">Not connected</p>
               )}
             </div>
           </div>
@@ -445,7 +447,7 @@ export default function SocialAccountLinking() {
                   Connected: {user.twitterHandle || 'X Account'}
                 </p>
               ) : (
-                <p className="text-sm text-gray-400">Not connected</p>
+                <p className="text-sm text-gray-300">Not connected</p>
               )}
             </div>
           </div>
@@ -470,7 +472,7 @@ export default function SocialAccountLinking() {
         </div>
       </div>
 
-      <div className="text-center text-xs text-gray-400">
+      <div className="text-center text-xs text-gray-300">
         <p>
           Linking social accounts helps other users identify and verify you.
           Your wallet remains your primary authentication method.

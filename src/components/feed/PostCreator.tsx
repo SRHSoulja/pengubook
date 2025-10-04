@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { PostType, Visibility, PostCreateRequest } from '@/types'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
 import GiphyPicker from '@/components/GiphyPicker'
+import Button, { IconButton } from '@/components/ui/Button'
 import dynamic from 'next/dynamic'
 import { Theme } from 'emoji-picker-react'
 
@@ -12,6 +13,17 @@ const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false })
 interface PostCreatorProps {
   onPostCreated?: (post: any) => void
   className?: string
+}
+
+interface UploadedFile {
+  url: string
+  type: 'image' | 'video'
+  publicId: string
+  width?: number
+  height?: number
+  thumbnailUrl?: string
+  isNSFW?: boolean
+  contentWarnings?: string[]
 }
 
 export default function PostCreator({ onPostCreated, className = '' }: PostCreatorProps) {
@@ -24,7 +36,73 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
   const [mediaInput, setMediaInput] = useState('')
   const [showGiphyPicker, setShowGiphyPicker] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<string>('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setIsUploading(true)
+    setUploadProgress('Uploading...')
+
+    try {
+      for (const file of Array.from(files)) {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('type', 'post-media')
+
+        setUploadProgress(`Uploading ${file.name}...`)
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        })
+
+        const result = await response.json()
+
+        if (result.success) {
+          const uploadedFile: UploadedFile = {
+            url: result.url,
+            type: result.type,
+            publicId: result.publicId,
+            width: result.width,
+            height: result.height,
+            thumbnailUrl: result.thumbnailUrl,
+            isNSFW: result.moderation?.isNSFW,
+            contentWarnings: result.moderation?.contentWarnings
+          }
+
+          setUploadedFiles(prev => [...prev, uploadedFile])
+          setMediaUrls(prev => [...prev, result.url])
+
+          // Auto-set content type based on upload
+          if (result.type === 'video' && contentType === 'TEXT') {
+            setContentType('VIDEO')
+          } else if (result.type === 'image' && contentType === 'TEXT') {
+            setContentType('IMAGE')
+          }
+
+          setUploadProgress('')
+        } else {
+          alert(`Upload failed: ${result.error}`)
+        }
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('Failed to upload file')
+    } finally {
+      setIsUploading(false)
+      setUploadProgress('')
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,11 +112,17 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
     setIsSubmitting(true)
 
     try {
+      // Combine uploaded files and manual URLs
+      const allMediaUrls = [
+        ...uploadedFiles.map(f => f.url),
+        ...mediaUrls.filter(url => url.trim() !== '')
+      ]
+
       const postData: PostCreateRequest = {
         content: content.trim(),
         contentType,
         visibility,
-        mediaUrls: mediaUrls.filter(url => url.trim() !== '')
+        mediaUrls: allMediaUrls
       }
 
       const response = await fetch('/api/posts', {
@@ -57,6 +141,7 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         setContent('')
         setMediaUrls([])
         setMediaInput('')
+        setUploadedFiles([])
         setContentType('TEXT')
         setVisibility('PUBLIC')
 
@@ -66,9 +151,11 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         }
       } else {
         console.error('Failed to create post:', result.error)
+        alert(result.error || 'Failed to create post')
       }
     } catch (error) {
       console.error('Error creating post:', error)
+      alert('Failed to create post')
     } finally {
       setIsSubmitting(false)
     }
@@ -87,7 +174,17 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
   const removeMediaUrl = (index: number) => {
     const newUrls = mediaUrls.filter((_, i) => i !== index)
     setMediaUrls(newUrls)
-    if (newUrls.length === 0 && contentType !== 'TEXT') {
+    if (newUrls.length === 0 && uploadedFiles.length === 0 && contentType !== 'TEXT') {
+      setContentType('TEXT')
+    }
+  }
+
+  const removeUploadedFile = (index: number) => {
+    const fileToRemove = uploadedFiles[index]
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index))
+    setMediaUrls(prev => prev.filter(url => url !== fileToRemove.url))
+
+    if (uploadedFiles.length === 1 && mediaUrls.length === 0 && contentType !== 'TEXT') {
       setContentType('TEXT')
     }
   }
@@ -126,7 +223,7 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         {/* Main content area */}
         <div className="flex space-x-4">
           <div className="flex-shrink-0">
-            <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-r from-pengu-green to-pengu-600 rounded-full flex items-center justify-center shadow-lg shadow-pengu-green/20">
               <span className="text-2xl">🐧</span>
             </div>
           </div>
@@ -141,62 +238,148 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
               maxLength={2000}
             />
 
-            {/* Media URLs */}
-            {mediaUrls.length > 0 && (
+            {/* Uploaded Files Preview */}
+            {uploadedFiles.length > 0 && (
               <div className="space-y-2">
-                <p className="text-sm text-gray-300">Media attachments:</p>
-                {mediaUrls.map((url, index) => (
-                  <div key={index} className="flex items-center justify-between bg-white/5 rounded-lg p-2">
-                    <span className="text-sm text-gray-300 truncate flex-1">{url}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeMediaUrl(index)}
-                      className="text-red-400 hover:text-red-300 ml-2"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
+                <p className="text-sm text-gray-300 font-medium">Uploaded files:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {uploadedFiles.map((file, index) => (
+                    <div key={index} className="relative group">
+                      {file.type === 'image' ? (
+                        <img
+                          src={file.url}
+                          alt="Upload preview"
+                          className="w-full h-32 object-cover rounded-lg border border-white/20"
+                        />
+                      ) : (
+                        <video
+                          src={file.url}
+                          className="w-full h-32 object-cover rounded-lg border border-white/20"
+                          muted
+                          loop
+                          autoPlay
+                        />
+                      )}
+                      {file.isNSFW && (
+                        <div className="absolute top-1 left-1 bg-red-500 text-white text-xs px-2 py-1 rounded">
+                          NSFW
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeUploadedFile(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                        aria-label="Remove uploaded file"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
-            {/* Add media input */}
-            <div className="flex space-x-2">
+            {/* Manual URL attachments */}
+            {mediaUrls.filter(url => !uploadedFiles.some(f => f.url === url)).length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm text-gray-300 font-medium">URL attachments:</p>
+                {mediaUrls
+                  .map((url, originalIndex) => ({ url, originalIndex }))
+                  .filter(({ url }) => !uploadedFiles.some(f => f.url === url))
+                  .map(({ url, originalIndex }) => (
+                    <div key={originalIndex} className="flex items-center justify-between bg-white/5 rounded-lg p-2">
+                      <span className="text-sm text-gray-300 truncate flex-1">{url}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeMediaUrl(originalIndex)}
+                        className="text-red-400 hover:text-red-300 ml-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                        aria-label="Remove URL"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            )}
+
+            {/* Upload Progress */}
+            {isUploading && (
+              <div className="bg-pengu-green/10 border border-pengu-green/30 rounded-lg p-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-pengu-green border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-sm text-pengu-green">{uploadProgress}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Media Controls */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* File Upload Button */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+                aria-label="Upload files"
+              />
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                iconLeft={<span>📎</span>}
+              >
+                Upload File
+              </Button>
+
+              {/* URL Input */}
               <input
                 type="url"
                 value={mediaInput}
                 onChange={(e) => setMediaInput(e.target.value)}
-                placeholder="Add image/video URL..."
-                className="flex-1 bg-white/5 text-white placeholder-gray-300 rounded-lg px-3 py-2 border border-white/10 outline-none focus:border-cyan-400"
+                placeholder="Or paste image/video URL..."
+                className="flex-1 min-w-[200px] bg-white/5 text-white placeholder-gray-300 rounded-lg px-3 py-2 min-h-[44px] border border-white/10 outline-none focus:border-pengu-green"
               />
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={addMediaUrl}
-                className="bg-cyan-500 text-white px-4 py-2 rounded-lg hover:bg-cyan-600 transition-colors"
               >
-                Add
-              </button>
+                Add URL
+              </Button>
+
+              {/* Emoji Button */}
               <div className="relative">
-                <button
+                <Button
                   type="button"
+                  variant="warning"
+                  size="sm"
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors flex items-center gap-2"
+                  iconLeft={<span>😀</span>}
                 >
-                  😀 Emoji
-                </button>
+                  Emoji
+                </Button>
                 {showEmojiPicker && (
                   <div className="absolute bottom-full mb-2 right-0 z-50">
                     <EmojiPicker onEmojiClick={handleEmojiSelect} theme={Theme.DARK} />
                   </div>
                 )}
               </div>
-              <button
+
+              {/* GIF Button */}
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setShowGiphyPicker(true)}
-                className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2"
+                iconLeft={<span>🎭</span>}
               >
-                🎭 GIF
-              </button>
+                GIF
+              </Button>
             </div>
           </div>
         </div>
@@ -229,30 +412,21 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
             </select>
 
             {/* Character count */}
-            <span className={`text-sm ${content.length > 1800 ? 'text-red-400' : 'text-gray-400'}`}>
+            <span className={`text-sm ${content.length > 1800 ? 'text-red-400' : 'text-gray-300'}`}>
               {content.length}/2000
             </span>
           </div>
 
           {/* Post button */}
-          <button
+          <Button
             type="submit"
+            variant="primary"
+            size="lg"
             disabled={!content.trim() || isSubmitting || content.length > 2000}
-            className={`px-6 py-2 rounded-xl font-semibold transition-all transform hover:scale-105 ${
-              !content.trim() || isSubmitting || content.length > 2000
-                ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600 shadow-lg'
-            }`}
+            loading={isSubmitting}
           >
-            {isSubmitting ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Posting...</span>
-              </div>
-            ) : (
-              'Post to Colony'
-            )}
-          </button>
+            {!isSubmitting && 'Post to Colony'}
+          </Button>
         </div>
       </form>
 

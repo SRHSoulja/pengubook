@@ -110,7 +110,7 @@ export default function Navbar() {
               onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinhome1.png', alt: 'Home' }))}
             >
               <img src="https://gmgnrepeat.com/icons/penguinhome1.png" alt="Home" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Home
               </span>
             </a>
@@ -120,7 +120,7 @@ export default function Navbar() {
               onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinfeed1.png', alt: 'Feed' }))}
             >
               <img src="https://gmgnrepeat.com/icons/penguinfeed1.png" alt="Feed" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Feed
               </span>
             </a>
@@ -130,7 +130,7 @@ export default function Navbar() {
               onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguincommunity1.png', alt: 'Communities' }))}
             >
               <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Communities
               </span>
             </a>
@@ -140,7 +140,7 @@ export default function Navbar() {
               onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguindiscover1.png', alt: 'Discover' }))}
             >
               <img src="https://gmgnrepeat.com/icons/penguindiscover1.png" alt="Discover" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Discover
               </span>
             </a>
@@ -150,18 +150,18 @@ export default function Navbar() {
               onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinfriends1.png', alt: 'Friends' }))}
             >
               <img src="https://gmgnrepeat.com/icons/penguinfriends1.png" alt="Friends" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Friends
               </span>
             </a>
             <a href="/messages" className="nav-link-compact group relative">
               <span className="text-xl">💬</span>
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-neon-pink to-neon-purple text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 animate-pulse shadow-neon-sm">
+                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-pengu-orange to-pengu-green text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 animate-pulse shadow-neon-sm">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Messages
               </span>
             </a>
@@ -173,7 +173,7 @@ export default function Navbar() {
                 className="nav-link-compact group relative"
               >
                 <span className="text-xl">⋯</span>
-                <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+                <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
                   More
                 </span>
               </button>
@@ -220,11 +220,11 @@ export default function Navbar() {
                     {user.displayName || 'Penguin'}
                   </span>
                   {client?.account?.address ? (
-                    <span className="text-neon-cyan text-xs font-mono hidden sm:block">
+                    <span className="text-pengu-green text-xs font-mono hidden sm:block">
                       {client.account.address.slice(0, 4)}...{client.account.address.slice(-3)}
                     </span>
                   ) : user.walletAddress ? (
-                    <span className="text-neon-cyan text-xs font-mono hidden sm:block">
+                    <span className="text-pengu-green text-xs font-mono hidden sm:block">
                       {user.walletAddress.slice(0, 4)}...{user.walletAddress.slice(-3)}
                     </span>
                   ) : null}
@@ -236,7 +236,7 @@ export default function Navbar() {
                 <div className="absolute top-full right-0 mt-2 w-56 glass-card border border-white/20 rounded-xl shadow-2xl overflow-hidden z-50">
                   <div className="px-4 py-3 border-b border-white/10">
                     <p className="text-white font-semibold">{user.displayName}</p>
-                    <p className="text-gray-400 text-sm">Level {user.level}</p>
+                    <p className="text-gray-300 text-sm">Level {user.level}</p>
                   </div>
 
                   <a href="/profile" className="dropdown-item">

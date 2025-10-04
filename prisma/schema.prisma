@@ -867,3 +867,15 @@ model ModerationAuditLog {
   @@index([createdAt])
   @@index([action])
 }
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  key       String   @unique  // IP address or user ID
+  count     Int      @default(1)
+  resetTime BigInt   // Timestamp when count resets
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key, resetTime])
+  @@index([resetTime]) // For cleanup queries
+}

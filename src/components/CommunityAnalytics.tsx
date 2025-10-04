@@ -101,7 +101,7 @@ export default function CommunityAnalytics({ communityId, isOwnerOrAdmin }: Comm
   if (!isOwnerOrAdmin) {
     return (
       <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
-        <div className="text-center text-gray-400">
+        <div className="text-center text-gray-300">
           <div className="text-4xl mb-4">🔒</div>
           <p>Analytics are only available to community owners and admins</p>
         </div>
@@ -158,7 +158,7 @@ export default function CommunityAnalytics({ communityId, isOwnerOrAdmin }: Comm
         <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-6">
           <div className="text-purple-400 text-sm font-medium">Active Members</div>
           <div className="text-2xl font-bold text-white mt-1">{data.activeMembers.toLocaleString()}</div>
-          <div className="text-gray-400 text-sm mt-1">
+          <div className="text-gray-300 text-sm mt-1">
             {Math.round((data.activeMembers / data.totalMembers) * 100)}% of total
           </div>
         </div>
@@ -166,7 +166,7 @@ export default function CommunityAnalytics({ communityId, isOwnerOrAdmin }: Comm
         <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-6">
           <div className="text-yellow-400 text-sm font-medium">Total Posts</div>
           <div className="text-2xl font-bold text-white mt-1">{data.totalPosts.toLocaleString()}</div>
-          <div className="text-gray-400 text-sm mt-1">
+          <div className="text-gray-300 text-sm mt-1">
             {data.totalComments.toLocaleString()} comments
           </div>
         </div>
@@ -174,7 +174,7 @@ export default function CommunityAnalytics({ communityId, isOwnerOrAdmin }: Comm
         <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-6">
           <div className="text-pink-400 text-sm font-medium">Engagement Rate</div>
           <div className="text-2xl font-bold text-white mt-1">{data.engagementRate}%</div>
-          <div className="text-gray-400 text-sm mt-1">
+          <div className="text-gray-300 text-sm mt-1">
             {data.totalLikes.toLocaleString()} total likes
           </div>
         </div>
@@ -192,7 +192,7 @@ export default function CommunityAnalytics({ communityId, isOwnerOrAdmin }: Comm
           <div className="space-y-3">
             {data.membershipGrowth.map((point, index) => (
               <div key={index} className="flex items-center justify-between">
-                <span className="text-gray-400 text-sm">
+                <span className="text-gray-300 text-sm">
                   {new Date(point.date).toLocaleDateString()}
                 </span>
                 <div className="flex items-center gap-3">
@@ -237,7 +237,7 @@ export default function CommunityAnalytics({ communityId, isOwnerOrAdmin }: Comm
 
                 <div className="flex-1">
                   <div className="text-white font-medium">{contributor.displayName}</div>
-                  <div className="text-gray-400 text-sm">
+                  <div className="text-gray-300 text-sm">
                     {contributor.postsCount} posts • {contributor.commentsCount} comments
                   </div>
                 </div>

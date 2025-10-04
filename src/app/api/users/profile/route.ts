@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sanitizeText, sanitizeHtml, sanitizeUrl } from '@/lib/sanitize'
+import { withAuth } from '@/lib/auth-middleware'
+import { INPUT_LIMITS, validateFields } from '@/lib/validation-constraints'
 
 export const dynamic = 'force-dynamic'
 
@@ -129,7 +131,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest) {
+// SECURITY: Profile updates require authentication to prevent IDOR attacks
+export const PUT = withAuth(async (request: NextRequest, user: any) => {
   try {
     // Skip database operations during build
     if (!process.env.DATABASE_URL) {
@@ -140,12 +143,16 @@ export async function PUT(request: NextRequest) {
     }
 
     const { PrismaClient } = await import('@prisma/client')
-    
+
 
     const body = await request.json()
-    const { walletAddress, displayName, username, bio, interests, avatarSource, bannerImage, showNSFW, allowedNSFWCategories } = body
+    const { displayName, username, bio, interests, avatarSource, bannerImage, showNSFW, allowedNSFWCategories } = body
+
+    // SECURITY: Use wallet address from authenticated session, NOT from request body
+    const walletAddress = user.walletAddress
 
     console.log('[UserProfile] Update request:', {
+      authenticatedUserId: user.id.slice(0, 10) + '...',
       walletAddress: walletAddress?.slice(0, 10) + '...',
       displayName,
       username,
@@ -159,12 +166,12 @@ export async function PUT(request: NextRequest) {
 
     if (!walletAddress) {
       return NextResponse.json(
-        { error: 'Wallet address is required' },
+        { error: 'Wallet address not found in session' },
         { status: 400 }
       )
     }
 
-    // Find the user first
+    // Find the user first (should match authenticated user)
     const existingUser = await prisma.user.findUnique({
       where: { walletAddress }
     })
@@ -173,6 +180,35 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
+      )
+    }
+
+    // Additional check: verify the authenticated user matches the user being updated
+    if (existingUser.id !== user.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Cannot update another user\'s profile' },
+        { status: 403 }
+      )
+    }
+
+    // Validate input lengths before processing
+    const validation = validateFields(
+      {
+        username: username,
+        displayName: displayName,
+        bio: bio
+      },
+      {
+        username: INPUT_LIMITS.USERNAME,
+        displayName: INPUT_LIMITS.DISPLAY_NAME,
+        bio: INPUT_LIMITS.BIO
+      }
+    )
+
+    if (!validation.isValid) {
+      return NextResponse.json(
+        { error: validation.errors.join(', ') },
+        { status: 400 }
       )
     }
 
@@ -354,4 +390,4 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

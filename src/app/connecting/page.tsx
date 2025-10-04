@@ -129,7 +129,7 @@ export default function ConnectingPage() {
         <p className="text-gray-600 text-lg mb-4">This usually takes just a moment</p>
 
         {/* Subtle penguin branding */}
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-gray-300">
           Welcome to the colony! 🐧
         </p>
       </div>

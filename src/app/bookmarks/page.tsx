@@ -161,13 +161,13 @@ export default function BookmarksPage() {
           {loading && bookmarks.length === 0 ? (
             <div className="text-center py-8">
               <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-400">Loading your bookmarks...</p>
+              <p className="text-gray-300">Loading your bookmarks...</p>
             </div>
           ) : bookmarks.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">📚</div>
               <h3 className="text-xl font-bold text-white mb-2">No bookmarks yet</h3>
-              <p className="text-gray-400 mb-6">
+              <p className="text-gray-300 mb-6">
                 Save posts by clicking the bookmark button to build your reading list
               </p>
               <Link
@@ -186,7 +186,7 @@ export default function BookmarksPage() {
                 >
                   {/* Bookmark header */}
                   <div className="flex items-center justify-between mb-4">
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-gray-300">
                       Saved {formatDate(bookmark.createdAt)}
                     </div>
                     <div className="text-yellow-400">
@@ -218,7 +218,7 @@ export default function BookmarksPage() {
                           <span className="text-yellow-400">👑</span>
                         )}
                       </div>
-                      <div className="text-sm text-gray-400">
+                      <div className="text-sm text-gray-300">
                         @{bookmark.post.author.username} • Level {bookmark.post.author.level}
                       </div>
                     </div>
@@ -244,7 +244,7 @@ export default function BookmarksPage() {
                   </div>
 
                   {/* Post stats */}
-                  <div className="flex items-center justify-between text-sm text-gray-400">
+                  <div className="flex items-center justify-between text-sm text-gray-300">
                     <div className="flex items-center space-x-4">
                       <span>{bookmark.post.stats.likes} likes</span>
                       <span>{bookmark.post.stats.comments} comments</span>

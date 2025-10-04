@@ -137,7 +137,7 @@ export default function StreakDisplay({ userId, compact = false }: StreakDisplay
 
               <div className="space-y-2">
                 <div>
-                  <div className="text-gray-400 text-sm">Current</div>
+                  <div className="text-gray-300 text-sm">Current</div>
                   <div className={`text-3xl font-bold bg-gradient-to-r ${streak.color} bg-clip-text text-transparent`}>
                     {streak.current} {streak.current === 1 ? 'day' : 'days'}
                   </div>
@@ -145,7 +145,7 @@ export default function StreakDisplay({ userId, compact = false }: StreakDisplay
 
                 {streak.best > streak.current && (
                   <div>
-                    <div className="text-gray-400 text-sm">Personal Best</div>
+                    <div className="text-gray-300 text-sm">Personal Best</div>
                     <div className="text-yellow-400 text-xl font-semibold">
                       {streak.best} {streak.best === 1 ? 'day' : 'days'}
                     </div>

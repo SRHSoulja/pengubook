@@ -47,7 +47,7 @@ function renderTextWithHashtags(text: string): JSX.Element[] {
     parts.push(
       <span
         key={`hashtag-${match.index}`}
-        className="text-cyan-400 hover:text-cyan-300 cursor-pointer font-semibold hover:underline transition-colors"
+        className="text-pengu-green hover:text-pengu-400 cursor-pointer font-semibold hover:underline transition-colors"
         onClick={(e) => {
           e.stopPropagation()
           window.location.href = `/feed/search?q=${encodeURIComponent(hashtag)}`
@@ -426,19 +426,19 @@ via @PeBloq`
             <h3 className="font-display font-semibold text-white group-hover:text-gradient transition-all">
               {post.author.displayName}
             </h3>
-            <span className="text-sm text-gray-400 font-mono">@{post.author.username}</span>
+            <span className="text-sm text-gray-300 font-mono">@{post.author.username}</span>
             {post.author.profile?.profileVerified && (
               <span className="text-neon-cyan animate-pulse">✓</span>
             )}
           </div>
-          <div className="flex items-center space-x-2 text-sm text-gray-400">
+          <div className="flex items-center space-x-2 text-sm text-gray-300">
             <span className="font-mono">{formatDate(post.createdAt)}</span>
             {post.updatedAt && new Date(post.updatedAt).getTime() !== new Date(post.createdAt).getTime() && (
               <>
                 <span className="text-neon-cyan">•</span>
                 <button
                   onClick={() => setShowEditHistoryModal(true)}
-                  className="text-gray-400 hover:text-cyan-400 transition-colors cursor-pointer italic"
+                  className="text-gray-300 hover:text-cyan-400 transition-colors cursor-pointer italic"
                   title="View edit history"
                 >
                   (edited)
@@ -527,7 +527,7 @@ via @PeBloq`
       </div>
 
       {/* Engagement stats */}
-      <div className="flex items-center space-x-6 text-sm text-gray-400 mb-4 pb-4 border-b border-white/10">
+      <div className="flex items-center space-x-6 text-sm text-gray-300 mb-4 pb-4 border-b border-white/10">
         <button
           onClick={() => {
             setInteractionsTab('likes')
@@ -549,7 +549,7 @@ via @PeBloq`
         </button>
       </div>
 
-      {/* Enhanced reaction buttons */}
+      {/* Enhanced reaction buttons - Pengu brand colors */}
       <div className="mb-4">
         <div className="flex items-center flex-wrap gap-2">
           {['PENGUIN_REACT', 'LAUGH', 'CRY', 'SHOCK', 'ANGER', 'THUMBS_UP', 'THUMBS_DOWN'].map((reactionType) => (
@@ -559,8 +559,8 @@ via @PeBloq`
               disabled={isInteracting === reactionType}
               className={`flex items-center space-x-1 px-3 py-2 rounded-lg transition-all hover-glow click-scale font-medium ${
                 userReactions.has(reactionType)
-                  ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 shadow-neon-sm'
-                  : 'glass-card text-gray-300 hover:text-neon-cyan hover:border-neon-cyan/20'
+                  ? 'bg-pengu-green/20 text-pengu-green border border-pengu-green/30 shadow-neon-sm'
+                  : 'glass-card text-gray-300 hover:text-pengu-green hover:border-pengu-green/20'
               }`}
             >
               <span className="text-lg hover:animate-float">{getReactionEmoji(reactionType)}</span>
@@ -609,7 +609,7 @@ via @PeBloq`
                     <span className="text-lg">{isShared ? '✅' : '🔄'}</span>
                     <div className="text-left">
                       <div className="font-medium">{isShared ? 'Shared to Feed' : 'Share to Feed'}</div>
-                      <div className="text-xs text-gray-400">Share within PeBloq</div>
+                      <div className="text-xs text-gray-300">Share within PeBloq</div>
                     </div>
                   </button>
 
@@ -622,7 +622,7 @@ via @PeBloq`
                       <span className="text-lg">🐦</span>
                       <div className="text-left">
                         <div className="font-medium">Share to X</div>
-                        <div className="text-xs text-gray-400">Post to @{currentUser.twitterHandle}</div>
+                        <div className="text-xs text-gray-300">Post to @{currentUser.twitterHandle}</div>
                       </div>
                     </button>
                   )}
@@ -635,7 +635,7 @@ via @PeBloq`
                     <span className="text-lg">🔗</span>
                     <div className="text-left">
                       <div className="font-medium">Copy Link</div>
-                      <div className="text-xs text-gray-400">Copy post URL to clipboard</div>
+                      <div className="text-xs text-gray-300">Copy post URL to clipboard</div>
                     </div>
                   </button>
 
@@ -656,7 +656,7 @@ via @PeBloq`
                       <span className="text-lg">📱</span>
                       <div className="text-left">
                         <div className="font-medium">More Options</div>
-                        <div className="text-xs text-gray-400">Use system share menu</div>
+                        <div className="text-xs text-gray-300">Use system share menu</div>
                       </div>
                     </button>
                   )}
@@ -731,7 +731,7 @@ via @PeBloq`
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center space-x-2">
                       <span className="font-medium text-white text-sm">{(comment.user || comment.author)?.displayName}</span>
-                      <span className="text-xs text-gray-400">{formatDate(comment.createdAt)}</span>
+                      <span className="text-xs text-gray-300">{formatDate(comment.createdAt)}</span>
                     </div>
                     {(comment.user || comment.author)?.id !== currentUserId && (
                       <ReportButton
@@ -755,7 +755,7 @@ via @PeBloq`
 
           {/* Show more comments */}
           {commentsCount > 3 && (
-            <button className="text-cyan-400 text-sm hover:text-cyan-300">
+            <button className="text-pengu-green text-sm hover:text-pengu-400 min-h-[44px] min-w-[44px] py-2 px-3">
               View all {commentsCount} comments
             </button>
           )}

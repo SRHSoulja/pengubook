@@ -194,7 +194,7 @@ export default function FeedSearchPage() {
                 <p className="text-gray-300 mb-6">
                   Enter keywords or hashtags to find posts
                 </p>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-300">
                   Tip: Start with # to search for specific hashtags
                 </p>
               </div>

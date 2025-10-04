@@ -6,6 +6,8 @@ import { useAbstractClient } from '@abstract-foundation/agw-react'
 import PostCard from './PostCard'
 import PostCreator from './PostCreator'
 import { useRealtimeFeed, useFeedRefresh } from '@/hooks/useRealtimeFeed'
+import { SkeletonList } from '@/components/skeletons/SkeletonCard'
+import { EmptyFeed } from '@/components/empty-states'
 
 interface SocialFeedProps {
   className?: string
@@ -278,34 +280,14 @@ export default function SocialFeed({ className = '', showPostCreator = true }: S
         </div>
       )}
 
-      {/* Loading state */}
+      {/* Loading state - Skeleton screens for better UX */}
       {loading && posts.length === 0 && (
-        <div className="text-center text-white py-12">
-          <div className="inline-block w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p>Loading the social ice floe...</p>
-        </div>
+        <SkeletonList count={5} />
       )}
 
-      {/* Empty state */}
+      {/* Empty state - Better UX with actionable empty state */}
       {!loading && posts.length === 0 && !error && (
-        <div className="text-center text-white py-12">
-          <div className="text-6xl mb-4">🐧</div>
-          <h2 className="text-2xl font-bold mb-2">No posts yet!</h2>
-          <p className="text-gray-300 mb-4">
-            {followingOnly
-              ? "You haven't followed anyone yet, or they haven't posted."
-              : "Be the first penguin to break the ice!"
-            }
-          </p>
-          {followingOnly && (
-            <button
-              onClick={() => handleFilterChange(false)}
-              className="bg-cyan-500 text-white px-6 py-3 rounded-xl hover:bg-cyan-600 transition-colors"
-            >
-              Explore All Posts
-            </button>
-          )}
-        </div>
+        <EmptyFeed followingOnly={followingOnly} />
       )}
 
       {/* Posts */}
@@ -328,7 +310,7 @@ export default function SocialFeed({ className = '', showPostCreator = true }: S
               <span>Loading more posts...</span>
             </div>
           ) : (
-            <div className="text-gray-400">Scroll for more posts</div>
+            <div className="text-gray-300">Scroll for more posts</div>
           )}
         </div>
       )}
@@ -337,7 +319,7 @@ export default function SocialFeed({ className = '', showPostCreator = true }: S
       {!hasMore && posts.length > 0 && (
         <div className="text-center py-8">
           <div className="text-4xl mb-2">🐧</div>
-          <p className="text-gray-400">You've reached the end of the ice floe!</p>
+          <p className="text-gray-300">You've reached the end of the ice floe!</p>
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}

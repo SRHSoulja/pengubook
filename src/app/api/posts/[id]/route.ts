@@ -275,23 +275,19 @@ export const PUT = withAuth(async (
   }
 })
 
-export async function DELETE(
+export const DELETE = withAuth(async (
   request: NextRequest,
+  user: any, // Authenticated user from withAuth middleware
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const { id } = params
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
-      )
-    }
+    // SECURITY: Use authenticated user ID, NOT query parameter
+    // Query parameter userId was a critical security vulnerability
+    const userId = user.id
 
-    
+
 
     // Check if post exists and user owns it (or is admin)
     const existingPost = await prisma.post.findUnique({
@@ -308,19 +304,7 @@ export async function DELETE(
       )
     }
 
-    // Check if user owns the post or is admin
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { isAdmin: true }
-    })
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      )
-    }
-
+    // Check if user owns the post or is admin (user already authenticated)
     if (existingPost.authorId !== userId && !user.isAdmin) {
       return NextResponse.json(
         { error: 'You can only delete your own posts' },
@@ -356,4 +340,4 @@ export async function DELETE(
       { status: 500 }
     )
   }
-}
+})

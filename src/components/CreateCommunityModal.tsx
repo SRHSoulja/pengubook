@@ -130,7 +130,7 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
               pattern="[a-z0-9_]+"
               title="Only lowercase letters, numbers, and underscores"
             />
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-300 mt-1">
               This will be your community's unique identifier in URLs
             </p>
           </div>

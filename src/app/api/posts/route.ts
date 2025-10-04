@@ -7,6 +7,7 @@ import { processHashtagsForPost } from '@/lib/hashtag-processor'
 import { updatePostStreak } from '@/lib/streak-tracker'
 import { sanitizeMediaUrls } from '@/lib/utils/url-validator'
 import { sanitizeHtml } from '@/lib/sanitize'
+import { INPUT_LIMITS, validateLength } from '@/lib/validation-constraints'
 
 export const dynamic = 'force-dynamic'
 
@@ -131,9 +132,11 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
       )
     }
 
-    if (content.length > 2000) {
+    // Validate post content length
+    const validation = validateLength(content, INPUT_LIMITS.POST_CONTENT, 'Post content')
+    if (!validation.isValid) {
       return NextResponse.json(
-        { error: 'Content cannot exceed 2000 characters' },
+        { error: validation.error },
         { status: 400 }
       )
     }

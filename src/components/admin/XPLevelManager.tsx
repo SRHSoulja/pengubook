@@ -228,7 +228,7 @@ export default function XPLevelManager() {
         </table>
 
         {levels.length === 0 && (
-          <div className="text-center py-12 text-gray-400">
+          <div className="text-center py-12 text-gray-300">
             No XP levels configured yet. Create your first level to get started!
           </div>
         )}
@@ -335,6 +335,7 @@ export default function XPLevelManager() {
                           type="button"
                           onClick={() => removePerk(index)}
                           className="text-red-400 hover:text-red-300 px-3"
+                          aria-label="Remove perk"
                         >
                           ✕
                         </button>

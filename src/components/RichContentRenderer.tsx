@@ -266,7 +266,7 @@ export default function RichContentRenderer({
                     <h4 className="text-white font-semibold truncate">
                       Link Preview
                     </h4>
-                    <p className="text-gray-400 text-sm truncate">
+                    <p className="text-gray-300 text-sm truncate">
                       {url}
                     </p>
                     <a

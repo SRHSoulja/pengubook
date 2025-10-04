@@ -171,7 +171,7 @@ export default function MediaUploader({
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
-          className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center text-gray-400 hover:border-purple-500 transition-colors"
+          className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center text-gray-300 hover:border-purple-500 transition-colors"
         >
           <p>Drag and drop media files here, or click to select</p>
           <p className="text-sm mt-1">Supports images and videos up to 10MB</p>
@@ -209,6 +209,7 @@ export default function MediaUploader({
                 <button
                   onClick={() => removeMediaFile(mediaFile.id)}
                   className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label="Remove media file"
                 >
                   ✕
                 </button>

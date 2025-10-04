@@ -151,7 +151,7 @@ export default function XPEarningManager() {
                 <div className="text-3xl">{action.icon}</div>
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-white mb-1">{action.label}</h3>
-                  <p className="text-sm text-gray-400 mb-3">{action.description}</p>
+                  <p className="text-sm text-gray-300 mb-3">{action.description}</p>
                   <div className="flex items-center gap-3">
                     <input
                       type="number"

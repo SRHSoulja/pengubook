@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { awardXPForComment } from '@/lib/leveling'
 import { sanitizeHtml } from '@/lib/sanitize'
+import { INPUT_LIMITS, validateLength } from '@/lib/validation-constraints'
 
 export const dynamic = 'force-dynamic'
 
@@ -98,9 +99,11 @@ export async function POST(
       )
     }
 
-    if (content.length > 500) {
+    // Validate comment length
+    const validation = validateLength(content, INPUT_LIMITS.COMMENT_CONTENT, 'Comment')
+    if (!validation.isValid) {
       return NextResponse.json(
-        { error: 'Comment cannot exceed 500 characters' },
+        { error: validation.error },
         { status: 400 }
       )
     }

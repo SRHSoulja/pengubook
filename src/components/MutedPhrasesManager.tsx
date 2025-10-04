@@ -162,7 +162,7 @@ export default function MutedPhrasesManager() {
                 className="w-full bg-black/30 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
                 required
               />
-              <div className="text-xs text-gray-400 mt-1">
+              <div className="text-xs text-gray-300 mt-1">
                 {newPhrase.length}/100 characters
               </div>
             </div>
@@ -245,11 +245,11 @@ export default function MutedPhrasesManager() {
       )}
 
       {loading ? (
-        <div className="text-center py-8 text-gray-400">
+        <div className="text-center py-8 text-gray-300">
           Loading muted phrases...
         </div>
       ) : mutedPhrases.length === 0 ? (
-        <div className="text-center py-8 text-gray-400">
+        <div className="text-center py-8 text-gray-300">
           <p>No muted phrases yet.</p>
           <p className="text-sm mt-2">Add phrases to filter content from your feed.</p>
         </div>
@@ -276,7 +276,7 @@ export default function MutedPhrasesManager() {
                     {phrase.scope === 'ALL' ? 'All' : phrase.scope.toLowerCase()}
                   </span>
                 </div>
-                <div className="text-xs text-gray-400 mt-1">
+                <div className="text-xs text-gray-300 mt-1">
                   Added {new Date(phrase.createdAt).toLocaleDateString()} •
                   Expires: {formatExpirationDate(phrase.expiresAt)}
                 </div>
@@ -297,7 +297,7 @@ export default function MutedPhrasesManager() {
         </div>
       )}
 
-      <div className="mt-4 text-xs text-gray-400">
+      <div className="mt-4 text-xs text-gray-300">
         <p>• Hidden content will be completely filtered from your feed</p>
         <p>• Warning content will show a notice that you can click to reveal</p>
         <p>• Regex patterns allow advanced filtering (e.g., /crypto|bitcoin/i)</p>

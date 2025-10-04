@@ -186,17 +186,17 @@ export default function ModerationSettingsManager() {
           <div className="flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-lg">
             <span>🚫</span>
             <span className="text-white text-sm font-semibold">REJECT</span>
-            <span className="text-gray-400 text-xs">= Block upload</span>
+            <span className="text-gray-300 text-xs">= Block upload</span>
           </div>
           <div className="flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-lg">
             <span>⚠️</span>
             <span className="text-white text-sm font-semibold">FLAG</span>
-            <span className="text-gray-400 text-xs">= Blur + Warning</span>
+            <span className="text-gray-300 text-xs">= Blur + Warning</span>
           </div>
           <div className="flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-lg">
             <span>✅</span>
             <span className="text-white text-sm font-semibold">ALLOW</span>
-            <span className="text-gray-400 text-xs">= No restriction</span>
+            <span className="text-gray-300 text-xs">= No restriction</span>
           </div>
         </div>
       </div>
@@ -314,7 +314,7 @@ export default function ModerationSettingsManager() {
                       )}
                     </div>
                     <p className="text-gray-300 text-sm mb-1">{setting.description}</p>
-                    <p className="text-gray-400 text-xs">
+                    <p className="text-gray-300 text-xs">
                       Label: <code className="bg-black/30 px-2 py-0.5 rounded">{setting.labelName}</code>
                       {' • '}
                       Min Confidence: {setting.minConfidence}%

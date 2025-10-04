@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 
 interface GiphyGif {
   id: string
@@ -53,6 +54,9 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
     return () => clearTimeout(debounceTimer)
   }, [searchQuery, isOpen])
 
+  // Keyboard navigation: ESC to close
+  useKeyboardNavigation(isOpen, onClose)
+
   const loadGifs = async (query: string) => {
     try {
       setLoading(true)
@@ -104,7 +108,7 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors p-2"
+            className="text-gray-300 hover:text-white transition-colors p-2"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -128,7 +132,7 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
               {loading ? (
                 <div className="w-5 h-5 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               )}
@@ -153,7 +157,7 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
             <div className="text-center py-8">
               <div className="text-4xl mb-4">🔍</div>
               <p className="text-gray-300 text-lg">No GIFs found</p>
-              <p className="text-gray-400">Try a different search term</p>
+              <p className="text-gray-300">Try a different search term</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -188,7 +192,7 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
         {/* Footer */}
         <div className="p-4 border-t border-white/20 bg-black/20">
           <div className="flex items-center justify-center">
-            <p className="text-gray-400 text-sm">Powered by GIPHY</p>
+            <p className="text-gray-300 text-sm">Powered by GIPHY</p>
           </div>
         </div>
       </div>

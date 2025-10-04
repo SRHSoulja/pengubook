@@ -103,7 +103,7 @@ export default function SearchPage() {
                 placeholder="Search penguins..."
                 className="w-full bg-black/30 text-white placeholder-gray-400 border border-white/20 rounded-xl px-6 py-4 pl-14 text-lg focus:outline-none focus:border-cyan-400 focus:shadow-lg transition-all"
               />
-              <div className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <div className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-300">
                 {loading ? (
                   <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
                 ) : (
@@ -128,7 +128,7 @@ export default function SearchPage() {
                   {loading ? 'Searching...' : `Search Results for "${query}"`}
                 </h2>
                 {!loading && (
-                  <p className="text-gray-400 text-sm mt-1">
+                  <p className="text-gray-300 text-sm mt-1">
                     Found {results.length} penguin{results.length !== 1 ? 's' : ''}
                   </p>
                 )}
@@ -139,13 +139,13 @@ export default function SearchPage() {
                 {loading ? (
                   <div className="p-8 text-center">
                     <div className="w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-400">Searching for penguins...</p>
+                    <p className="text-gray-300">Searching for penguins...</p>
                   </div>
                 ) : results.length === 0 ? (
                   <div className="p-8 text-center">
                     <div className="text-4xl mb-4">🔍</div>
                     <h3 className="text-xl font-bold text-white mb-2">No penguins found</h3>
-                    <p className="text-gray-400">
+                    <p className="text-gray-300">
                       Try searching for a different username, display name, or social handle
                     </p>
                   </div>
@@ -185,7 +185,7 @@ export default function SearchPage() {
                           )}
                         </div>
 
-                        <div className="flex items-center gap-3 text-sm text-gray-400 mb-2">
+                        <div className="flex items-center gap-3 text-sm text-gray-300 mb-2">
                           <span>@{user.username}</span>
                           <span>•</span>
                           <span>Level {user.level}</span>
@@ -193,7 +193,7 @@ export default function SearchPage() {
                           <span>Joined {formatDate(user.joinedAt)}</span>
                         </div>
 
-                        <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
+                        <div className="flex items-center gap-4 text-sm text-gray-300 mb-3">
                           <span>{user.profile.followersCount} followers</span>
                           <span>{user.profile.followingCount} following</span>
                           <span>{user.profile.postsCount} posts</span>
@@ -239,7 +239,7 @@ export default function SearchPage() {
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🐧</div>
               <h2 className="text-2xl font-bold text-white mb-2">Start Your Search</h2>
-              <p className="text-gray-400">
+              <p className="text-gray-300">
                 Enter a username, display name, or social handle to find other penguins
               </p>
             </div>

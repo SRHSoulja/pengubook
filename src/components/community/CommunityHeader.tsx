@@ -93,7 +93,7 @@ export default function CommunityHeader({
             <p className="text-gray-300 max-w-2xl">{community.description}</p>
 
             {/* Stats */}
-            <div className="flex items-center space-x-6 text-sm text-gray-400">
+            <div className="flex items-center space-x-6 text-sm text-gray-300">
               <div className="flex items-center space-x-1">
                 <span>👥</span>
                 <span>{community.membersCount.toLocaleString()} members</span>
@@ -149,7 +149,7 @@ export default function CommunityHeader({
 
             {/* Membership Role */}
             {isMember && community.userMembership && (
-              <div className="text-sm text-gray-400">
+              <div className="text-sm text-gray-300">
                 <span className="capitalize">{community.userMembership.role.toLowerCase()}</span>
                 {' • '}
                 <span>

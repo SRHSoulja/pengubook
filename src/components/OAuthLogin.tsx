@@ -97,7 +97,7 @@ export default function OAuthLogin() {
         <span>{loadingProvider === 'twitter' ? 'Connecting...' : 'Connect X (Twitter)'}</span>
       </button>
 
-      <div className="text-center text-xs text-gray-400 mt-4">
+      <div className="text-center text-xs text-gray-300 mt-4">
         <p>By connecting, you agree to link your social accounts with PeBloq</p>
       </div>
     </div>

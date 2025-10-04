@@ -40,7 +40,7 @@ export default function CommunityMembersList({
       case 'MODERATOR':
         return 'text-purple-400 bg-purple-400/20 border-purple-400/30'
       default:
-        return 'text-gray-400 bg-gray-400/20 border-gray-400/30'
+        return 'text-gray-300 bg-gray-400/20 border-gray-400/30'
     }
   }
 
@@ -131,7 +131,7 @@ export default function CommunityMembersList({
                   </div>
 
                   <div className="flex items-center space-x-4 mt-1">
-                    <p className="text-gray-400 text-sm">@{member.user.username}</p>
+                    <p className="text-gray-300 text-sm">@{member.user.username}</p>
                     <div className="flex items-center space-x-1 text-xs text-gray-500">
                       <span>Level {member.user.level}</span>
                       <span>•</span>
@@ -184,7 +184,7 @@ export default function CommunityMembersList({
         {members.length === 0 && (
           <div className="text-center py-8">
             <div className="text-4xl mb-2">👥</div>
-            <p className="text-gray-400">No members yet</p>
+            <p className="text-gray-300">No members yet</p>
           </div>
         )}
       </div>

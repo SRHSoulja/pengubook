@@ -222,7 +222,7 @@ export default function PrivacySettings() {
           <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
             <div>
               <h3 className="text-white font-medium">Allow Direct Messages</h3>
-              <p className="text-gray-400 text-sm">Allow others to send you messages</p>
+              <p className="text-gray-300 text-sm">Allow others to send you messages</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -256,7 +256,7 @@ export default function PrivacySettings() {
                       {level === 'FRIENDS_ONLY' && 'Friends Only'}
                       {level === 'NONE' && 'No One'}
                     </span>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-gray-300 text-sm">
                       {level === 'ALL' && 'Anyone can send you messages'}
                       {level === 'FRIENDS_ONLY' && 'Only accepted friends can message you'}
                       {level === 'NONE' && 'No one can send you messages'}
@@ -270,7 +270,7 @@ export default function PrivacySettings() {
           <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
             <div>
               <h3 className="text-white font-medium">Show Read Receipts</h3>
-              <p className="text-gray-400 text-sm">Let others know when you've read their messages</p>
+              <p className="text-gray-300 text-sm">Let others know when you've read their messages</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -287,7 +287,7 @@ export default function PrivacySettings() {
           <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
             <div>
               <h3 className="text-white font-medium">Show Typing Indicator</h3>
-              <p className="text-gray-400 text-sm">Let others see when you're typing a message</p>
+              <p className="text-gray-300 text-sm">Let others see when you're typing a message</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -304,7 +304,7 @@ export default function PrivacySettings() {
           <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
             <div>
               <h3 className="text-white font-medium">Show Online Status</h3>
-              <p className="text-gray-400 text-sm">Let others see when you're online</p>
+              <p className="text-gray-300 text-sm">Let others see when you're online</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -330,7 +330,7 @@ export default function PrivacySettings() {
           <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
             <div>
               <h3 className="text-white font-medium">Private Profile</h3>
-              <p className="text-gray-400 text-sm">Only friends can see your full profile</p>
+              <p className="text-gray-300 text-sm">Only friends can see your full profile</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -347,7 +347,7 @@ export default function PrivacySettings() {
           <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
             <div>
               <h3 className="text-white font-medium">Show Activity</h3>
-              <p className="text-gray-400 text-sm">Let others see your recent activity</p>
+              <p className="text-gray-300 text-sm">Let others see your recent activity</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -364,7 +364,7 @@ export default function PrivacySettings() {
           <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
             <div>
               <h3 className="text-white font-medium">Show Tips</h3>
-              <p className="text-gray-400 text-sm">Display tips received on your profile</p>
+              <p className="text-gray-300 text-sm">Display tips received on your profile</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -381,7 +381,7 @@ export default function PrivacySettings() {
           <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
             <div className="flex-1">
               <h3 className="text-white font-medium">Show Discord</h3>
-              <p className="text-gray-400 text-sm">Display linked Discord account on your profile</p>
+              <p className="text-gray-300 text-sm">Display linked Discord account on your profile</p>
               <p className="text-green-400 text-xs font-semibold mt-1">⭐ LEAVE UNHIDDEN SO YOUR FRIENDS CAN FIND YOU BY VERIFIED USERNAME</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer ml-4">
@@ -399,7 +399,7 @@ export default function PrivacySettings() {
           <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
             <div className="flex-1">
               <h3 className="text-white font-medium">Show X/Twitter</h3>
-              <p className="text-gray-400 text-sm">Display linked X/Twitter account on your profile</p>
+              <p className="text-gray-300 text-sm">Display linked X/Twitter account on your profile</p>
               <p className="text-green-400 text-xs font-semibold mt-1">⭐ LEAVE UNHIDDEN SO YOUR FRIENDS CAN FIND YOU BY VERIFIED USERNAME</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer ml-4">
@@ -422,12 +422,12 @@ export default function PrivacySettings() {
           <span className="mr-2">⭐</span> Featured Community
         </h2>
 
-        <p className="text-gray-400 text-sm mb-4">
+        <p className="text-gray-300 text-sm mb-4">
           Choose one of your communities to showcase on your profile
         </p>
 
         {communities.length === 0 ? (
-          <p className="text-gray-400 text-center py-8">
+          <p className="text-gray-300 text-center py-8">
             You haven't joined any communities yet.
           </p>
         ) : (
@@ -444,7 +444,7 @@ export default function PrivacySettings() {
               />
               <div>
                 <span className="text-white font-medium">None</span>
-                <p className="text-gray-400 text-sm">Don't feature any community</p>
+                <p className="text-gray-300 text-sm">Don't feature any community</p>
               </div>
             </label>
 
@@ -484,7 +484,7 @@ export default function PrivacySettings() {
                       <span className="text-yellow-400 text-xs">✨</span>
                     )}
                   </div>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-300 text-sm">
                     {community.membersCount.toLocaleString()} members
                   </p>
                 </div>
@@ -501,7 +501,7 @@ export default function PrivacySettings() {
         </h2>
 
         {blockedUsers.length === 0 ? (
-          <p className="text-gray-400 text-center py-8">
+          <p className="text-gray-300 text-center py-8">
             You haven't blocked any users yet.
           </p>
         ) : (
@@ -524,7 +524,7 @@ export default function PrivacySettings() {
                     <p className="text-white font-medium">
                       {block.user.displayName || block.user.username}
                     </p>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-gray-300 text-sm">
                       Blocked {new Date(block.blockedAt).toLocaleDateString()}
                     </p>
                   </div>

@@ -90,7 +90,7 @@ export default function UserSearch() {
           placeholder="Search penguins..."
           className="w-64 bg-black/30 text-white placeholder-gray-400 border border-white/20 rounded-xl px-4 py-2 pl-10 focus:outline-none focus:border-cyan-400 focus:shadow-lg transition-all"
         />
-        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300">
           {loading ? (
             <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
           ) : (
@@ -103,14 +103,14 @@ export default function UserSearch() {
       {showResults && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-black/90 backdrop-blur-lg border border-white/20 rounded-xl shadow-2xl z-50 max-h-96 overflow-y-auto">
           {results.length === 0 ? (
-            <div className="p-4 text-center text-gray-400">
+            <div className="p-4 text-center text-gray-300">
               <div className="text-2xl mb-2">🔍</div>
               <p>No penguins found for "{query}"</p>
             </div>
           ) : (
             <>
               <div className="p-3 border-b border-white/10">
-                <p className="text-xs text-gray-400">Found {results.length} penguin{results.length !== 1 ? 's' : ''}</p>
+                <p className="text-xs text-gray-300">Found {results.length} penguin{results.length !== 1 ? 's' : ''}</p>
               </div>
               {results.map((user) => (
                 <Link
@@ -147,7 +147,7 @@ export default function UserSearch() {
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <div className="flex items-center gap-2 text-xs text-gray-300">
                       <span>@{user.username}</span>
                       <span>•</span>
                       <span>Level {user.level}</span>

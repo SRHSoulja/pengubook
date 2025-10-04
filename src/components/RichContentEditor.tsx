@@ -333,7 +333,7 @@ export default function RichContentEditor({
 
           {/* GIF Results */}
           {loadingGifs ? (
-            <div className="text-center text-gray-400 py-8">
+            <div className="text-center text-gray-300 py-8">
               <div className="animate-spin w-8 h-8 border-2 border-cyan-300 border-t-transparent rounded-full mx-auto mb-4"></div>
               <p className="text-sm">Searching for GIFs...</p>
             </div>
@@ -359,7 +359,7 @@ export default function RichContentEditor({
           )}
 
           {!loadingGifs && gifs.length === 0 && (
-            <div className="text-center text-gray-400 py-8">
+            <div className="text-center text-gray-300 py-8">
               <div className="text-4xl mb-2">🔍</div>
               <p className="text-sm">No GIFs found</p>
               <p className="text-xs">Try a different search term</p>
@@ -369,7 +369,7 @@ export default function RichContentEditor({
           {/* Popular searches */}
           {!gifSearchQuery && (
             <div className="mt-4">
-              <p className="text-gray-400 text-sm mb-2">Popular:</p>
+              <p className="text-gray-300 text-sm mb-2">Popular:</p>
               <div className="flex flex-wrap gap-2">
                 {GiphyService.getPopularSearches().slice(0, 8).map((term) => (
                   <button

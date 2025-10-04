@@ -262,7 +262,7 @@ export default function EditCommunityModal({ community, isOpen, onClose, onSucce
               rows={6}
               className="w-full px-4 py-3 bg-black/30 text-white placeholder-gray-400 border border-white/20 rounded-xl focus:outline-none focus:border-cyan-400"
             />
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-300 mt-1">
               Enter each rule on a new line
             </p>
           </div>

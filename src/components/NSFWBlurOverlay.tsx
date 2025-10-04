@@ -36,7 +36,7 @@ export default function NSFWBlurOverlay({
         <div className="mt-2 text-center">
           <button
             onClick={() => setRevealed(false)}
-            className="text-xs text-gray-400 hover:text-gray-300 underline"
+            className="text-xs text-gray-300 hover:text-gray-300 underline"
           >
             Hide NSFW Content
           </button>
@@ -95,7 +95,7 @@ export default function NSFWBlurOverlay({
         </button>
 
         {/* Settings hint */}
-        <p className="text-xs text-gray-400 mt-4">
+        <p className="text-xs text-gray-300 mt-4">
           You can enable auto-show in your{' '}
           <a href="/profile/edit" className="text-cyan-400 hover:underline">
             settings

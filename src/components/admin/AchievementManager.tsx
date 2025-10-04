@@ -143,7 +143,7 @@ export default function AchievementManager() {
       case 'LEGENDARY': return 'text-yellow-400 border-yellow-500 bg-yellow-500/10'
       case 'EPIC': return 'text-purple-400 border-purple-500 bg-purple-500/10'
       case 'RARE': return 'text-blue-400 border-blue-500 bg-blue-500/10'
-      default: return 'text-gray-400 border-gray-500 bg-gray-500/10'
+      default: return 'text-gray-300 border-gray-500 bg-gray-500/10'
     }
   }
 
@@ -199,19 +199,19 @@ export default function AchievementManager() {
             <p className="text-sm text-gray-300 mb-3">{achievement.description}</p>
 
             <div className="space-y-1 text-xs">
-              <div className="flex justify-between text-gray-400">
+              <div className="flex justify-between text-gray-300">
                 <span>Category:</span>
                 <span className="text-white">{achievement.category}</span>
               </div>
-              <div className="flex justify-between text-gray-400">
+              <div className="flex justify-between text-gray-300">
                 <span>Requirement:</span>
                 <span className="text-white">{achievement.requirement}</span>
               </div>
-              <div className="flex justify-between text-gray-400">
+              <div className="flex justify-between text-gray-300">
                 <span>XP Reward:</span>
                 <span className="text-cyan-400">{achievement.xpReward} XP</span>
               </div>
-              <div className="flex justify-between text-gray-400">
+              <div className="flex justify-between text-gray-300">
                 <span>Status:</span>
                 <span className={achievement.isActive ? 'text-green-400' : 'text-red-400'}>
                   {achievement.isActive ? 'Active' : 'Inactive'}

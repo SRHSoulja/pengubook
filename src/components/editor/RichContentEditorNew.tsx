@@ -102,7 +102,7 @@ export default function RichContentEditor({
         />
 
         {/* Character count */}
-        <div className="absolute bottom-3 right-3 text-xs text-gray-400">
+        <div className="absolute bottom-3 right-3 text-xs text-gray-300">
           <span className={value.length > maxLength * 0.9 ? 'text-yellow-400' : ''}>
             {value.length}
           </span>
@@ -142,7 +142,8 @@ export default function RichContentEditor({
               </div>
               <button
                 onClick={() => removeEmbed(index)}
-                className="text-gray-400 hover:text-red-400 transition-colors"
+                className="text-gray-300 hover:text-red-400 transition-colors"
+                aria-label="Remove embed"
               >
                 ✕
               </button>
@@ -182,7 +183,7 @@ export default function RichContentEditor({
         </div>
 
         {/* Format hints */}
-        <div className="text-xs text-gray-400">
+        <div className="text-xs text-gray-300">
           <span>Supports **bold**, *italic*, and markdown</span>
         </div>
       </div>

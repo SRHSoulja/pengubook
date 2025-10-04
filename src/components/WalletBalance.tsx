@@ -302,7 +302,7 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
         <h3 className="text-lg font-semibold text-white mb-4">💰 Wallet Balance</h3>
         <div className="flex flex-col items-center justify-center py-8 space-y-3">
           <div className="w-6 h-6 border-3 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm text-gray-400">Loading token balances... This may take a moment</p>
+          <p className="text-sm text-gray-300">Loading token balances... This may take a moment</p>
         </div>
       </div>
     )
@@ -312,7 +312,7 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
     return (
       <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
         <h3 className="text-lg font-semibold text-white mb-4">💰 Wallet Balance</h3>
-        <div className="text-center text-gray-400 py-4">
+        <div className="text-center text-gray-300 py-4">
           <p>{error}</p>
         </div>
       </div>
@@ -335,7 +335,7 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
         {isOwnProfile && user?.id && (
           <button
             onClick={openHiddenTokensModal}
-            className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+            className="text-sm text-gray-300 hover:text-white transition-colors flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -369,7 +369,7 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
             </div>
           )}
           {balanceData.nativeBalance.valueUsd !== undefined && (
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-gray-300">
               {formatUSD(balanceData.nativeBalance.valueUsd)}
             </div>
           )}
@@ -477,7 +477,7 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
                   </div>
                 )}
                 {token.valueUsd !== undefined && (
-                  <div className={`text-sm ${token.hideBalance ? 'text-gray-600 line-through' : 'text-gray-400'}`}>
+                  <div className={`text-sm ${token.hideBalance ? 'text-gray-600 line-through' : 'text-gray-300'}`}>
                     {formatUSD(token.valueUsd)}
                     {token.hideBalance && (
                       <span className="ml-2 text-xs text-gray-500">(excluded)</span>
@@ -504,7 +504,7 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
 
       {/* Wallet Address */}
       <div className="mt-4 pt-4 border-t border-white/10">
-        <div className="text-xs text-gray-400 break-all">
+        <div className="text-xs text-gray-300 break-all">
           {balanceData.walletAddress}
         </div>
       </div>
@@ -518,7 +518,7 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
             <div className="mb-4 p-3 bg-black/20 rounded">
               <div className="text-white font-medium">{selectedToken.symbol}</div>
               {selectedToken.name && (
-                <div className="text-xs text-gray-400">{selectedToken.name}</div>
+                <div className="text-xs text-gray-300">{selectedToken.name}</div>
               )}
               <div className="text-xs text-gray-500 mt-1 break-all">{selectedToken.token}</div>
             </div>
@@ -549,7 +549,7 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
               />
             </div>
 
-            <div className="text-xs text-gray-400 mb-4">
+            <div className="text-xs text-gray-300 mb-4">
               This token will be hidden from your balance and reported to admins for review.
             </div>
 
@@ -588,7 +588,7 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
                 <div className="w-6 h-6 border-3 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
               </div>
             ) : hiddenTokens.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No hidden tokens</p>
+              <p className="text-gray-300 text-center py-8">No hidden tokens</p>
             ) : (
               <>
                 {/* Select all / clear */}

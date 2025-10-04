@@ -50,7 +50,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https: http:",
               "font-src 'self' data: https://fonts.gstatic.com",
-              "connect-src 'self' https://api.mainnet.abs.xyz https://api.testnet.abs.xyz https://abstract-global-wallet.com wss://api.mainnet.abs.xyz wss://api.testnet.abs.xyz https://*.neon.tech wss://*.pusher.com https://api.cloudinary.com",
+              "connect-src 'self' https://api.mainnet.abs.xyz https://api.testnet.abs.xyz https://abstract-global-wallet.com wss://api.mainnet.abs.xyz wss://api.testnet.abs.xyz https://*.neon.tech wss://*.pusher.com https://api.cloudinary.com https://auth.privy.io https://*.privy.io",
               "media-src 'self' https://res.cloudinary.com blob: data:",
               "object-src 'none'",
               "base-uri 'self'",

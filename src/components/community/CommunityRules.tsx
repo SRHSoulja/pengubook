@@ -15,7 +15,7 @@ export default function CommunityRules({ rules, className = '' }: CommunityRules
         </h3>
         <div className="text-center py-4">
           <div className="text-4xl mb-2">📜</div>
-          <p className="text-gray-400">No rules have been set for this community yet.</p>
+          <p className="text-gray-300">No rules have been set for this community yet.</p>
           <p className="text-gray-500 text-sm mt-1">Be respectful and follow general community guidelines.</p>
         </div>
       </div>

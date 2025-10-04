@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { INPUT_LIMITS, validateFields } from '@/lib/validation-constraints'
 
 export const dynamic = 'force-dynamic'
 
@@ -167,6 +168,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate input lengths
+    const validation = validateFields(
+      {
+        name: name,
+        displayName: displayName,
+        description: description,
+        rules: rules
+      },
+      {
+        name: INPUT_LIMITS.COMMUNITY_NAME,
+        displayName: INPUT_LIMITS.COMMUNITY_NAME,
+        description: INPUT_LIMITS.COMMUNITY_DESCRIPTION,
+        rules: INPUT_LIMITS.COMMUNITY_RULES
+      }
+    )
+
+    if (!validation.isValid) {
+      return NextResponse.json(
+        { error: validation.errors.join(', ') },
+        { status: 400 }
+      )
+    }
+
     // Validate name format (alphanumeric, hyphens, underscores)
     if (!/^[a-zA-Z0-9_-]+$/.test(name)) {
       return NextResponse.json(
@@ -175,9 +199,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (name.length < 3 || name.length > 50) {
+    if (name.length < 3) {
       return NextResponse.json(
-        { error: 'Community name must be between 3 and 50 characters' },
+        { error: 'Community name must be at least 3 characters' },
         { status: 400 }
       )
     }

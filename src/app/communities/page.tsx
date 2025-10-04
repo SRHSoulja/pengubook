@@ -225,7 +225,7 @@ export default function CommunitiesPage() {
                         )}
                       </div>
                       <p className="text-sm text-gray-300 mb-2">@{community.name}</p>
-                      <div className="flex items-center gap-4 text-xs text-gray-400">
+                      <div className="flex items-center gap-4 text-xs text-gray-300">
                         <span>👥 {community.membersCount}</span>
                         <span>📝 {community.postsCount}</span>
                       </div>
@@ -251,7 +251,7 @@ export default function CommunitiesPage() {
                       </span>
                     ))}
                     {community.tags.length > 2 && (
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-300">
                         +{community.tags.length - 2} more
                       </span>
                     )}

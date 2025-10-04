@@ -162,7 +162,7 @@ export default function TokenBlacklistManager({ initialTab = 'reports' }: TokenB
           className={`px-4 py-2 border-b-2 transition-colors ${
             tab === 'reports'
               ? 'border-cyan-400 text-cyan-400'
-              : 'border-transparent text-gray-400 hover:text-white'
+              : 'border-transparent text-gray-300 hover:text-white'
           }`}
         >
           Pending Reports ({reports.length})
@@ -172,7 +172,7 @@ export default function TokenBlacklistManager({ initialTab = 'reports' }: TokenB
           className={`px-4 py-2 border-b-2 transition-colors ${
             tab === 'blacklist'
               ? 'border-cyan-400 text-cyan-400'
-              : 'border-transparent text-gray-400 hover:text-white'
+              : 'border-transparent text-gray-300 hover:text-white'
           }`}
         >
           Blacklisted Tokens ({blacklistedTokens.length})
@@ -185,10 +185,10 @@ export default function TokenBlacklistManager({ initialTab = 'reports' }: TokenB
           {loading ? (
             <div className="text-center py-8">
               <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-400">Loading reports...</p>
+              <p className="text-gray-300">Loading reports...</p>
             </div>
           ) : reports.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-gray-300">
               No pending reports
             </div>
           ) : (
@@ -197,7 +197,7 @@ export default function TokenBlacklistManager({ initialTab = 'reports' }: TokenB
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <div className="text-white font-semibold">{report.symbol || 'Unknown'}</div>
-                    {report.name && <div className="text-sm text-gray-400">{report.name}</div>}
+                    {report.name && <div className="text-sm text-gray-300">{report.name}</div>}
                     <div className="text-xs text-gray-500 font-mono mt-1">{report.tokenAddress}</div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -237,7 +237,7 @@ export default function TokenBlacklistManager({ initialTab = 'reports' }: TokenB
       {tab === 'blacklist' && (
         <div className="space-y-4">
           {blacklistedTokens.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-gray-300">
               No blacklisted tokens
             </div>
           ) : (
@@ -246,10 +246,10 @@ export default function TokenBlacklistManager({ initialTab = 'reports' }: TokenB
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <div className="text-white font-semibold">{token.symbol || 'Unknown'}</div>
-                    {token.name && <div className="text-sm text-gray-400">{token.name}</div>}
+                    {token.name && <div className="text-sm text-gray-300">{token.name}</div>}
                     <div className="text-xs text-gray-500 font-mono mt-1">{token.tokenAddress}</div>
                   </div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-gray-300">
                     {new Date(token.blacklistedAt).toLocaleDateString()}
                   </div>
                 </div>
@@ -281,7 +281,7 @@ export default function TokenBlacklistManager({ initialTab = 'reports' }: TokenB
             <div className="mb-4 p-3 bg-black/20 rounded">
               <div className="text-white font-medium">{selectedReport.symbol}</div>
               {selectedReport.name && (
-                <div className="text-xs text-gray-400">{selectedReport.name}</div>
+                <div className="text-xs text-gray-300">{selectedReport.name}</div>
               )}
               <div className="text-xs text-gray-500 mt-1 break-all">{selectedReport.tokenAddress}</div>
             </div>

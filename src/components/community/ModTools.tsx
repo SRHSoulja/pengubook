@@ -158,7 +158,7 @@ export default function ModTools({ communityId, creatorId }: ModToolsProps) {
             className={`px-4 py-2 rounded-lg transition-colors ${
               activeTab === 'members'
                 ? 'bg-cyan-500 text-white'
-                : 'bg-black/40 text-gray-400 hover:bg-black/60'
+                : 'bg-black/40 text-gray-300 hover:bg-black/60'
             }`}
           >
             👥 Members
@@ -168,7 +168,7 @@ export default function ModTools({ communityId, creatorId }: ModToolsProps) {
             className={`px-4 py-2 rounded-lg transition-colors ${
               activeTab === 'reports'
                 ? 'bg-cyan-500 text-white'
-                : 'bg-black/40 text-gray-400 hover:bg-black/60'
+                : 'bg-black/40 text-gray-300 hover:bg-black/60'
             }`}
           >
             🚩 Reports
@@ -178,7 +178,7 @@ export default function ModTools({ communityId, creatorId }: ModToolsProps) {
             className={`px-4 py-2 rounded-lg transition-colors ${
               activeTab === 'logs'
                 ? 'bg-cyan-500 text-white'
-                : 'bg-black/40 text-gray-400 hover:bg-black/60'
+                : 'bg-black/40 text-gray-300 hover:bg-black/60'
             }`}
           >
             📋 Mod Logs
@@ -189,7 +189,7 @@ export default function ModTools({ communityId, creatorId }: ModToolsProps) {
         {activeTab === 'members' && (
           <div className="space-y-3">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-300 text-sm">
                 Showing {members.length} members
               </p>
               <div className="flex gap-2">
@@ -240,7 +240,7 @@ export default function ModTools({ communityId, creatorId }: ModToolsProps) {
                         </span>
                       )}
                     </div>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-gray-300 text-sm">
                       @{member.user.username} • Level {member.user.level}
                     </p>
                   </div>
@@ -311,7 +311,7 @@ export default function ModTools({ communityId, creatorId }: ModToolsProps) {
 
         {/* Reports Tab */}
         {activeTab === 'reports' && (
-          <div className="text-center py-8 text-gray-400">
+          <div className="text-center py-8 text-gray-300">
             <span className="text-4xl block mb-2">🚩</span>
             Reports feature coming soon
           </div>
@@ -319,7 +319,7 @@ export default function ModTools({ communityId, creatorId }: ModToolsProps) {
 
         {/* Mod Logs Tab */}
         {activeTab === 'logs' && (
-          <div className="text-center py-8 text-gray-400">
+          <div className="text-center py-8 text-gray-300">
             <span className="text-4xl block mb-2">📋</span>
             Mod logs feature coming soon
           </div>

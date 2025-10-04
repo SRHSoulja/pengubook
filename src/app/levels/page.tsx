@@ -85,7 +85,7 @@ export default function LevelsPage() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-400 text-sm">Keep leveling up to unlock benefits!</p>
+                    <p className="text-gray-300 text-sm">Keep leveling up to unlock benefits!</p>
                   )}
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default function LevelsPage() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-gray-400 text-sm">No special benefits yet</p>
+                      <p className="text-gray-300 text-sm">No special benefits yet</p>
                     )}
                   </div>
                 </div>
@@ -200,7 +200,7 @@ export default function LevelsPage() {
                         }`}>
                           {level}
                         </div>
-                        <h3 className={`font-semibold ${isUnlocked ? 'text-white' : 'text-gray-400'}`}>
+                        <h3 className={`font-semibold ${isUnlocked ? 'text-white' : 'text-gray-300'}`}>
                           Level {level}
                         </h3>
                         <p className={`text-sm ${isUnlocked ? 'text-gray-300' : 'text-gray-500'}`}>

@@ -118,6 +118,7 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
             <button
               onClick={onClose}
               className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/20 flex items-center justify-center text-gray-300 hover:text-white transition-all flex-shrink-0"
+              aria-label="Close theme customizer"
             >
               ✕
             </button>
@@ -131,7 +132,7 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
           <div className="mb-10">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-white">Predefined Themes</h3>
-              <span className="text-sm text-gray-400">{predefinedThemes.length} themes available</span>
+              <span className="text-sm text-gray-300">{predefinedThemes.length} themes available</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -167,7 +168,7 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
                   {/* Theme Info */}
                   <div>
                     <h4 className="font-semibold text-white mb-1">{theme.name}</h4>
-                    <p className="text-xs text-gray-400 line-clamp-1">{theme.description}</p>
+                    <p className="text-xs text-gray-300 line-clamp-1">{theme.description}</p>
                   </div>
 
                   {/* Selected Indicator */}
@@ -186,7 +187,7 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
             <div className="mb-10 border-t border-white/20 pt-8">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-white">My Custom Themes</h3>
-                <span className="text-sm text-gray-400">3 slots available</span>
+                <span className="text-sm text-gray-300">3 slots available</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -228,7 +229,7 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
                     {/* Theme Info */}
                     <div className="mb-3">
                       <h4 className="font-semibold text-white mb-1">{theme.name}</h4>
-                      <p className="text-xs text-gray-400 line-clamp-1">{theme.description}</p>
+                      <p className="text-xs text-gray-300 line-clamp-1">{theme.description}</p>
                     </div>
 
                     {/* Action Buttons */}
@@ -277,7 +278,7 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
           <div className="border-t border-white/20 pt-8">
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-white mb-1">Create Custom Theme</h3>
-              <p className="text-sm text-gray-400">Design your own unique color scheme</p>
+              <p className="text-sm text-gray-300">Design your own unique color scheme</p>
             </div>
 
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
@@ -308,7 +309,7 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
                       onChange={(e) => setCustomFromColor(e.target.value)}
                       className="w-full h-12 rounded-xl cursor-pointer border-2 border-white/20"
                     />
-                    <div className="mt-2 text-xs text-center font-mono text-gray-400">{customFromColor}</div>
+                    <div className="mt-2 text-xs text-center font-mono text-gray-300">{customFromColor}</div>
                   </div>
                 </div>
                 <div>
@@ -322,7 +323,7 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
                       onChange={(e) => setCustomViaColor(e.target.value)}
                       className="w-full h-12 rounded-xl cursor-pointer border-2 border-white/20"
                     />
-                    <div className="mt-2 text-xs text-center font-mono text-gray-400">{customViaColor}</div>
+                    <div className="mt-2 text-xs text-center font-mono text-gray-300">{customViaColor}</div>
                   </div>
                 </div>
                 <div>
@@ -336,7 +337,7 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
                       onChange={(e) => setCustomToColor(e.target.value)}
                       className="w-full h-12 rounded-xl cursor-pointer border-2 border-white/20"
                     />
-                    <div className="mt-2 text-xs text-center font-mono text-gray-400">{customToColor}</div>
+                    <div className="mt-2 text-xs text-center font-mono text-gray-300">{customToColor}</div>
                   </div>
                 </div>
                 <div>
@@ -350,7 +351,7 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
                       onChange={(e) => setCustomAccent(e.target.value)}
                       className="w-full h-12 rounded-xl cursor-pointer border-2 border-white/20"
                     />
-                    <div className="mt-2 text-xs text-center font-mono text-gray-400">{customAccent}</div>
+                    <div className="mt-2 text-xs text-center font-mono text-gray-300">{customAccent}</div>
                   </div>
                 </div>
               </div>
@@ -433,7 +434,7 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
                         <div className="font-semibold text-white">
                           Slot {slotIndex + 1}
                         </div>
-                        <div className="text-sm text-gray-400">
+                        <div className="text-sm text-gray-300">
                           {isEmpty ? 'Empty - Click to save here' : `Currently: ${slotTheme.name}`}
                         </div>
                       </div>
@@ -459,7 +460,7 @@ export default function ThemeCustomizer({ isOpen, onClose }: ThemeCustomizerProp
         {/* Footer */}
         <div className="flex-shrink-0 bg-gradient-to-r from-gray-900 to-gray-800 border-t border-white/20 rounded-b-2xl px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-400">
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-300">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
               <span className="hidden sm:inline">Theme applied instantly</span>
               <span className="sm:hidden">Live preview</span>

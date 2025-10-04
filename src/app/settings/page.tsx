@@ -92,7 +92,7 @@ export default function SettingsPage() {
             <div className="mt-4 flex items-center justify-between bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
               <div>
                 <p className="text-blue-300 text-sm font-medium">Edit Profile Information</p>
-                <p className="text-gray-400 text-xs">Update your username, bio, and interests</p>
+                <p className="text-gray-300 text-xs">Update your username, bio, and interests</p>
               </div>
               <Link
                 href="/profile/edit"

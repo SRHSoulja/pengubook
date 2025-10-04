@@ -2,6 +2,58 @@ import { SignJWT, jwtVerify } from 'jose'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+/**
+ * Calculate Shannon entropy to estimate randomness of the secret
+ * Higher entropy = more random and secure
+ * Perfect randomness for 64 hex chars ≈ 256 bits
+ */
+function calculateEntropy(str: string): number {
+  const len = str.length
+  const frequencies: Record<string, number> = {}
+
+  for (const char of str) {
+    frequencies[char] = (frequencies[char] || 0) + 1
+  }
+
+  let entropy = 0
+  for (const freq of Object.values(frequencies)) {
+    const p = freq / len
+    entropy -= p * Math.log2(p)
+  }
+
+  return entropy
+}
+
+/**
+ * Check for common weak patterns in secrets
+ */
+function hasWeakPatterns(secret: string): string[] {
+  const warnings: string[] = []
+
+  // Check for repeated characters (e.g., "aaaaaa")
+  if (/(.)\1{5,}/.test(secret)) {
+    warnings.push('Contains repeated characters')
+  }
+
+  // Check for sequential patterns (e.g., "123456", "abcdef")
+  if (/(?:012345|123456|234567|345678|456789|567890|abcdef|bcdefg|cdefgh)/.test(secret.toLowerCase())) {
+    warnings.push('Contains sequential patterns')
+  }
+
+  // Check for common weak secrets
+  const weakSecrets = ['secret', 'password', 'changeme', 'default', '000000', 'test']
+  if (weakSecrets.some(weak => secret.toLowerCase().includes(weak))) {
+    warnings.push('Contains common weak patterns')
+  }
+
+  // Check if it's all the same character type
+  if (/^[a-z]+$/i.test(secret) || /^\d+$/.test(secret)) {
+    warnings.push('Uses only one character type (letters or numbers)')
+  }
+
+  return warnings
+}
+
 // CRITICAL: Use dedicated SESSION_SECRET, fallback to NEXTAUTH_SECRET for compatibility
 const SESSION_SECRET = process.env.SESSION_SECRET || process.env.NEXTAUTH_SECRET
 
@@ -9,9 +61,49 @@ if (!SESSION_SECRET) {
   throw new Error('[SECURITY] SESSION_SECRET or NEXTAUTH_SECRET environment variable must be set')
 }
 
-// Warn if using weak secret
-if (SESSION_SECRET.length < 32) {
-  console.warn('[SECURITY WARNING] SESSION_SECRET is too short. Generate a secure 256-bit secret with:')
+// Validate secret strength
+const minLength = 32
+const recommendedLength = 64
+const entropy = calculateEntropy(SESSION_SECRET)
+const weakPatterns = hasWeakPatterns(SESSION_SECRET)
+
+// CRITICAL: Minimum length check
+if (SESSION_SECRET.length < minLength) {
+  throw new Error(
+    `[SECURITY] SESSION_SECRET must be at least ${minLength} characters. ` +
+    `Current length: ${SESSION_SECRET.length}. ` +
+    `Generate a secure 256-bit secret with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+  )
+}
+
+// CRITICAL: Entropy check (minimum 4.0 bits per character for hex strings)
+const minEntropy = 4.0
+if (entropy < minEntropy) {
+  console.error(`[SECURITY ERROR] SESSION_SECRET has low entropy (${entropy.toFixed(2)} bits/char).`)
+  console.error('This indicates a weak or predictable secret.')
+  console.error('Generate a cryptographically secure secret with:')
+  console.error('node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"')
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('[SECURITY] SESSION_SECRET entropy too low for production use')
+  }
+}
+
+// CRITICAL: Check for weak patterns
+if (weakPatterns.length > 0) {
+  console.error('[SECURITY ERROR] SESSION_SECRET contains weak patterns:')
+  weakPatterns.forEach(pattern => console.error(`  - ${pattern}`))
+  console.error('Generate a new secret with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"')
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('[SECURITY] SESSION_SECRET contains weak patterns, unsafe for production')
+  }
+}
+
+// Warnings for suboptimal but acceptable secrets
+if (SESSION_SECRET.length < recommendedLength) {
+  console.warn(`[SECURITY WARNING] SESSION_SECRET is shorter than recommended (${SESSION_SECRET.length}/${recommendedLength} chars).`)
+  console.warn('For optimal security, use a 512-bit (64-char hex) secret:')
   console.warn('node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"')
 }
 
@@ -19,6 +111,11 @@ if (SESSION_SECRET.length < 32) {
 if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
   console.warn('[SECURITY WARNING] Using NEXTAUTH_SECRET as SESSION_SECRET in production.')
   console.warn('For better security, set a dedicated SESSION_SECRET environment variable.')
+}
+
+// Log entropy in development for debugging
+if (process.env.NODE_ENV !== 'production') {
+  console.log(`[Session] SECRET entropy: ${entropy.toFixed(2)} bits/char, length: ${SESSION_SECRET.length} chars`)
 }
 
 const secret = new TextEncoder().encode(SESSION_SECRET)
@@ -30,6 +127,7 @@ export interface SessionData {
   isAdmin: boolean
   timestamp: number
   jti?: string // JWT ID for revocation tracking
+  [key: string]: unknown // Index signature for JWT compatibility
 }
 
 /**

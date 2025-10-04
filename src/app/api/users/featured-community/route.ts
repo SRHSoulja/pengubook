@@ -1,20 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { withAuth } from '@/lib/auth-middleware'
 
 export const dynamic = 'force-dynamic'
 
-// Update featured community
-export async function PUT(request: NextRequest) {
+// SECURITY: Featured community updates require authentication
+export const PUT = withAuth(async (request: NextRequest, user: any) => {
   try {
-    const userId = request.headers.get('x-user-id')
+    // SECURITY: Use user ID from authenticated session
+    const userId = user.id
     const { communityId } = await request.json()
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 401 }
-      )
-    }
 
     // Verify user is a member of the community
     if (communityId) {
@@ -53,4 +48,4 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

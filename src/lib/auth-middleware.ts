@@ -90,15 +90,9 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       }
     }
 
-    // Method 4: Direct user ID header (for internal API calls only - consider removing)
-    if (!userId && userIdHeader) {
-      // Log this usage as it's a potential security risk
-      console.warn('[Auth] Direct user ID header used:', {
-        userId: userIdHeader.slice(0, 8) + '...',
-        ip: request.headers.get('x-forwarded-for') || 'unknown'
-      })
-      userId = userIdHeader
-    }
+    // Method 4: REMOVED - Direct user ID header was a critical security vulnerability
+    // Any client could impersonate any user by setting x-user-id header
+    // If internal API calls are needed, use service-to-service authentication instead
 
     if (!userId && !walletAddress) {
       return {
@@ -296,31 +290,63 @@ export function withAdminAuth(handler: (request: NextRequest, user: any, ...args
   }
 }
 
-// Rate limiting utilities
-const requestCounts = new Map<string, { count: number; resetTime: number }>()
-
-export function rateLimit(
+// Rate limiting utilities - DATABASE-BACKED
+// Replaces in-memory Map to work across serverless instances
+export async function rateLimit(
   key: string,
   maxRequests: number = 100,
   windowMs: number = 15 * 60 * 1000 // 15 minutes
-): { allowed: boolean; remaining: number; resetTime: number } {
+): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
   const now = Date.now()
-  const record = requestCounts.get(key)
+  const resetTime = now + windowMs
 
-  if (!record || now > record.resetTime) {
-    // Reset or create new record
-    const resetTime = now + windowMs
-    requestCounts.set(key, { count: 1, resetTime })
+  try {
+    // Try to find existing rate limit record
+    const record = await prisma.rateLimit.findUnique({
+      where: { key }
+    })
+
+    if (!record || BigInt(now) > record.resetTime) {
+      // Create or reset rate limit record
+      await prisma.rateLimit.upsert({
+        where: { key },
+        update: {
+          count: 1,
+          resetTime: BigInt(resetTime),
+          updatedAt: new Date()
+        },
+        create: {
+          key,
+          count: 1,
+          resetTime: BigInt(resetTime)
+        }
+      })
+      return { allowed: true, remaining: maxRequests - 1, resetTime }
+    }
+
+    if (record.count >= maxRequests) {
+      return { allowed: false, remaining: 0, resetTime: Number(record.resetTime) }
+    }
+
+    // Increment count
+    await prisma.rateLimit.update({
+      where: { key },
+      data: {
+        count: { increment: 1 },
+        updatedAt: new Date()
+      }
+    })
+
+    return {
+      allowed: true,
+      remaining: maxRequests - (record.count + 1),
+      resetTime: Number(record.resetTime)
+    }
+  } catch (error) {
+    console.error('[Rate Limit] Database error:', error)
+    // Fallback: allow request but log error
     return { allowed: true, remaining: maxRequests - 1, resetTime }
   }
-
-  if (record.count >= maxRequests) {
-    return { allowed: false, remaining: 0, resetTime: record.resetTime }
-  }
-
-  record.count++
-  requestCounts.set(key, record)
-  return { allowed: true, remaining: maxRequests - record.count, resetTime: record.resetTime }
 }
 
 export function withRateLimit(
@@ -336,7 +362,7 @@ export function withRateLimit(
                         'unknown'
       const key = keyGenerator ? keyGenerator(request) : defaultKey
 
-      const { allowed, remaining, resetTime } = rateLimit(key, maxRequests, windowMs)
+      const { allowed, remaining, resetTime } = await rateLimit(key, maxRequests, windowMs)
 
       if (!allowed) {
         return new Response(

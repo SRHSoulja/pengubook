@@ -277,7 +277,7 @@ export default function TipButton({ userId }: TipButtonProps) {
               </h3>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-white transition-colors text-2xl"
+                className="text-gray-300 hover:text-white transition-colors text-2xl"
               >
                 ✕
               </button>
@@ -304,7 +304,7 @@ export default function TipButton({ userId }: TipButtonProps) {
               {loadingTokens ? (
                 <div className="flex items-center justify-center py-8 bg-white/5 rounded-xl">
                   <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="ml-3 text-gray-400">Loading your tokens...</span>
+                  <span className="ml-3 text-gray-300">Loading your tokens...</span>
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
@@ -332,7 +332,7 @@ export default function TipButton({ userId }: TipButtonProps) {
                             {nativeToken.symbol}
                             <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full">Native</span>
                           </div>
-                          <div className="text-xs text-gray-400">Ethereum</div>
+                          <div className="text-xs text-gray-300">Ethereum</div>
                         </div>
                       </div>
                       <div className="text-right">
@@ -371,7 +371,7 @@ export default function TipButton({ userId }: TipButtonProps) {
                               <span className="text-cyan-400 text-sm" title="Verified Token">✓</span>
                             )}
                           </div>
-                          <div className="text-xs text-gray-400 truncate max-w-[150px]">{token.name}</div>
+                          <div className="text-xs text-gray-300 truncate max-w-[150px]">{token.name}</div>
                         </div>
                       </div>
                       <div className="text-right">
@@ -386,7 +386,7 @@ export default function TipButton({ userId }: TipButtonProps) {
                   {!nativeToken && tokens.length === 0 && (
                     <div className="text-center py-8 bg-gray-700/20 rounded-xl">
                       <img src="https://gmgnrepeat.com/icons/penguintip1.png" alt="No tokens" className="w-12 h-12 mx-auto mb-2" />
-                      <p className="text-gray-400">No tokens available</p>
+                      <p className="text-gray-300">No tokens available</p>
                       <p className="text-xs text-gray-500 mt-1">Add tokens to your wallet to send tips</p>
                     </div>
                   )}
@@ -412,7 +412,7 @@ export default function TipButton({ userId }: TipButtonProps) {
               </div>
               {selectedToken && (
                 <div className="mt-2 flex items-center justify-between text-sm">
-                  <span className="text-gray-400">
+                  <span className="text-gray-300">
                     Available: <span className="text-white font-medium">
                       {selectedToken === 'ETH'
                         ? parseFloat(nativeToken?.balance || '0').toFixed(6)
@@ -449,7 +449,7 @@ export default function TipButton({ userId }: TipButtonProps) {
                 maxLength={200}
                 className="w-full bg-gray-700/30 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent resize-none"
               />
-              <div className="mt-1 text-xs text-gray-400 text-right">
+              <div className="mt-1 text-xs text-gray-300 text-right">
                 {message.length}/200
               </div>
             </div>

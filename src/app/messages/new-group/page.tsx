@@ -201,7 +201,7 @@ export default function NewGroupPage() {
                     className="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:border-purple-400"
                     maxLength={100}
                   />
-                  <p className="text-gray-400 text-xs mt-1">{groupInfo.name.length}/100 characters</p>
+                  <p className="text-gray-300 text-xs mt-1">{groupInfo.name.length}/100 characters</p>
                 </div>
 
                 <div>
@@ -216,7 +216,7 @@ export default function NewGroupPage() {
                     className="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:border-purple-400 resize-none"
                     maxLength={500}
                   />
-                  <p className="text-gray-400 text-xs mt-1">{groupInfo.description.length}/500 characters</p>
+                  <p className="text-gray-300 text-xs mt-1">{groupInfo.description.length}/500 characters</p>
                 </div>
 
                 <div>
@@ -242,7 +242,7 @@ export default function NewGroupPage() {
                         onError={() => setGroupInfo(prev => ({ ...prev, avatar: '' }))}
                       />
                     </div>
-                    <p className="text-gray-400 text-sm mt-2">Avatar preview</p>
+                    <p className="text-gray-300 text-sm mt-2">Avatar preview</p>
                   </div>
                 )}
 
@@ -364,7 +364,7 @@ export default function NewGroupPage() {
                 )}
 
                 {searchTerm && searchResults.length === 0 && (
-                  <div className="text-center text-gray-400 py-8">
+                  <div className="text-center text-gray-300 py-8">
                     <p>No users found matching "{searchTerm}"</p>
                   </div>
                 )}

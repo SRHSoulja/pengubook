@@ -227,7 +227,7 @@ export default function ProfileEditPage() {
                       </div>
                       <div>
                         <h4 className="font-medium text-white">Default Avatar</h4>
-                        <p className="text-sm text-gray-400">Use the default penguin avatar</p>
+                        <p className="text-sm text-gray-300">Use the default penguin avatar</p>
                       </div>
                       <div className="ml-auto">
                         <div className={`w-4 h-4 rounded-full border-2 ${
@@ -254,7 +254,7 @@ export default function ProfileEditPage() {
                         />
                         <div>
                           <h4 className="font-medium text-white">Discord Avatar</h4>
-                          <p className="text-sm text-gray-400">From @{(user as any).discordName}</p>
+                          <p className="text-sm text-gray-300">From @{(user as any).discordName}</p>
                         </div>
                         <div className="ml-auto">
                           <div className={`w-4 h-4 rounded-full border-2 ${
@@ -282,7 +282,7 @@ export default function ProfileEditPage() {
                         />
                         <div>
                           <h4 className="font-medium text-white">X (Twitter) Avatar</h4>
-                          <p className="text-sm text-gray-400">From {(user as any).twitterHandle}</p>
+                          <p className="text-sm text-gray-300">From {(user as any).twitterHandle}</p>
                         </div>
                         <div className="ml-auto">
                           <div className={`w-4 h-4 rounded-full border-2 ${
@@ -318,7 +318,7 @@ export default function ProfileEditPage() {
               {(user.discordName || user.twitterHandle) && (
                 <div className="bg-black/20 p-4 rounded-lg border border-white/10">
                   <h4 className="text-sm font-medium text-gray-300 mb-2">Linked Social Accounts</h4>
-                  <p className="text-xs text-gray-400 mb-3">These are managed via Settings → Social Account Linking</p>
+                  <p className="text-xs text-gray-300 mb-3">These are managed via Settings → Social Account Linking</p>
 
                   {user.discordName && (
                     <div className="flex items-center justify-between mb-2">
@@ -342,7 +342,7 @@ export default function ProfileEditPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white font-medium">Auto-show ALL NSFW Content</p>
-                    <p className="text-xs text-gray-400 mt-1">Automatically reveal all NSFW posts without clicking</p>
+                    <p className="text-xs text-gray-300 mt-1">Automatically reveal all NSFW posts without clicking</p>
                   </div>
                   <button
                     type="button"
@@ -363,7 +363,7 @@ export default function ProfileEditPage() {
                 {!formData.showNSFW && (
                   <div className="mt-4 pt-4 border-t border-white/10">
                     <p className="text-sm text-white font-medium mb-2">Or choose specific categories to auto-show:</p>
-                    <p className="text-xs text-gray-400 mb-3">Select which types of content you're comfortable seeing automatically</p>
+                    <p className="text-xs text-gray-300 mb-3">Select which types of content you're comfortable seeing automatically</p>
                     <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto pr-2">
                       {OPTIONAL_NSFW_CATEGORIES.map((category) => (
                         <label
@@ -383,7 +383,7 @@ export default function ProfileEditPage() {
                           />
                           <div className="flex-1">
                             <p className="text-sm text-white">{category.label}</p>
-                            <p className="text-xs text-gray-400">{category.description}</p>
+                            <p className="text-xs text-gray-300">{category.description}</p>
                           </div>
                         </label>
                       ))}

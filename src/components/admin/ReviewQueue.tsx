@@ -206,7 +206,7 @@ export default function ReviewQueue() {
                     <p className="text-white font-semibold truncate">
                       {post.author.displayName || post.author.username}
                     </p>
-                    <p className="text-gray-400 text-xs">
+                    <p className="text-gray-300 text-xs">
                       {new Date(post.createdAt).toLocaleString()}
                     </p>
                   </div>
@@ -239,7 +239,7 @@ export default function ReviewQueue() {
                 )}
 
                 {/* Moderation Info */}
-                <div className="text-xs text-gray-400">
+                <div className="text-xs text-gray-300">
                   <p>Status: <strong className="text-orange-400">{post.moderationStatus}</strong></p>
                   {post.moderationData?.confidence && (
                     <p>Confidence: {Math.round(post.moderationData.confidence)}%</p>

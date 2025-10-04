@@ -68,7 +68,7 @@ export default function BookmarkButton({
         ${sizeClasses[size]}
         ${bookmarked
           ? 'text-yellow-400 hover:text-yellow-500'
-          : 'text-gray-400 hover:text-yellow-400'
+          : 'text-gray-300 hover:text-yellow-400'
         }
         transition-colors duration-200 disabled:opacity-50 rounded-full
         hover:bg-yellow-400/10 flex items-center space-x-1

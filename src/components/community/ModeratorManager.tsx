@@ -166,7 +166,7 @@ export default function ModeratorManager({ communityId, creatorId, isCreator }: 
             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
               <span>👑</span> Moderators
             </h2>
-            <p className="text-gray-400 text-sm mt-1">
+            <p className="text-gray-300 text-sm mt-1">
               Manage community moderators and their permissions
             </p>
           </div>
@@ -182,7 +182,7 @@ export default function ModeratorManager({ communityId, creatorId, isCreator }: 
 
         {/* Moderator List */}
         {moderators.length === 0 ? (
-          <p className="text-gray-400 text-center py-8">
+          <p className="text-gray-300 text-center py-8">
             No moderators assigned yet.
           </p>
         ) : (
@@ -208,7 +208,7 @@ export default function ModeratorManager({ communityId, creatorId, isCreator }: 
                   </div>
                   <div>
                     <p className="text-white font-medium">{mod.user.displayName}</p>
-                    <p className="text-gray-400 text-sm">@{mod.user.username}</p>
+                    <p className="text-gray-300 text-sm">@{mod.user.username}</p>
                     <p className="text-cyan-400 text-xs mt-1">
                       {mod.permissions.length} permission{mod.permissions.length !== 1 ? 's' : ''}
                     </p>
@@ -260,7 +260,7 @@ export default function ModeratorManager({ communityId, creatorId, isCreator }: 
                   className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
                     !useCustomPermissions
                       ? 'bg-cyan-500 text-white'
-                      : 'bg-black/40 text-gray-400 hover:bg-black/60'
+                      : 'bg-black/40 text-gray-300 hover:bg-black/60'
                   }`}
                 >
                   Use Preset
@@ -270,7 +270,7 @@ export default function ModeratorManager({ communityId, creatorId, isCreator }: 
                   className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
                     useCustomPermissions
                       ? 'bg-cyan-500 text-white'
-                      : 'bg-black/40 text-gray-400 hover:bg-black/60'
+                      : 'bg-black/40 text-gray-300 hover:bg-black/60'
                   }`}
                 >
                   Custom Permissions
@@ -313,7 +313,7 @@ export default function ModeratorManager({ communityId, creatorId, isCreator }: 
                             <span className="text-lg">{desc.icon}</span>
                             <span className="text-white font-medium">{desc.name}</span>
                           </div>
-                          <p className="text-gray-400 text-sm">{desc.description}</p>
+                          <p className="text-gray-300 text-sm">{desc.description}</p>
                         </div>
                       </label>
                     ))}

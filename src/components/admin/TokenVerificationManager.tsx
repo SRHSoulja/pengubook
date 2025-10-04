@@ -153,10 +153,10 @@ export default function TokenVerificationManager() {
         {loading ? (
           <div className="text-center py-8">
             <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-400">Loading tokens...</p>
+            <p className="text-gray-300">Loading tokens...</p>
           </div>
         ) : availableTokens.length === 0 ? (
-          <div className="text-center py-8 text-gray-400 bg-black/30 rounded-xl">
+          <div className="text-center py-8 text-gray-300 bg-black/30 rounded-xl">
             No unverified tokens found in user wallets
           </div>
         ) : (
@@ -166,7 +166,7 @@ export default function TokenVerificationManager() {
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1">
                     <div className="text-white font-semibold">{token.symbol || 'Unknown'}</div>
-                    {token.name && <div className="text-sm text-gray-400">{token.name}</div>}
+                    {token.name && <div className="text-sm text-gray-300">{token.name}</div>}
                     <div className="text-xs text-gray-500 font-mono mt-1">{token.tokenAddress}</div>
                   </div>
                   {token.seenCount && token.seenCount > 1 && (
@@ -191,7 +191,7 @@ export default function TokenVerificationManager() {
       <div>
         <h3 className="text-lg font-semibold text-white mb-4">Verified Tokens</h3>
         {verifiedTokens.length === 0 ? (
-          <div className="text-center py-8 text-gray-400 bg-black/30 rounded-xl">
+          <div className="text-center py-8 text-gray-300 bg-black/30 rounded-xl">
             No verified tokens
           </div>
         ) : (
@@ -206,10 +206,10 @@ export default function TokenVerificationManager() {
                         <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    {token.name && <div className="text-sm text-gray-400">{token.name}</div>}
+                    {token.name && <div className="text-sm text-gray-300">{token.name}</div>}
                     <div className="text-xs text-gray-500 font-mono mt-1">{token.tokenAddress}</div>
                   </div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-gray-300">
                     Verified {new Date(token.verifiedAt).toLocaleDateString()}
                   </div>
                 </div>

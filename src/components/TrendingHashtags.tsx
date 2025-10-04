@@ -75,7 +75,7 @@ export default function TrendingHashtags({
     if (growth > 0) return 'text-green-300'
     if (growth < -20) return 'text-red-400'
     if (growth < 0) return 'text-red-300'
-    return 'text-gray-400'
+    return 'text-gray-300'
   }
 
   const timeframeOptions = [
@@ -101,7 +101,7 @@ export default function TrendingHashtags({
                 px-2 py-1 text-xs rounded transition-colors
                 ${selectedTimeframe === option.value
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50'
-                  : 'text-gray-400 hover:text-gray-300'
+                  : 'text-gray-300 hover:text-gray-300'
                 }
               `}
               title={`Last ${option.label.toLowerCase()}`}
@@ -116,7 +116,7 @@ export default function TrendingHashtags({
       {loading ? (
         <div className="text-center py-4">
           <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-          <p className="text-gray-400 text-sm">Loading trends...</p>
+          <p className="text-gray-300 text-sm">Loading trends...</p>
         </div>
       ) : error ? (
         <div className="text-center py-4">
@@ -124,7 +124,7 @@ export default function TrendingHashtags({
         </div>
       ) : hashtags.length === 0 ? (
         <div className="text-center py-4">
-          <p className="text-gray-400 text-sm">No trending hashtags yet</p>
+          <p className="text-gray-300 text-sm">No trending hashtags yet</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -135,14 +135,14 @@ export default function TrendingHashtags({
               onClick={() => handleHashtagClick(hashtag.tag)}
             >
               <div className="flex items-center space-x-3 flex-1">
-                <div className="text-gray-400 text-sm font-mono w-4 text-center">
+                <div className="text-gray-300 text-sm font-mono w-4 text-center">
                   {index + 1}
                 </div>
                 <div className="flex-1">
                   <div className="text-cyan-400 font-medium group-hover:text-cyan-300 transition-colors">
                     #{hashtag.tag}
                   </div>
-                  <div className="text-gray-400 text-xs">
+                  <div className="text-gray-300 text-xs">
                     {hashtag.recentPosts} posts
                     {showGrowth && hashtag.growth !== 0 && (
                       <span className={`ml-2 ${getGrowthColor(hashtag.growth)}`}>
@@ -164,7 +164,7 @@ export default function TrendingHashtags({
       )}
 
       <div className="mt-4 pt-3 border-t border-white/10">
-        <p className="text-xs text-gray-400 text-center">
+        <p className="text-xs text-gray-300 text-center">
           Hashtags trending in the last {selectedTimeframe === 'hour' ? 'hour' : selectedTimeframe}
         </p>
       </div>

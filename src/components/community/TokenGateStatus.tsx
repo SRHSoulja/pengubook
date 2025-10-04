@@ -73,28 +73,28 @@ export default function TokenGateStatus({
             <div className="space-y-2 text-sm">
               {tokenAccess.tokenGateType && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-gray-400">Token Type:</span>
+                  <span className="text-gray-300">Token Type:</span>
                   <span className="text-white font-medium">{tokenAccess.tokenGateType}</span>
                 </div>
               )}
 
               {tokenAccess.tokenSymbol && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-gray-400">Token:</span>
+                  <span className="text-gray-300">Token:</span>
                   <span className="text-white font-medium">{tokenAccess.tokenSymbol}</span>
                 </div>
               )}
 
               {tokenAccess.userBalance && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-gray-400">Your Balance:</span>
+                  <span className="text-gray-300">Your Balance:</span>
                   <span className="text-green-400 font-medium">{tokenAccess.userBalance}</span>
                 </div>
               )}
 
               {tokenAccess.ownedTokenIds && tokenAccess.ownedTokenIds.length > 0 && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-gray-400">Owned Token IDs:</span>
+                  <span className="text-gray-300">Owned Token IDs:</span>
                   <span className="text-white font-medium">
                     {tokenAccess.ownedTokenIds.slice(0, 5).join(', ')}
                     {tokenAccess.ownedTokenIds.length > 5 && ` +${tokenAccess.ownedTokenIds.length - 5} more`}
@@ -126,28 +126,28 @@ export default function TokenGateStatus({
             <div className="bg-black/30 rounded-lg p-4 space-y-2">
               {tokenAccess.tokenGateType && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-gray-400">Token Type:</span>
+                  <span className="text-gray-300">Token Type:</span>
                   <span className="text-white font-medium">{tokenAccess.tokenGateType}</span>
                 </div>
               )}
 
               {tokenAccess.tokenSymbol && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-gray-400">Token:</span>
+                  <span className="text-gray-300">Token:</span>
                   <span className="text-white font-medium">{tokenAccess.tokenSymbol}</span>
                 </div>
               )}
 
               {tokenAccess.tokenMinAmount && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-gray-400">Minimum Amount:</span>
+                  <span className="text-gray-300">Minimum Amount:</span>
                   <span className="text-white font-medium">{tokenAccess.tokenMinAmount}</span>
                 </div>
               )}
 
               {tokenAccess.userBalance !== undefined && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-gray-400">Your Balance:</span>
+                  <span className="text-gray-300">Your Balance:</span>
                   <span className="text-red-400 font-medium">
                     {tokenAccess.userBalance || '0'}
                   </span>
@@ -155,7 +155,7 @@ export default function TokenGateStatus({
               )}
             </div>
 
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-gray-300">
               <p>💡 To gain access to this community, you need to acquire the required tokens.</p>
             </div>
           </div>

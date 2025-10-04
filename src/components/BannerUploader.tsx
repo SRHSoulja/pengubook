@@ -254,7 +254,7 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
         />
       </div>
 
-      <p className="text-xs text-gray-400 mt-2">
+      <p className="text-xs text-gray-300 mt-2">
         Recommended: 1500x500px • Max 10MB • JPG, PNG, or GIF
       </p>
       </div>

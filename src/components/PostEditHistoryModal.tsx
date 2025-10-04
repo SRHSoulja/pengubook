@@ -79,7 +79,7 @@ export default function PostEditHistoryModal({
           <h3 className="text-xl font-bold text-white">Edit History</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-300 hover:text-white transition-colors"
           >
             ✕
           </button>
@@ -90,7 +90,7 @@ export default function PostEditHistoryModal({
           {loading ? (
             <div className="text-center py-8">
               <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-400">Loading edit history...</p>
+              <p className="text-gray-300">Loading edit history...</p>
             </div>
           ) : error ? (
             <div className="text-center py-8">
@@ -99,7 +99,7 @@ export default function PostEditHistoryModal({
           ) : edits.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-4xl mb-2">📝</div>
-              <p className="text-gray-400">No edit history</p>
+              <p className="text-gray-300">No edit history</p>
               <p className="text-sm text-gray-500 mt-2">This post hasn't been edited yet</p>
             </div>
           ) : (
@@ -129,7 +129,7 @@ export default function PostEditHistoryModal({
                   {/* Edit reason */}
                   {edit.reason && (
                     <div className="mb-3 text-sm">
-                      <span className="text-gray-400">Reason: </span>
+                      <span className="text-gray-300">Reason: </span>
                       <span className="text-yellow-400 italic">{edit.reason}</span>
                     </div>
                   )}

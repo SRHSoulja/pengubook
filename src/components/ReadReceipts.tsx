@@ -100,7 +100,7 @@ export default function ReadReceipts({
 
       {/* Read status text */}
       {showNames && (
-        <span className="text-gray-400 text-xs">
+        <span className="text-gray-300 text-xs">
           {otherReaders.length === 1
             ? `Read by ${otherReaders[0].displayName}`
             : `Read by ${otherReaders.length} people`
@@ -132,7 +132,7 @@ export default function ReadReceipts({
                   </div>
                   <div className="flex-1">
                     <div className="text-white font-medium">{reader.displayName}</div>
-                    <div className="text-gray-400 text-sm">
+                    <div className="text-gray-300 text-sm">
                       Read {formatReadTime(reader.readAt)}
                     </div>
                   </div>
@@ -203,7 +203,7 @@ export function DeliveryStatus({
       )}
 
       {status === 'delivered' && (
-        <div className="flex space-x-px text-gray-400">
+        <div className="flex space-x-px text-gray-300">
           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"

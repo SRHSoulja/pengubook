@@ -8,6 +8,22 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Pengu Official Brand Colors
+        pengu: {
+          green: '#00E177', // Primary brand color - Pengu green
+          orange: '#FFB92E', // Accent color - Pengu orange (beak & feet)
+          // Generated shades for the green
+          50: '#e6fff4',
+          100: '#b3ffe0',
+          200: '#80ffcc',
+          300: '#4dffb8',
+          400: '#1affa4',
+          500: '#00E177', // Main green
+          600: '#00b35f',
+          700: '#008647',
+          800: '#00592f',
+          900: '#002b17',
+        },
         // Web3 Inspired Color Palette
         primary: {
           50: '#f0f9ff',

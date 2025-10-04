@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 import { validate } from '@/lib/validation'
+import { ErrorResponses, sanitizeError } from '@/lib/error-response'
 
 export const dynamic = 'force-dynamic'
 
@@ -108,10 +109,8 @@ export async function GET(request: NextRequest) {
 
   } catch (error: any) {
     logAPI.error('tips', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch tips', details: error.message },
-      { status: 500 }
-    )
+    // SECURITY: Sanitize error response in production
+    return ErrorResponses.internalError(sanitizeError(error))
   }
 }
 
@@ -220,14 +219,77 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
       )
     }
 
-    // TODO: Verify the transaction on-chain
-    // For now, we'll create the tip as PENDING and require admin confirmation
-    // In production, you would:
-    // 1. Verify the transaction exists on blockchain
-    // 2. Verify the amounts match
-    // 3. Verify the from/to addresses match user wallet addresses
-    // 4. Update status to COMPLETED after verification
+    // === CRITICAL SECURITY: Verify transaction on-chain BEFORE recording ===
+    // Get sender's wallet address
+    const senderUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { walletAddress: true }
+    })
 
+    if (!senderUser?.walletAddress) {
+      return NextResponse.json(
+        { error: 'Sender wallet address not found. Please reconnect your wallet.' },
+        { status: 400 }
+      )
+    }
+
+    // Get recipient's wallet address
+    const recipientUser = await prisma.user.findUnique({
+      where: { id: validToUserId },
+      select: { walletAddress: true }
+    })
+
+    if (!recipientUser?.walletAddress) {
+      return NextResponse.json(
+        { error: 'Recipient wallet address not found' },
+        { status: 400 }
+      )
+    }
+
+    // Import verification utility
+    const { verifyTransaction } = await import('@/lib/utils/transaction-verification')
+
+    // Verify transaction exists and succeeded on-chain
+    const txVerification = await verifyTransaction(validTxHash, 1)
+
+    if (!txVerification.exists) {
+      return NextResponse.json(
+        { error: 'Transaction not found on blockchain. Please ensure the transaction is confirmed.' },
+        { status: 404 }
+      )
+    }
+
+    if (!txVerification.confirmed) {
+      return NextResponse.json(
+        { error: 'Transaction not yet confirmed. Please wait for confirmation and try again.' },
+        { status: 425 } // Too Early status code
+      )
+    }
+
+    if (!txVerification.success) {
+      return NextResponse.json(
+        { error: 'Transaction failed on blockchain', details: txVerification.error },
+        { status: 400 }
+      )
+    }
+
+    // Verify sender matches authenticated user's wallet
+    if (txVerification.from?.toLowerCase() !== senderUser.walletAddress.toLowerCase()) {
+      return NextResponse.json(
+        { error: 'Transaction sender does not match your wallet address' },
+        { status: 403 }
+      )
+    }
+
+    // Verify recipient matches target user's wallet
+    if (txVerification.to?.toLowerCase() !== recipientUser.walletAddress.toLowerCase()) {
+      return NextResponse.json(
+        { error: 'Transaction recipient does not match target user wallet' },
+        { status: 403 }
+      )
+    }
+
+    // Create tip with COMPLETED status (already verified on-chain)
     const newTip = await prisma.tip.create({
       data: {
         fromUserId: user.id,
@@ -237,7 +299,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
         transactionHash: validTxHash,
         message: validMessage || null,
         isPublic: validIsPublic,
-        status: 'PENDING' // Will be updated to COMPLETED after blockchain verification
+        status: 'COMPLETED' // Already verified on-chain
       },
       include: {
         fromUser: {
@@ -327,9 +389,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
 
   } catch (error: any) {
     logAPI.error('tips', error)
-    return NextResponse.json(
-      { error: 'Failed to create tip', details: error.message },
-      { status: 500 }
-    )
+    // SECURITY: Sanitize error response in production
+    return ErrorResponses.internalError(sanitizeError(error))
   }
 }))

@@ -239,13 +239,13 @@ export default function FriendsPage() {
                               </div>
                               <p className="text-gray-300 text-sm mb-2">@{friend.username}</p>
 
-                              <div className="flex items-center gap-4 text-xs text-gray-400 mb-3">
+                              <div className="flex items-center gap-4 text-xs text-gray-300 mb-3">
                                 <span>Level {friend.level}</span>
                                 <span>{friend.profile.followersCount} followers</span>
                                 <span>{friend.profile.postsCount} posts</span>
                               </div>
 
-                              <p className="text-gray-400 text-xs">
+                              <p className="text-gray-300 text-xs">
                                 {friend.isOnline ? 'Online now' : `Last seen ${new Date(friend.lastSeen).toLocaleDateString()}`}
                               </p>
                             </div>
@@ -308,7 +308,7 @@ export default function FriendsPage() {
                                     {otherUser.profile.profileVerified && <span className="text-blue-400">✓</span>}
                                   </div>
                                   <p className="text-gray-300 text-sm mb-1">@{otherUser.username}</p>
-                                  <p className="text-gray-400 text-xs">
+                                  <p className="text-gray-300 text-xs">
                                     {request.initiator?.id === user?.id ? 'Request sent' : 'Wants to be friends'} • {new Date(request.createdAt).toLocaleDateString()}
                                   </p>
                                 </div>

@@ -64,28 +64,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchedProfileFor = useRef<string | null>(null)
   const inflightRef = useRef<Promise<any> | null>(null)
 
-  // Check for existing auth on mount
+  // SECURITY: Removed sessionStorage authentication (session fixation vulnerability)
+  // Now relying solely on HTTP-only cookies verified server-side
+  // Check for existing session on mount via server verification
   useEffect(() => {
-    // Check sessionStorage for existing auth
-    try {
-      const storedAuth = sessionStorage.getItem('pebloq-auth')
-      if (storedAuth) {
-        const authData = JSON.parse(storedAuth)
-        // Check if auth is still valid (within 24 hours)
-        if (Date.now() - authData.timestamp < 24 * 60 * 60 * 1000) {
-          console.log('[AuthProvider] Found valid stored auth, setting walletAddress')
-          setWalletAddress(authData.walletAddress)
-          if (authData.sessionToken) {
-            setSessionToken(authData.sessionToken)
+    const verifySession = async () => {
+      try {
+        const response = await fetch('/api/auth/verify-session', {
+          credentials: 'include' // Send HTTP-only cookies
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data.authenticated && data.user) {
+            console.log('[AuthProvider] Valid session found via cookie')
+            setWalletAddress(data.user.walletAddress)
+            setUser(data.user)
+            setWalletStatus('authenticated')
           }
-        } else {
-          console.log('[AuthProvider] Stored auth expired, clearing sessionStorage')
-          sessionStorage.removeItem('pebloq-auth')
         }
+      } catch (error) {
+        console.log('[AuthProvider] No valid session found')
+      } finally {
+        setLoading(false)
+        setInitialLoad(false)
       }
-    } catch (error) {
-      console.log('[AuthProvider] No valid stored auth found')
     }
+
+    verifySession()
   }, [])
 
   // Add timeout to prevent infinite loading
@@ -189,30 +195,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json()
 
       if (response.ok && data.user) {
-        // Check if user is admin based on environment variable
-        const adminWalletAddress = process.env.NEXT_PUBLIC_ADMIN_WALLET_ADDRESS
-        const isAdminByWallet = adminWalletAddress &&
-          address.toLowerCase() === adminWalletAddress.toLowerCase()
-
+        // SECURITY: Admin status comes ONLY from server-side API response
+        // Never trust client-side environment variables for privilege checks
         console.log('[AuthProvider] User data received:', {
           userId: data.user.id?.slice(0, 10) + '...',
-          isAdminFromDB: data.user.isAdmin,
-          isAdminByWallet,
-          adminWalletAddress,
+          isAdminFromServer: data.user.isAdmin,
           userWalletAddress: address
         })
 
         setUser({
-          ...data.user,
-          isAdmin: data.user.isAdmin || isAdminByWallet
+          ...data.user
+          // isAdmin already set by server in data.user.isAdmin
         })
-        // Store auth info for persistence
-        sessionStorage.setItem('pebloq-auth', JSON.stringify({
-          walletAddress: address,
-          timestamp: Date.now()
-        }))
 
-        // NOTE: Removed client-side cookie - using server-side session instead
+        // SECURITY: Removed sessionStorage - relying on HTTP-only cookies only
+        // Session is managed server-side via /api/auth/wallet-login
 
         // Update login streak in background (don't await to avoid blocking)
         if (data.user.id) {
@@ -375,9 +372,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!nRes.ok) throw new Error("Failed to fetch nonce")
       const { nonce } = await nRes.json()
 
-      // 4) Build message
-      const message = JSON.stringify({
-        domain: window.location.host, // Use .host to include port (localhost:3001)
+      // 4) Build message once - exact same string for sign + POST
+      const msg = JSON.stringify({
+        domain: window.location.host,
         statement: "Sign to verify your Abstract Global Wallet.",
         nonce,
         issuedAt: new Date().toISOString(),
@@ -402,14 +399,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             await new Promise(r => (window as any).requestIdleCallback(r, { timeout: 800 }))
           }
 
-          const signature = await agw.signMessage({ message })
+          const signature = await agw.signMessage({ message: msg })
+
+          console.log('[AGW Client POST]', {
+            addr: addr,
+            chainId: agw?.chain?.id,
+            sigLen: signature.length,
+            msgPreview: msg.slice(0, 80) + (msg.length > 80 ? '...' : ''),
+          })
 
           const vRes = await fetch("/api/auth/wallet-login", {
             method: "POST",
             headers: { "content-type": "application/json" },
             credentials: "include",
             body: JSON.stringify({
-              message,
+              message: msg,
               signature,
               walletAddress: addr,
               chainId: agw?.chain?.id,
@@ -461,10 +465,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false)
       attemptedVerifyForAddr.current = null
 
-      sessionStorage.setItem('pebloq-auth', JSON.stringify({
-        walletAddress: address,
-        timestamp: Date.now()
-      }))
+      // SECURITY: Removed sessionStorage - session managed server-side only
 
     } catch (error) {
       console.error('[AGW Auth] Authentication failed:', error)

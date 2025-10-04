@@ -43,7 +43,7 @@ export default function TypingIndicator({ typingUsers, getUserName, className = 
   }
 
   return (
-    <div className={`flex items-center space-x-2 text-gray-400 text-sm py-2 ${className}`}>
+    <div className={`flex items-center space-x-2 text-gray-300 text-sm py-2 ${className}`}>
       {/* Typing Animation */}
       <div className="flex space-x-1">
         <div className={`w-2 h-2 bg-cyan-400 rounded-full animate-bounce ${dotsAnimation === 0 ? 'opacity-100' : 'opacity-50'}`}
@@ -70,7 +70,7 @@ export function CompactTypingIndicator({ typingUsers, className = '' }: { typing
   if (typingUsers.length === 0) return null
 
   return (
-    <div className={`flex items-center space-x-2 text-gray-400 text-xs ${className}`}>
+    <div className={`flex items-center space-x-2 text-gray-300 text-xs ${className}`}>
       <div className="flex space-x-1">
         <div className="w-1 h-1 bg-cyan-400 rounded-full animate-pulse" />
         <div className="w-1 h-1 bg-cyan-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />

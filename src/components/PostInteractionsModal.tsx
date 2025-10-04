@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 
 interface User {
   id: string
@@ -42,6 +43,9 @@ export default function PostInteractionsModal({
       fetchInteractions()
     }
   }, [isOpen, postId, activeTab])
+
+  // Keyboard navigation: ESC to close
+  useKeyboardNavigation(isOpen, onClose)
 
   const fetchInteractions = async () => {
     try {
@@ -92,7 +96,8 @@ export default function PostInteractionsModal({
           <h3 className="text-xl font-bold text-white">Post Interactions</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-300 hover:text-white transition-colors"
+            aria-label="Close modal"
           >
             ✕
           </button>
@@ -105,7 +110,7 @@ export default function PostInteractionsModal({
             className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
               activeTab === 'likes'
                 ? 'bg-pink-500/20 text-pink-400 border border-pink-500/50'
-                : 'bg-gray-700/50 text-gray-400 hover:bg-gray-700'
+                : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
             }`}
           >
             ❤️ Likes
@@ -115,7 +120,7 @@ export default function PostInteractionsModal({
             className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
               activeTab === 'shares'
                 ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50'
-                : 'bg-gray-700/50 text-gray-400 hover:bg-gray-700'
+                : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
             }`}
           >
             🔄 Shares
@@ -127,7 +132,7 @@ export default function PostInteractionsModal({
           {loading ? (
             <div className="text-center py-8">
               <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-400">Loading...</p>
+              <p className="text-gray-300">Loading...</p>
             </div>
           ) : error ? (
             <div className="text-center py-8">
@@ -138,7 +143,7 @@ export default function PostInteractionsModal({
               <div className="text-4xl mb-2">
                 {activeTab === 'likes' ? '❤️' : '🔄'}
               </div>
-              <p className="text-gray-400">
+              <p className="text-gray-300">
                 No {activeTab} yet
               </p>
             </div>
@@ -177,7 +182,7 @@ export default function PostInteractionsModal({
                       )}
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="text-gray-400 truncate">
+                      <span className="text-gray-300 truncate">
                         @{interaction.user.username}
                       </span>
                       <span className="text-gray-500">•</span>

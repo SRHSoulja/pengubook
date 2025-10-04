@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
 import { parseDecimalToWei } from '@/lib/utils/decimal-conversion'
 import { ERC20_TRANSFER_ABI } from '@/lib/constants/abis'
+import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 
 interface TipModalProps {
   isOpen: boolean
@@ -25,6 +26,9 @@ export default function TipModal({ isOpen, onClose }: TipModalProps) {
       fetchTokens()
     }
   }, [isOpen])
+
+  // Keyboard navigation: ESC to close
+  useKeyboardNavigation(isOpen, onClose)
 
   const fetchTokens = async () => {
     try {
@@ -150,7 +154,7 @@ export default function TipModal({ isOpen, onClose }: TipModalProps) {
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white text-2xl"
+            className="text-gray-300 hover:text-white text-2xl"
           >
             ×
           </button>

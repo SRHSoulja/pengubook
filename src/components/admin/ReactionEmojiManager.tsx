@@ -146,7 +146,7 @@ export default function ReactionEmojiManager() {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-white">{reactionLabels[key]}</h3>
-                <p className="text-sm text-gray-400">Default: {defaultEmojis[key]}</p>
+                <p className="text-sm text-gray-300">Default: {defaultEmojis[key]}</p>
               </div>
             </div>
 

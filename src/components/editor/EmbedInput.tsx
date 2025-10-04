@@ -112,7 +112,8 @@ export default function EmbedInput({ isOpen, onClose, onAddEmbed }: EmbedInputPr
             <h3 className="text-lg font-semibold text-white">Add Link</h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="text-gray-300 hover:text-white transition-colors"
+              aria-label="Close link input"
             >
               ✕
             </button>
@@ -139,7 +140,7 @@ export default function EmbedInput({ isOpen, onClose, onAddEmbed }: EmbedInputPr
           {loading && (
             <div className="text-center py-4">
               <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-2" />
-              <p className="text-sm text-gray-400">Generating preview...</p>
+              <p className="text-sm text-gray-300">Generating preview...</p>
             </div>
           )}
 
@@ -167,7 +168,7 @@ export default function EmbedInput({ isOpen, onClose, onAddEmbed }: EmbedInputPr
                     {preview.title}
                   </h4>
                   {preview.description && (
-                    <p className="text-gray-400 text-xs mt-1 line-clamp-2">
+                    <p className="text-gray-300 text-xs mt-1 line-clamp-2">
                       {preview.description}
                     </p>
                   )}
@@ -180,7 +181,7 @@ export default function EmbedInput({ isOpen, onClose, onAddEmbed }: EmbedInputPr
           )}
 
           {/* Supported formats info */}
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-gray-300">
             <p className="font-medium mb-1">Supported formats:</p>
             <ul className="space-y-1">
               <li>• YouTube videos</li>

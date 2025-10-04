@@ -203,7 +203,7 @@ export default function TokenManager() {
       {loading && tokens.length === 0 ? (
         <div className="text-center py-8">
           <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading tokens...</p>
+          <p className="text-gray-300">Loading tokens...</p>
         </div>
       ) : (
 
@@ -293,7 +293,7 @@ export default function TokenManager() {
             <div className="text-center py-8">
               <div className="text-4xl mb-4">🪙</div>
               <h3 className="text-xl font-bold text-white mb-2">No tokens added yet</h3>
-              <p className="text-gray-400">Add your first token to enable tipping functionality</p>
+              <p className="text-gray-300">Add your first token to enable tipping functionality</p>
             </div>
           )}
         </div>
@@ -414,7 +414,7 @@ export default function TokenManager() {
                 />
               </div>
 
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-gray-300">
                 <p><strong>Symbol:</strong> {editingToken.symbol}</p>
                 <p><strong>Contract:</strong> {editingToken.contractAddress}</p>
                 <p><strong>Decimals:</strong> {editingToken.decimals}</p>

@@ -121,7 +121,7 @@ export default function Dashboard() {
                 <img src="https://gmgnrepeat.com/icons/penguinsilhouette1.png" alt="Profile" className="w-12 h-12 group-hover:animate-float" />
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">My Profile</h3>
-                  <p className="text-sm text-gray-400">View and edit your profile</p>
+                  <p className="text-sm text-gray-300">View and edit your profile</p>
                 </div>
                 <div className="w-full h-1 bg-gradient-to-r from-emerald-400 to-purple-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </a>
@@ -133,7 +133,7 @@ export default function Dashboard() {
                 <span className="text-5xl group-hover:animate-float">⚙️</span>
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">Settings</h3>
-                  <p className="text-sm text-gray-400">Manage profile & accounts</p>
+                  <p className="text-sm text-gray-300">Manage profile & accounts</p>
                 </div>
                 <div className="w-full h-1 bg-gradient-to-r from-emerald-400 to-cyan-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </a>
@@ -145,7 +145,7 @@ export default function Dashboard() {
                 <img src="https://gmgnrepeat.com/icons/penguintip1.png" alt="Send Tip" className="w-12 h-12 group-hover:animate-float" />
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">Send Tip</h3>
-                  <p className="text-sm text-gray-400">Spread penguin love</p>
+                  <p className="text-sm text-gray-300">Spread penguin love</p>
                 </div>
                 <div className="w-full h-1 bg-gradient-to-r from-emerald-400 to-green-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </button>
@@ -157,7 +157,7 @@ export default function Dashboard() {
                 <img src="https://gmgnrepeat.com/icons/penguinfeed1.png" alt="Feed" className="w-12 h-12 group-hover:animate-float" />
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">Social Feed</h3>
-                  <p className="text-sm text-gray-400">See what's happening</p>
+                  <p className="text-sm text-gray-300">See what's happening</p>
                 </div>
                 <div className="w-full h-1 bg-gradient-to-r from-emerald-400 to-purple-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </a>
@@ -169,7 +169,7 @@ export default function Dashboard() {
                 <img src="https://gmgnrepeat.com/icons/penguindiscover1.png" alt="Discover" className="w-12 h-12 group-hover:animate-float" />
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">Discover</h3>
-                  <p className="text-sm text-gray-400">Find new penguins</p>
+                  <p className="text-sm text-gray-300">Find new penguins</p>
                 </div>
                 <div className="w-full h-1 bg-gradient-to-r from-emerald-400 to-yellow-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </a>
@@ -181,7 +181,7 @@ export default function Dashboard() {
                 <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-12 h-12 group-hover:animate-float" />
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">Communities</h3>
-                  <p className="text-sm text-gray-400">Join penguin colonies</p>
+                  <p className="text-sm text-gray-300">Join penguin colonies</p>
                 </div>
                 <div className="w-full h-1 bg-gradient-to-r from-emerald-400 to-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </a>
@@ -193,7 +193,7 @@ export default function Dashboard() {
                 <img src="https://gmgnrepeat.com/icons/penguinfriends1.png" alt="Friends" className="w-12 h-12 group-hover:animate-float" />
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">FRENS</h3>
-                  <p className="text-sm text-gray-400">Connect with penguins</p>
+                  <p className="text-sm text-gray-300">Connect with penguins</p>
                 </div>
                 <div className="w-full h-1 bg-gradient-to-r from-emerald-400 to-purple-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </a>
@@ -205,7 +205,7 @@ export default function Dashboard() {
                 <img src="https://gmgnrepeat.com/icons/penguintheme1.png" alt="Themes" className="w-12 h-12 group-hover:animate-float" />
                 <div>
                   <h3 className="font-display font-semibold text-white text-lg">Themes</h3>
-                  <p className="text-sm text-gray-400">Customize your style</p>
+                  <p className="text-sm text-gray-300">Customize your style</p>
                 </div>
                 <div className="w-full h-1 bg-gradient-to-r from-emerald-400 to-purple-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </button>

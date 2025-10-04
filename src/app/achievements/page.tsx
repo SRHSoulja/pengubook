@@ -223,29 +223,29 @@ export default function AchievementsPage() {
 
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Category:</span>
+                          <span className="text-gray-300">Category:</span>
                           <span className="text-white">{selectedAchievement.category}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Rarity:</span>
+                          <span className="text-gray-300">Rarity:</span>
                           <span className={`
                             ${selectedAchievement.rarity === 'LEGENDARY' ? 'text-yellow-400' : ''}
                             ${selectedAchievement.rarity === 'EPIC' ? 'text-purple-400' : ''}
                             ${selectedAchievement.rarity === 'RARE' ? 'text-blue-400' : ''}
-                            ${selectedAchievement.rarity === 'COMMON' ? 'text-gray-400' : ''}
+                            ${selectedAchievement.rarity === 'COMMON' ? 'text-gray-300' : ''}
                           `}>
                             {selectedAchievement.rarity}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Progress:</span>
+                          <span className="text-gray-300">Progress:</span>
                           <span className="text-white">
                             {selectedAchievement.currentValue} / {selectedAchievement.requirement}
                           </span>
                         </div>
                         {selectedAchievement.earned && selectedAchievement.unlockedAt && (
                           <div className="flex justify-between">
-                            <span className="text-gray-400">Unlocked:</span>
+                            <span className="text-gray-300">Unlocked:</span>
                             <span className="text-green-400">{formatDate(selectedAchievement.unlockedAt)}</span>
                           </div>
                         )}
@@ -259,7 +259,7 @@ export default function AchievementsPage() {
                               style={{ width: `${selectedAchievement.progress}%` }}
                             />
                           </div>
-                          <p className="text-xs text-gray-400">{selectedAchievement.progress}% complete</p>
+                          <p className="text-xs text-gray-300">{selectedAchievement.progress}% complete</p>
                         </div>
                       )}
                     </div>

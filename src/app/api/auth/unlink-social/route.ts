@@ -1,31 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { withAuth } from '@/lib/auth-middleware'
 
-export async function POST(request: NextRequest) {
+// SECURITY: CSRF Protection via withAuth + session-based authentication
+// - User must be authenticated (HTTP-only cookie with SameSite=lax)
+// - Wallet address from authenticated session, NOT request body
+// - Prevents attackers from unlinking victim's social accounts
+export const POST = withAuth(async (request: NextRequest, user: any) => {
   console.log('[UnlinkSocial] Request received:', {
     method: 'POST',
+    authenticatedUserId: user.id.slice(0, 10) + '...',
+    authenticatedWallet: user.walletAddress?.slice(0, 10) + '...',
     timestamp: new Date().toISOString()
   })
 
   try {
     const body = await request.json()
-    const { walletAddress, provider } = body
+    const { provider } = body
+
+    // SECURITY: Use wallet address from authenticated session, NOT from request body
+    const walletAddress = user.walletAddress?.toLowerCase()
 
     console.log('[UnlinkSocial] Request body:', {
-      hasWalletAddress: !!walletAddress,
-      walletAddressPrefix: walletAddress?.slice(0, 10) + '...',
+      walletAddressFromSession: walletAddress?.slice(0, 10) + '...',
       provider,
       timestamp: new Date().toISOString()
     })
 
-    if (!walletAddress || !provider) {
-      console.error('[UnlinkSocial] Missing required fields:', {
-        hasWalletAddress: !!walletAddress,
-        hasProvider: !!provider,
+    if (!walletAddress) {
+      console.error('[UnlinkSocial] No wallet address in session:', {
+        userId: user.id.slice(0, 10) + '...',
         timestamp: new Date().toISOString()
       })
       return NextResponse.json(
-        { error: 'Wallet address and provider are required' },
+        { error: 'Wallet address not found in session. Please reconnect your wallet.' },
+        { status: 400 }
+      )
+    }
+
+    if (!provider) {
+      console.error('[UnlinkSocial] Missing provider:', {
+        timestamp: new Date().toISOString()
+      })
+      return NextResponse.json(
+        { error: 'Provider is required' },
         { status: 400 }
       )
     }
@@ -37,7 +55,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    
+
 
     try {
       // Find the wallet user
@@ -136,4 +154,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

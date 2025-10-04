@@ -293,7 +293,7 @@ export default function MessagesPage() {
                                 </span>{' '}
                                 {conversation.lastMessage.content}
                               </p>
-                              <span className="text-gray-400 text-sm flex-shrink-0">
+                              <span className="text-gray-300 text-sm flex-shrink-0">
                                 {formatMessageTime(conversation.lastMessage.createdAt)}
                               </span>
                             </div>

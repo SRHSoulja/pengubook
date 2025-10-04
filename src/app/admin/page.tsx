@@ -284,7 +284,7 @@ export default function AdminPage() {
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">📈</div>
                   <h3 className="text-xl font-bold text-white mb-2">Analytics Dashboard</h3>
-                  <p className="text-gray-400">Coming soon! Advanced analytics and insights.</p>
+                  <p className="text-gray-300">Coming soon! Advanced analytics and insights.</p>
                 </div>
               </div>
             )}

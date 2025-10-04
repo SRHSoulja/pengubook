@@ -82,7 +82,7 @@ export default function MobileBottomNav() {
               className={`relative flex flex-col items-center justify-center space-y-1 p-2 rounded-lg transition-all duration-200 ${
                 isActive(item)
                   ? 'text-neon-cyan bg-cyan-500/10'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
               }`}
             >
               <span className={`text-lg ${isActive(item) ? 'animate-float' : ''}`}>
