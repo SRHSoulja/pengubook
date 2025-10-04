@@ -25,16 +25,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   useEffect(() => {
     if (!autoConnect || !user?.walletAddress) return
 
-    // Use localhost for development, production URL for production
-    const isLocalhost = typeof window !== 'undefined' && (
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1' ||
-      window.location.hostname.includes('localhost')
-    )
-
-    const socketUrl = isLocalhost
-      ? 'http://localhost:3002'  // Use dedicated WebSocket port for development
-      : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'
+    // Socket.IO runs on the same port as the main server
+    const socketUrl = typeof window !== 'undefined'
+      ? window.location.origin  // Use the same origin as the page
+      : 'http://localhost:3001'
 
     const socket = io(socketUrl, {
       autoConnect: false,

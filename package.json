@@ -4,9 +4,9 @@
   "description": "A social platform with AGW integration and Abstract token tipping",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "node server.js",
     "build": "prisma generate && next build",
-    "start": "next start",
+    "start": "node server.js",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "typecheck": "tsc --noEmit",
