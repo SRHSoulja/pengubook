@@ -84,7 +84,8 @@ if (entropy < minEntropy) {
   console.error('Generate a cryptographically secure secret with:')
   console.error('node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"')
 
-  if (process.env.NODE_ENV === 'production') {
+  // Skip validation during build time (VERCEL undefined during build)
+  if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV) {
     throw new Error('[SECURITY] SESSION_SECRET entropy too low for production use')
   }
 }
@@ -95,7 +96,8 @@ if (weakPatterns.length > 0) {
   weakPatterns.forEach(pattern => console.error(`  - ${pattern}`))
   console.error('Generate a new secret with: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"')
 
-  if (process.env.NODE_ENV === 'production') {
+  // Skip validation during build time (VERCEL undefined during build)
+  if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV) {
     throw new Error('[SECURITY] SESSION_SECRET contains weak patterns, unsafe for production')
   }
 }

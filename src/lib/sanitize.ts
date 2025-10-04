@@ -43,14 +43,14 @@ export function sanitizeHtml(input: string): string {
     ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
     // Add rel="noopener noreferrer" to all links
     HOOKS: {
-      afterSanitizeAttributes: (node) => {
+      afterSanitizeAttributes: (node: any) => {
         if (node.tagName === 'A') {
           node.setAttribute('rel', 'noopener noreferrer')
           node.setAttribute('target', '_blank')
         }
       }
     }
-  } as any).trim()
+  } as any).toString().trim()
 }
 
 /**
@@ -69,7 +69,7 @@ export function sanitizeInlineText(input: string): string {
       a: ['href']
     },
     ALLOW_DATA_ATTR: false
-  } as any).trim()
+  } as any).toString().trim()
 }
 
 /**
