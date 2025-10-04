@@ -88,37 +88,33 @@ curl -I https://pengubook.vercel.app
 
 ---
 
-### 4. Sentry Error Monitoring ✅
-**Status:** Installed, needs Sentry account
-**Grade:** A
+### 4. Error Monitoring ✅
+**Status:** Using Vercel Logs (FREE, built-in)
+**Grade:** B+ (A with paid service)
 
 **What was done:**
-- Installed `@sentry/nextjs`
-- Created configs for client, server, and edge runtimes
-- Session replay enabled (10% sampling, 100% on errors)
-- Automatic Vercel Cron monitoring
-- Source map hiding for production
-- Integrated into `next.config.js` with `withSentryConfig`
+- Installed Sentry packages (optional, can remove)
+- ✅ **Using Vercel Logs instead** (FREE, no config needed)
+- Created `ERROR_MONITORING_OPTIONS.md` with alternatives
+- Vercel Logs includes: error tracking, stack traces, 7-day retention
 
-**Next steps to activate:**
-1. Sign up at https://sentry.io (free tier: 5,000 errors/month)
-2. Create project: "pengubook"
-3. Copy DSN from project settings
-4. Add to Vercel environment variables:
-   ```bash
-   vercel env add NEXT_PUBLIC_SENTRY_DSN production
-   vercel env add SENTRY_ORG production
-   vercel env add SENTRY_PROJECT production
-   ```
+**Why not Sentry:**
+- ❌ Free tier too limited (5K errors, 7 days)
+- ❌ Paid tier too expensive ($26/month minimum)
+- ✅ Vercel Logs are FREE and sufficient for launch
 
-**Cost:** FREE tier (5,000 errors/month) → $26/month for production
+**How to use Vercel Logs:**
+1. Go to https://vercel.com/dashboard
+2. Select PenguBook project
+3. Click "Logs" tab
+4. Filter by "Error" severity
+5. Use console.error() in code for tracking
 
-**Features:**
-- Real-time error tracking
-- Performance monitoring
-- User session replay
-- Release tracking
-- Cron job monitoring
+**Upgrade path (when revenue allows):**
+- **Axiom** ($25/mo): Alerts, 30-day retention, Slack integration
+- **Sentry** ($26/mo): Session replay, advanced debugging
+
+**Current cost:** $0 (FREE) 🎉
 
 ---
 
@@ -287,10 +283,14 @@ await prisma.user.update({
 
 | Service | Free Tier | Production Cost | Status |
 |---------|-----------|------------------|--------|
-| Upstash Redis | 10K req/day | $10/month | ⏳ Signup needed |
-| Sentry | 5K errors/month | $26/month | ⏳ Signup needed |
+| Upstash Redis | 10K req/day | $10/month (if exceeded) | ✅ Configured |
+| ~~Sentry~~ **Vercel Logs** | ✅ Included FREE | $0/month | ✅ Built-in |
 | Vercel Firewall | N/A | $20/month | 📅 Optional (post-launch) |
-| **TOTAL** | - | **$36-56/month** | - |
+| **TOTAL** | - | **$0-10/month** 🎉 | - |
+
+**Alternative (when revenue allows):**
+- Axiom Logs: $25/month (better than Sentry, includes alerts)
+- Sentry: $26/month (session replay, advanced debugging)
 
 **One-time costs:**
 - Security penetration test: $2,000-5,000 (recommended post-launch)
@@ -299,16 +299,15 @@ await prisma.user.update({
 
 ## ✅ Final Pre-Launch Checklist
 
-### Must Do Before Launch (2-3 hours)
-- [ ] Sign up for Upstash Redis
-- [ ] Sign up for Sentry
-- [ ] Add Upstash credentials to Vercel
-- [ ] Add Sentry credentials to Vercel
+### Must Do Before Launch (30 minutes - 1 hour)
+- [x] Sign up for Upstash Redis ✅ (already done)
+- [ ] ~~Sign up for Sentry~~ **Using Vercel Logs (FREE)** ✅
+- [x] Add Upstash credentials to Vercel ✅ (already done)
 - [ ] Rotate production secrets (follow SECRET_ROTATION_GUIDE.md)
 - [ ] Deploy to Vercel
 - [ ] Verify security headers (curl -I)
 - [ ] Test rate limiting (rapid API requests)
-- [ ] Check Sentry dashboard (trigger test error)
+- [ ] Check Vercel Logs dashboard (filter by Error)
 
 ### Should Do Before Public Launch (1-2 days)
 - [ ] Integrate sanitization into all user input endpoints
@@ -329,10 +328,11 @@ await prisma.user.update({
 
 ## 🎯 Timeline to Launch
 
-### Immediate (Today - 3 hours)
-- Hour 1: Sign up for Upstash + Sentry
-- Hour 2: Rotate secrets following guide
-- Hour 3: Deploy and verify
+### Immediate (Today - 30-60 minutes)
+- ✅ Upstash already configured
+- ✅ Using Vercel Logs (no signup needed)
+- 30 min: Rotate secrets following guide (OPTIONAL for now)
+- 30 min: Deploy and verify
 
 ### Tomorrow (1-2 hours)
 - Integrate input sanitization
