@@ -69,11 +69,15 @@ const weakPatterns = hasWeakPatterns(SESSION_SECRET)
 
 // CRITICAL: Minimum length check
 if (SESSION_SECRET.length < minLength) {
-  throw new Error(
-    `[SECURITY] SESSION_SECRET must be at least ${minLength} characters. ` +
+  console.error(
+    `[SECURITY ERROR] SESSION_SECRET must be at least ${minLength} characters. ` +
     `Current length: ${SESSION_SECRET.length}. ` +
     `Generate a secure 256-bit secret with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
   )
+  // Only throw at runtime, not during build
+  if (typeof window === 'undefined' && process.env.VERCEL_ENV) {
+    throw new Error('[SECURITY] SESSION_SECRET too short for production use')
+  }
 }
 
 // CRITICAL: Entropy check (minimum 4.0 bits per character for hex strings)

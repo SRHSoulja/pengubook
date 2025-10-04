@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth-session'
 import { prisma } from '@/lib/prisma'
 
+// Force dynamic rendering - don't try to build this at compile time
+export const dynamic = 'force-dynamic'
+
 /**
  * Verify if user has a valid session via HTTP-only cookie
  * Used by client to check authentication status on page load
