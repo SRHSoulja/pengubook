@@ -121,13 +121,12 @@ if (process.env.NODE_ENV !== 'production') {
 const secret = new TextEncoder().encode(SESSION_SECRET)
 const SESSION_DURATION = 60 * 60 * 24 // 24 hours
 
-export interface SessionData {
+export interface SessionData extends Record<string, unknown> {
   walletAddress: string
   userId: string
   isAdmin: boolean
   timestamp: number
   jti?: string // JWT ID for revocation tracking
-  [key: string]: unknown // Index signature for JWT compatibility
 }
 
 /**
