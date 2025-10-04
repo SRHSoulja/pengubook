@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 import { sanitizeMediaUrls } from '@/lib/utils/url-validator'
+import { encryptMessage, decryptMessage } from '@/lib/server-encryption'
 
 export const dynamic = 'force-dynamic'
 
@@ -97,7 +98,7 @@ export const GET = withRateLimit(120, 60 * 1000)(withAuth(async (request: NextRe
 
     const formattedMessages = messages.map(message => ({
       id: message.id,
-      content: message.content,
+      content: decryptMessage(message.content), // Decrypt message content
       messageType: message.messageType,
       mediaUrls: JSON.parse(message.mediaUrls || '[]'),
       sender: message.sender,
@@ -200,12 +201,12 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
       )
     }
 
-    // Create message
+    // Create message with encrypted content
     const message = await prisma.message.create({
       data: {
         conversationId,
         senderId: user.id,
-        content: content.trim(),
+        content: encryptMessage(content.trim()), // Encrypt message content before storing
         messageType,
         mediaUrls: JSON.stringify(sanitizedMediaUrls)
       },
@@ -264,7 +265,7 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
 
     const formattedMessage = {
       id: message.id,
-      content: message.content,
+      content: decryptMessage(message.content), // Decrypt for sending to client
       messageType: message.messageType,
       mediaUrls: JSON.parse(message.mediaUrls || '[]'),
       sender: message.sender,

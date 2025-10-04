@@ -3,6 +3,7 @@ const { parse } = require('url')
 const next = require('next')
 const { Server } = require('socket.io')
 const { PrismaClient } = require('@prisma/client')
+const { encryptMessage, decryptMessage } = require('./lib/server-encryption')
 
 const dev = process.env.NODE_ENV !== 'production'
 const hostname = 'localhost'
@@ -132,12 +133,12 @@ app.prepare().then(() => {
       }
 
       try {
-        // Create message in database
+        // Create message in database with encrypted content
         const message = await prisma.message.create({
           data: {
             conversationId: data.conversationId,
             senderId: socket.userId,
-            content: data.content,
+            content: encryptMessage(data.content), // Encrypt before storing
             messageType: data.messageType || 'TEXT',
             mediaUrls: JSON.stringify(data.mediaUrls || [])
           },
@@ -162,10 +163,10 @@ app.prepare().then(() => {
           }
         })
 
-        // Format message for client
+        // Format message for client with decrypted content
         const formattedMessage = {
           id: message.id,
-          content: message.content,
+          content: decryptMessage(message.content), // Decrypt for sending to client
           messageType: message.messageType,
           mediaUrls: JSON.parse(message.mediaUrls || '[]'),
           sender: message.sender,
