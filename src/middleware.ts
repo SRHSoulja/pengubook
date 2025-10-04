@@ -7,12 +7,8 @@ export async function middleware(request: NextRequest) {
 
   // Admin route protection
   if (pathname.startsWith('/admin')) {
-    // Check for wallet authentication via cookie or bearer token
-    const authHeader = request.headers.get('authorization')
-    const bearerToken = authHeader?.replace('Bearer ', '')
-
-    // Check cookie for wallet address (set by AuthProvider)
-    const walletCookie = request.cookies.get('wallet-address')?.value
+    // Check for secure session cookie (HTTP-only, set by server)
+    const sessionCookie = request.cookies.get('pengubook-session')?.value
 
     // Check for NextAuth OAuth session
     const token = await getToken({
@@ -20,12 +16,27 @@ export async function middleware(request: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET
     })
 
-    let walletAddress: string | null = walletCookie || null
+    let walletAddress: string | null = null
+    let userId: string | null = null
     let isAdmin = false
 
-    // Check wallet auth from bearer token
-    if (!walletAddress && bearerToken && bearerToken.startsWith('0x') && bearerToken.length === 42) {
-      walletAddress = bearerToken
+    // Parse secure session cookie
+    if (sessionCookie) {
+      try {
+        const session = JSON.parse(sessionCookie)
+        walletAddress = session.walletAddress
+        userId = session.userId
+
+        // Verify session is not expired (24 hours)
+        const sessionAge = Date.now() - (session.timestamp || 0)
+        if (sessionAge > 60 * 60 * 24 * 1000) {
+          console.warn('[Middleware] Session expired')
+          walletAddress = null
+          userId = null
+        }
+      } catch (error) {
+        console.error('[Middleware] Invalid session cookie:', error)
+      }
     }
 
     // Query database for admin status if we have a wallet
@@ -80,8 +91,9 @@ export async function middleware(request: NextRequest) {
       console.warn('[Middleware] Unauthorized admin access attempt:', {
         pathname,
         walletAddress: walletAddress?.slice(0, 10) + '...' || 'none',
+        userId: userId?.slice(0, 10) + '...' || 'none',
         hasOAuthSession: !!token,
-        hasWalletCookie: !!walletCookie,
+        hasSecureSession: !!sessionCookie,
         timestamp: new Date().toISOString()
       })
 

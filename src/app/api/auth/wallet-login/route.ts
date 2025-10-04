@@ -365,7 +365,9 @@ export async function POST(request: NextRequest) {
         })
 
         console.log('[AGW Verify] ✅ Auth success', { addr })
-        return NextResponse.json({
+
+        // Create secure HTTP-only session cookie
+        const response = NextResponse.json({
           success: true,
           content: 'Wallet authentication successful',
           user: {
@@ -376,6 +378,21 @@ export async function POST(request: NextRequest) {
             isAdmin: user.isAdmin
           }
         })
+
+        // Set secure HTTP-only cookie (cannot be accessed/modified by JavaScript)
+        response.cookies.set('pengubook-session', JSON.stringify({
+          walletAddress: addr,
+          userId: user.id,
+          timestamp: Date.now()
+        }), {
+          httpOnly: true,      // Cannot be accessed by JavaScript
+          secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+          sameSite: 'lax',     // CSRF protection
+          maxAge: 60 * 60 * 24, // 24 hours
+          path: '/'
+        })
+
+        return response
       } catch (error: any) {
         // Handle edge cases like concurrent upsert
         console.error('[Auth] Error in successLogin:', error)

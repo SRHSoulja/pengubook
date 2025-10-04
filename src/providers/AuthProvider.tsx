@@ -212,8 +212,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           timestamp: Date.now()
         }))
 
-        // Set cookie for middleware to access
-        document.cookie = `wallet-address=${address}; path=/; max-age=86400; SameSite=Lax`
+        // NOTE: Removed client-side cookie - using server-side session instead
 
         // Update login streak in background (don't await to avoid blocking)
         if (data.user.id) {
