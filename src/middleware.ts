@@ -7,9 +7,12 @@ export async function middleware(request: NextRequest) {
 
   // Admin route protection
   if (pathname.startsWith('/admin')) {
-    // Check for wallet authentication via bearer token
+    // Check for wallet authentication via cookie or bearer token
     const authHeader = request.headers.get('authorization')
     const bearerToken = authHeader?.replace('Bearer ', '')
+
+    // Check cookie for wallet address (set by AuthProvider)
+    const walletCookie = request.cookies.get('wallet-address')?.value
 
     // Check for NextAuth OAuth session
     const token = await getToken({
@@ -17,14 +20,16 @@ export async function middleware(request: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET
     })
 
-    let walletAddress: string | null = null
+    let walletAddress: string | null = walletCookie || null
     let isAdmin = false
 
-    // Check wallet auth
-    if (bearerToken && bearerToken.startsWith('0x') && bearerToken.length === 42) {
+    // Check wallet auth from bearer token
+    if (!walletAddress && bearerToken && bearerToken.startsWith('0x') && bearerToken.length === 42) {
       walletAddress = bearerToken
+    }
 
-      // Query database for admin status
+    // Query database for admin status if we have a wallet
+    if (walletAddress) {
       try {
         const { prisma } = await import('@/lib/prisma')
         const user = await prisma.user.findUnique({
@@ -32,6 +37,12 @@ export async function middleware(request: NextRequest) {
           select: { isAdmin: true }
         })
         isAdmin = user?.isAdmin || false
+
+        console.log('[Middleware] Wallet auth check:', {
+          walletAddress: walletAddress.slice(0, 10) + '...',
+          isAdmin,
+          timestamp: new Date().toISOString()
+        })
       } catch (error) {
         console.error('[Middleware] Database error checking admin status:', error)
       }
@@ -46,23 +57,31 @@ export async function middleware(request: NextRequest) {
           select: { isAdmin: true }
         })
         isAdmin = user?.isAdmin || false
+
+        console.log('[Middleware] OAuth auth check:', {
+          userId: token.sub.slice(0, 10) + '...',
+          isAdmin,
+          timestamp: new Date().toISOString()
+        })
       } catch (error) {
         console.error('[Middleware] Database error checking OAuth admin status:', error)
       }
     }
 
     // Also check env var admin wallet as fallback
-    const adminWalletAddress = process.env.ADMIN_WALLET_ADDRESS
+    const adminWalletAddress = process.env.ADMIN_WALLET_ADDRESS || process.env.NEXT_PUBLIC_ADMIN_WALLET_ADDRESS
     if (adminWalletAddress && walletAddress?.toLowerCase() === adminWalletAddress.toLowerCase()) {
       isAdmin = true
+      console.log('[Middleware] Admin wallet match via env var')
     }
 
     // Block if not admin
     if (!isAdmin) {
       console.warn('[Middleware] Unauthorized admin access attempt:', {
         pathname,
-        walletAddress: walletAddress?.slice(0, 10) + '...',
+        walletAddress: walletAddress?.slice(0, 10) + '...' || 'none',
         hasOAuthSession: !!token,
+        hasWalletCookie: !!walletCookie,
         timestamp: new Date().toISOString()
       })
 
