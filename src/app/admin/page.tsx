@@ -10,6 +10,8 @@ import AchievementManager from '@/components/admin/AchievementManager'
 import XPLevelManager from '@/components/admin/XPLevelManager'
 import XPEarningManager from '@/components/admin/XPEarningManager'
 import ReactionEmojiManager from '@/components/admin/ReactionEmojiManager'
+import ModerationSettingsManager from '@/components/admin/ModerationSettingsManager'
+import ReviewQueue from '@/components/admin/ReviewQueue'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
@@ -17,6 +19,7 @@ export default function AdminPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const { currentTheme } = useTheme()
   const [activeTab, setActiveTab] = useState('overview')
+  const [queueCount, setQueueCount] = useState(0)
   const [stats, setStats] = useState({
     totalUsers: 0,
     verifiedTokens: 0,
@@ -32,6 +35,15 @@ export default function AdminPage() {
     }
   }, [user, activeTab])
 
+  // Poll queue count every 30 seconds
+  useEffect(() => {
+    if (user?.isAdmin) {
+      fetchQueueCount()
+      const interval = setInterval(fetchQueueCount, 30000)
+      return () => clearInterval(interval)
+    }
+  }, [user])
+
   const fetchStats = async () => {
     try {
       const response = await fetch('/api/admin/stats')
@@ -45,6 +57,18 @@ export default function AdminPage() {
     } catch (error) {
       console.error('Error fetching stats:', error)
       setStats(prev => ({ ...prev, loading: false }))
+    }
+  }
+
+  const fetchQueueCount = async () => {
+    try {
+      const response = await fetch('/api/admin/moderation/queue?limit=1')
+      if (response.ok) {
+        const data = await response.json()
+        setQueueCount(data.total || 0)
+      }
+    } catch (error) {
+      console.error('Error fetching queue count:', error)
     }
   }
 
@@ -101,6 +125,8 @@ export default function AdminPage() {
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: '📊' },
+    { id: 'review-queue', name: 'Review Queue', icon: '👀' },
+    { id: 'moderation', name: 'Moderation Settings', icon: '⚙️' },
     { id: 'achievements', name: 'Achievements', icon: '🏆' },
     { id: 'xp-levels', name: 'XP Levels', icon: '⭐' },
     { id: 'xp-earning', name: 'XP Earning', icon: '💫' },
@@ -140,6 +166,11 @@ export default function AdminPage() {
                 >
                   <span className="text-lg">{tab.icon}</span>
                   <span className="font-medium text-sm md:text-base">{tab.name}</span>
+                  {tab.id === 'review-queue' && queueCount > 0 && (
+                    <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-1">
+                      {queueCount}
+                    </span>
+                  )}
                 </button>
               ))}
             </nav>
@@ -243,6 +274,10 @@ export default function AdminPage() {
             {activeTab === 'reactions' && <ReactionEmojiManager />}
 
             {activeTab === 'users' && <UserManager />}
+
+            {activeTab === 'review-queue' && <ReviewQueue />}
+
+            {activeTab === 'moderation' && <ModerationSettingsManager />}
 
             {activeTab === 'analytics' && (
               <div className="bg-black/20 backdrop-blur-lg rounded-2xl border border-white/20 p-6">

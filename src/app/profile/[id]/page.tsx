@@ -366,11 +366,50 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-8 mb-8">
+          {/* Banner Image */}
+          {profile.profile?.bannerImage && (
+            <div className="w-full h-48 md:h-64 rounded-t-2xl overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 -mb-16 relative group">
+              <img
+                src={profile.profile.bannerImage.includes('cloudinary.com')
+                  ? profile.profile.bannerImage.replace('/upload/', '/upload/w_1600,f_auto,q_auto/')
+                  : profile.profile.bannerImage}
+                alt={`${profile.displayName}'s banner`}
+                className="w-full h-full object-cover object-center md:object-top"
+                loading="lazy"
+                srcSet={profile.profile.bannerImage.includes('cloudinary.com')
+                  ? `${profile.profile.bannerImage.replace('/upload/', '/upload/w_768,f_auto,q_auto/')} 768w, ${profile.profile.bannerImage.replace('/upload/', '/upload/w_1600,f_auto,q_auto/')} 1600w`
+                  : undefined}
+                sizes="(max-width: 768px) 768px, 1600px"
+              />
+              {/* Gradient mask for text readability */}
+              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none" />
+
+              {/* Edit overlay for own profile */}
+              {currentUser?.id === profile.id && (
+                <Link href="/profile/edit">
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center cursor-pointer">
+                    <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-2 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      <span className="text-white font-medium">Edit Banner</span>
+                    </div>
+                  </div>
+                </Link>
+              )}
+            </div>
+          )}
+
+          <div className={`bg-white/10 backdrop-blur-lg ${profile.profile?.bannerImage ? 'rounded-b-2xl pt-20' : 'rounded-2xl'} border border-white/20 p-8 mb-8`}>
             <div className="flex flex-col md:flex-row items-start gap-6">
-              <div className="w-32 h-32 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center text-5xl font-bold text-white">
+              <div className="w-32 h-32 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center text-5xl font-bold text-white border-4 border-white/20">
                 {profile.avatar ? (
-                  <img src={profile.avatar} alt={profile.displayName} className="w-full h-full object-cover rounded-2xl" />
+                  <img
+                    src={profile.avatar}
+                    alt={profile.displayName}
+                    className="w-full h-full object-cover rounded-2xl"
+                    loading="lazy"
+                  />
                 ) : (
                   <span>🐧</span>
                 )}
@@ -378,13 +417,13 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl font-bold text-white">{profile.displayName}</h1>
+                  <h1 className="text-3xl font-bold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{profile.displayName}</h1>
                   {(profile.isAdmin || profile.profile?.profileVerified) && (
-                    <span className="text-blue-400 text-xl">✓</span>
+                    <span className="text-blue-400 text-xl animate-in fade-in zoom-in duration-500 delay-300">✓</span>
                   )}
                 </div>
 
-                <p className="text-gray-300 mb-4">@{profile.username}</p>
+                <p className="text-gray-200 mb-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>@{profile.username}</p>
 
                 {profile.bio && (
                   <p className="text-gray-100 mb-4">{profile.bio}</p>
@@ -446,8 +485,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
                 <div className="flex flex-wrap gap-4 mb-6">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-cyan-400">Lvl {profile.level}</div>
-                    <div className="text-sm text-gray-300">{profile.xp} XP</div>
+                    <div className="text-2xl font-bold text-cyan-300" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>Lvl {profile.level}</div>
+                    <div className="text-sm text-gray-100" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>{profile.xp} XP</div>
                   </div>
                   <div className="text-center">
                     <div className="text-xl font-bold text-white">{profile.stats.followers}</div>

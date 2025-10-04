@@ -48,7 +48,6 @@ export async function createSession(data: Omit<SessionData, 'timestamp' | 'jti'>
 
   const token = await new SignJWT(sessionData)
     .setProtectedHeader({ alg: 'HS256' })
-    .setJwtId(jti)
     .setIssuedAt()
     .setExpirationTime('24h')
     .sign(secret)
@@ -70,17 +69,23 @@ export async function verifySession(token: string): Promise<SessionData | null> 
       return null
     }
 
-    // Check if session has been revoked
+    // Check if session has been revoked (skip in Edge Runtime/Middleware)
     const jti = payload.jti as string
-    if (jti) {
-      const { prisma } = await import('@/lib/prisma')
-      const revoked = await prisma.revokedSession.findUnique({
-        where: { sessionToken: jti }
-      })
+    if (jti && typeof EdgeRuntime === 'undefined') {
+      try {
+        const { prisma } = await import('@/lib/prisma')
+        const revoked = await prisma.revokedSession.findUnique({
+          where: { sessionToken: jti }
+        })
 
-      if (revoked) {
-        console.log('[Session] Revoked session attempted:', jti.slice(0, 8) + '...')
-        return null
+        if (revoked) {
+          console.log('[Session] Revoked session attempted:', jti.slice(0, 8) + '...')
+          return null
+        }
+      } catch (error) {
+        // Skip revocation check in Edge Runtime (middleware)
+        // Revoked sessions will still expire after 24h
+        console.warn('[Session] Skipping revocation check (Edge Runtime)')
       }
     }
 

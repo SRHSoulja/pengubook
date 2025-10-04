@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Clear Auth Cache - PenguBook</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    .card {
+      background: #2a2a2a;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    button {
+      background: #00E177;
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background: #00c966;
+    }
+    .success {
+      background: #00E177;
+      color: #000;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 20px;
+      display: none;
+    }
+    .list {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    .list li {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🧹 Clear Authentication Cache</h1>
+    <p>If you're experiencing login issues after updates, this tool will clear all cached authentication data.</p>
+
+    <div class="list">
+      <strong>This will clear:</strong>
+      <ul>
+        <li>✓ All sessionStorage items</li>
+        <li>✓ All localStorage auth tokens</li>
+        <li>✓ All PenguBook cookies</li>
+        <li>✓ All NextAuth cookies</li>
+      </ul>
+    </div>
+
+    <button onclick="clearAll()">Clear All Auth Data</button>
+
+    <div class="success" id="success">
+      ✅ Successfully cleared all authentication data!<br>
+      You can now close this page and try logging in again.
+    </div>
+  </div>
+
+  <script>
+    function clearAll() {
+      // Clear all sessionStorage
+      sessionStorage.clear()
+      console.log('✓ Cleared sessionStorage')
+
+      // Clear all localStorage
+      localStorage.clear()
+      console.log('✓ Cleared localStorage')
+
+      // Clear all cookies
+      const cookies = document.cookie.split(';')
+      cookies.forEach(cookie => {
+        const name = cookie.split('=')[0].trim()
+
+        // Clear with different path/domain configurations
+        const clearCookie = (path = '/') => {
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; domain=${window.location.hostname}`
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path};`
+        }
+
+        clearCookie('/')
+        clearCookie('/api')
+        clearCookie('/auth')
+      })
+      console.log('✓ Cleared all cookies')
+
+      // Show success message
+      document.getElementById('success').style.display = 'block'
+
+      console.log('✅ All authentication data cleared!')
+    }
+  </script>
+</body>
+</html>

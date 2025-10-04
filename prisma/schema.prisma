@@ -87,17 +87,19 @@ model Profile {
   postsCount          Int     @default(0)
   likesReceived       Int     @default(0)
   isPrivate           Boolean @default(false)
-  showActivity        Boolean @default(true)
-  showTips            Boolean @default(true)
-  allowDirectMessages Boolean @default(true)
-  dmPrivacyLevel      String  @default("ALL") // ALL, FRIENDS_ONLY, NONE
-  showDiscord         Boolean @default(true)
-  showTwitter         Boolean @default(true)
-  featuredCommunityId String?
-  theme               String  @default("default")
-  bannerImage         String?
-  profileVerified     Boolean @default(false)
-  user                User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  showActivity          Boolean @default(true)
+  showTips              Boolean @default(true)
+  allowDirectMessages   Boolean @default(true)
+  dmPrivacyLevel        String  @default("ALL") // ALL, FRIENDS_ONLY, NONE
+  showDiscord           Boolean @default(true)
+  showTwitter           Boolean @default(true)
+  showNSFW              Boolean @default(false) // Auto-show ALL NSFW content
+  allowedNSFWCategories String  @default("[]") @db.Text // JSON array of allowed NSFW labels (only FLAG/ALLOW categories)
+  featuredCommunityId   String?
+  theme                 String  @default("default")
+  bannerImage           String?
+  profileVerified       Boolean @default(false)
+  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Token {
@@ -132,29 +134,35 @@ model Tip {
 }
 
 model Post {
-  id          String     @id @default(cuid())
-  authorId    String
-  content     String
-  contentType String     @default("TEXT")
-  mediaUrls   String     @default("[]")
-  visibility  String     @default("PUBLIC")
-  isPromoted  Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  comments    Comment[]
-  feedItems   FeedItem[]
-  likes       Like[]
-  author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  reactions   Reaction[]
-  shares      Share[]
-  edits       PostEdit[]
-  bookmarks   Bookmark[]
-  reports     Report[]
-  hashtags    PostHashtag[]
+  id               String     @id @default(cuid())
+  authorId         String
+  content          String
+  contentType      String     @default("TEXT")
+  mediaUrls        String     @default("[]")
+  visibility       String     @default("PUBLIC")
+  isPromoted       Boolean    @default(false)
+  isNSFW           Boolean    @default(false)
+  moderationStatus String?    // "approved", "rejected", "pending", "flagged"
+  moderationData   String?    @db.Text // JSON string with moderation details
+  contentWarnings  String     @default("[]") // Array of warning tags: ["Explicit Nudity", "Violence"]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  comments         Comment[]
+  feedItems        FeedItem[]
+  likes            Like[]
+  author           User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  reactions        Reaction[]
+  shares           Share[]
+  edits            PostEdit[]
+  bookmarks        Bookmark[]
+  reports          Report[]
+  hashtags         PostHashtag[]
 
   @@index([authorId])
   @@index([createdAt])
   @@index([isPromoted])
+  @@index([isNSFW])
+  @@index([moderationStatus])
 }
 
 model Like {
@@ -472,12 +480,19 @@ model Achievement {
   requirement Int      // Threshold value for achievement
   xpReward    Int      @default(10) // XP awarded when achievement is unlocked
   isActive    Boolean  @default(true)
+
+  // Data-driven achievement checking
+  triggerType String?  // post, like, follow, tip, profile, streak, login_days, etc.
+  metricType  String?  // post_count, follower_count, likes_received, tips_given, login_streak, etc.
+
   createdAt   DateTime @default(now())
   userAchievements UserAchievement[]
 
   @@index([category])
   @@index([rarity])
   @@index([isActive])
+  @@index([triggerType])
+  @@index([metricType])
 }
 
 model UserAchievement {
@@ -809,4 +824,37 @@ model XPLevel {
 
   @@index([level])
   @@index([xpRequired])
+}
+
+model ModerationSettings {
+  id                String   @id @default(cuid())
+  labelName         String   @unique // AWS label name (e.g., "Explicit Nudity")
+  action            String   @default("FLAG") // "ALLOW", "FLAG", "REJECT"
+  minConfidence     Int      @default(60) // Minimum confidence to trigger (0-100)
+  requiresReview    Boolean  @default(false) // Requires admin manual review
+  isEnabled         Boolean  @default(true) // Can be toggled on/off
+  displayName       String? // User-friendly display name (e.g., "Explicit Content")
+  description       String? // Description for admin panel
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([labelName])
+  @@index([action])
+  @@index([isEnabled])
+}
+
+model ModerationAuditLog {
+  id                String   @id @default(cuid())
+  postId            String   // Post that was moderated
+  action            String   // "approve", "reject"
+  adminId           String   // Admin who took action
+  previousStatus    String?  // Status before action
+  newStatus         String   // Status after action
+  reason            String?  // Rejection reason (if applicable)
+  createdAt         DateTime @default(now())
+
+  @@index([postId])
+  @@index([adminId])
+  @@index([createdAt])
+  @@index([action])
 }

@@ -72,8 +72,9 @@ export async function detectSuspiciousStreakActivity(
       }
     })
 
-    // More than 10 streak-related activities in an hour is suspicious
-    if (recentUpdates > 10) {
+    // More than 50 streak-related activities in an hour is suspicious
+    // (allows for testing/development, while still catching bots)
+    if (recentUpdates > 50) {
       await logStreakAudit({
         userId,
         streakType,

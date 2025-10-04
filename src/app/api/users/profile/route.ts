@@ -142,7 +142,7 @@ export async function PUT(request: NextRequest) {
     
 
     const body = await request.json()
-    const { walletAddress, displayName, username, bio, interests, avatarSource } = body
+    const { walletAddress, displayName, username, bio, interests, avatarSource, bannerImage, showNSFW, allowedNSFWCategories } = body
 
     console.log('[UserProfile] Update request:', {
       walletAddress: walletAddress?.slice(0, 10) + '...',
@@ -151,6 +151,7 @@ export async function PUT(request: NextRequest) {
       bio: bio?.slice(0, 50) + '...',
       interests: Array.isArray(interests) ? interests.join(', ') : interests,
       avatarSource,
+      bannerImage: bannerImage?.slice(0, 50) + '...' || 'none',
       receivedAvatarSource: !!avatarSource,
       timestamp: new Date().toISOString()
     })
@@ -219,10 +220,45 @@ export async function PUT(request: NextRequest) {
       include: { profile: true }
     })
 
-    // Handle profile interests separately if provided
-    if (interests && Array.isArray(interests) && interests.length > 0) {
-      const profileData = {
-        interests: JSON.stringify(interests)
+    // Handle profile interests, banner, and NSFW preference separately if provided
+    if ((interests && Array.isArray(interests) && interests.length > 0) || bannerImage !== undefined || showNSFW !== undefined || allowedNSFWCategories !== undefined) {
+      const profileData: any = {}
+
+      if (interests && Array.isArray(interests) && interests.length > 0) {
+        profileData.interests = JSON.stringify(interests)
+      }
+
+      if (showNSFW !== undefined) {
+        profileData.showNSFW = showNSFW
+      }
+
+      if (allowedNSFWCategories !== undefined) {
+        profileData.allowedNSFWCategories = JSON.stringify(allowedNSFWCategories)
+      }
+
+      if (bannerImage !== undefined) {
+        // Delete old banner from Cloudinary if replacing
+        const existingProfile = await prisma.profile.findUnique({
+          where: { userId: updatedUser.id }
+        })
+
+        if (existingProfile?.bannerImage && existingProfile.bannerImage !== bannerImage) {
+          // Extract public ID from old Cloudinary URL
+          const urlMatch = existingProfile.bannerImage.match(/\/([^\/]+)\.(jpg|jpeg|png|gif|webp)$/)
+          if (urlMatch) {
+            const publicId = `pengubook/profile-banner/${urlMatch[1]}`
+            try {
+              const { v2: cloudinary } = await import('cloudinary')
+              await cloudinary.uploader.destroy(publicId)
+              console.log('[Profile] Deleted old banner from Cloudinary:', publicId)
+            } catch (error) {
+              console.error('[Profile] Failed to delete old banner:', error)
+              // Don't fail the request if deletion fails
+            }
+          }
+        }
+
+        profileData.bannerImage = bannerImage
       }
 
       // Update or create profile
@@ -241,9 +277,10 @@ export async function PUT(request: NextRequest) {
         include: { profile: true }
       })
 
-      console.log('[UserProfile] Profile updated with interests:', {
+      console.log('[UserProfile] Profile updated:', {
         userId: updatedUser.id.slice(0, 10) + '...',
-        interests,
+        interests: interests || 'unchanged',
+        bannerImage: bannerImage ? bannerImage.slice(0, 50) + '...' : 'unchanged',
         timestamp: new Date().toISOString()
       })
 

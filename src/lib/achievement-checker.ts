@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { checkAchievementProgress } from './achievements'
 import { getAllStreaks } from './streak-tracker'
+import { getProfileCompletionPercentage } from './profile-completion'
 
 export interface AchievementCheckResult {
   newAchievements: string[]
@@ -121,13 +122,7 @@ export async function checkAndAwardAchievements(
           break
 
         case 'profile_perfectionist':
-          let completionScore = 0
-          if (user.username) completionScore += 20
-          if (user.displayName) completionScore += 20
-          if (user.bio) completionScore += 20
-          if (user.avatar) completionScore += 20
-          if (user.discordId || user.twitterId) completionScore += 20
-          currentValue = completionScore
+          currentValue = getProfileCompletionPercentage(user as any)
           break
 
         default:

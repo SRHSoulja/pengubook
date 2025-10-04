@@ -83,6 +83,9 @@ export async function GET(request: NextRequest) {
       mediaUrls: JSON.parse(post.mediaUrls || '[]'),
       visibility: post.visibility,
       isPromoted: post.isPromoted,
+      isNSFW: post.isNSFW,
+      contentWarnings: post.contentWarnings,
+      moderationStatus: post.moderationStatus,
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
       author: post.author,
@@ -115,7 +118,7 @@ export async function GET(request: NextRequest) {
 export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: NextRequest, user: any) => {
   try {
     const body = await request.json()
-    const { content, contentType = 'TEXT', mediaUrls = [], visibility = 'PUBLIC' } = body
+    const { content, contentType = 'TEXT', mediaUrls = [], visibility = 'PUBLIC', moderationData = null } = body
 
     // Use authenticated user's ID instead of requiring it in body
     const authorId = user.id
@@ -148,6 +151,19 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
 
     // User is already authenticated and verified by middleware
 
+    // Extract moderation data if provided
+    const isNSFW = moderationData?.isNSFW || false
+    const moderationStatus = moderationData?.status || 'approved'
+    const moderationDetails = moderationData ? JSON.stringify(moderationData) : null
+    const contentWarnings = moderationData?.contentWarnings || []
+
+    console.log('[Posts] Creating post with moderation data:', {
+      isNSFW,
+      moderationStatus,
+      contentWarnings,
+      hasModeration: !!moderationData
+    })
+
     // Create the post
     const newPost = await prisma.post.create({
       data: {
@@ -155,7 +171,11 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
         content,
         contentType,
         mediaUrls: JSON.stringify(sanitizedMediaUrls),
-        visibility
+        visibility,
+        isNSFW,
+        moderationStatus,
+        moderationData: moderationDetails,
+        contentWarnings: JSON.stringify(contentWarnings)
       },
       include: {
         author: {

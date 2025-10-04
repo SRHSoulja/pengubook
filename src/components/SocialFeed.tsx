@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { detectMediaType, getYouTubeEmbedUrl, isYouTubeUrl, getGiphyEmbedUrl, isGiphyUrl } from '@/lib/media-utils'
+import NSFWBlurOverlay from '@/components/NSFWBlurOverlay'
+import { useAuth } from '@/providers/AuthProvider'
 
 // Function to extract URLs from content
 function extractUrlsFromContent(content: string): string[] {
@@ -159,6 +161,8 @@ interface Post {
   isLiked: boolean
   isShared: boolean
   isBookmarked?: boolean
+  isNSFW?: boolean
+  contentWarnings?: string[]
   createdAt: string
   updatedAt: string
   author: {
@@ -213,6 +217,7 @@ const defaultReactionEmojis: { [key: string]: string } = {
 }
 
 export default function SocialFeed({ userId, communityId, authorId, limit = 10 }: SocialFeedProps) {
+  const { user } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -313,6 +318,8 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
           sharesCount: post.stats?.shares || 0,
           isLiked: false, // TODO: Implement user-specific like status
           isShared: userId ? (post.shares || []).some((share: any) => share.userId === userId) : false,
+          isNSFW: post.isNSFW || false,
+          contentWarnings: post.contentWarnings ? JSON.parse(post.contentWarnings) : [],
           createdAt: new Date(post.createdAt).toISOString(),
           updatedAt: new Date(post.updatedAt).toISOString(),
           author: {
@@ -749,7 +756,7 @@ via @PenguBook`
             )}
           </div>
 
-          {/* Post Images */}
+          {/* Post Media (Images & Videos) */}
           {post.images && post.images.length > 0 && (
             <div className="mb-4">
               <div className={`grid gap-2 ${
@@ -757,15 +764,78 @@ via @PenguBook`
                 post.images.length === 2 ? 'grid-cols-2' :
                 'grid-cols-2 md:grid-cols-3'
               }`}>
-                {post.images.map((image, index) => (
-                  <img
-                    key={index}
-                    src={image}
-                    alt=""
-                    className="w-full max-w-md mx-auto rounded-lg"
-                    style={{ height: 'auto' }}
-                  />
-                ))}
+                {/* Wrap media in NSFW overlay if flagged */}
+                {post.isNSFW ? (
+                  <NSFWBlurOverlay
+                    contentWarnings={post.contentWarnings || []}
+                    autoShow={user?.profile?.showNSFW || false}
+                    allowedCategories={
+                      user?.profile?.allowedNSFWCategories
+                        ? (typeof user.profile.allowedNSFWCategories === 'string'
+                            ? JSON.parse(user.profile.allowedNSFWCategories)
+                            : user.profile.allowedNSFWCategories)
+                        : []
+                    }
+                  >
+                    <div className={`grid gap-2 ${
+                      post.images.length === 1 ? 'grid-cols-1' :
+                      post.images.length === 2 ? 'grid-cols-2' :
+                      'grid-cols-2 md:grid-cols-3'
+                    }`}>
+                      {post.images.map((mediaUrl, index) => {
+                        // Detect if it's a video based on URL or extension
+                        const isVideo = mediaUrl.includes('/video/') ||
+                                       /\.(mp4|webm|mov|avi|mkv)$/i.test(mediaUrl)
+
+                        return isVideo ? (
+                          <video
+                            key={index}
+                            src={mediaUrl}
+                            controls
+                            className="w-full max-w-md mx-auto rounded-lg bg-black"
+                            style={{ maxHeight: '500px' }}
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        ) : (
+                          <img
+                            key={index}
+                            src={mediaUrl}
+                            alt=""
+                            className="w-full max-w-md mx-auto rounded-lg"
+                            style={{ height: 'auto' }}
+                          />
+                        )
+                      })}
+                    </div>
+                  </NSFWBlurOverlay>
+                ) : (
+                  post.images.map((mediaUrl, index) => {
+                    // Detect if it's a video based on URL or extension
+                    const isVideo = mediaUrl.includes('/video/') ||
+                                   /\.(mp4|webm|mov|avi|mkv)$/i.test(mediaUrl)
+
+                    return isVideo ? (
+                      <video
+                        key={index}
+                        src={mediaUrl}
+                        controls
+                        className="w-full max-w-md mx-auto rounded-lg bg-black"
+                        style={{ maxHeight: '500px' }}
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    ) : (
+                      <img
+                        key={index}
+                        src={mediaUrl}
+                        alt=""
+                        className="w-full max-w-md mx-auto rounded-lg"
+                        style={{ height: 'auto' }}
+                      />
+                    )
+                  })
+                )}
               </div>
             </div>
           )}

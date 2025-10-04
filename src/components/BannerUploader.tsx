@@ -1,0 +1,263 @@
+'use client'
+
+import { useState, useRef, useCallback, useEffect } from 'react'
+import Cropper from 'react-easy-crop'
+import type { Area } from 'react-easy-crop'
+
+interface BannerUploaderProps {
+  currentBanner?: string | null
+  onBannerChange: (url: string | null) => void
+}
+
+export default function BannerUploader({ currentBanner, onBannerChange }: BannerUploaderProps) {
+  const [uploading, setUploading] = useState(false)
+  const [preview, setPreview] = useState<string | null>(currentBanner || null)
+  const [showCropper, setShowCropper] = useState(false)
+  const [tempImage, setTempImage] = useState<string | null>(null)
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Sync preview with currentBanner prop when it changes
+  useEffect(() => {
+    setPreview(currentBanner || null)
+  }, [currentBanner])
+
+  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
+    setCroppedAreaPixels(croppedAreaPixels)
+  }, [])
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Only images are allowed for banners')
+      return
+    }
+
+    // Validate file size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Image must be less than 10MB')
+      return
+    }
+
+    // Show cropper with image
+    const imageUrl = URL.createObjectURL(file)
+    setTempImage(imageUrl)
+    setShowCropper(true)
+    setCrop({ x: 0, y: 0 })
+    setZoom(1)
+  }
+
+  const createCroppedImage = async (): Promise<Blob> => {
+    if (!tempImage || !croppedAreaPixels) {
+      throw new Error('No image to crop')
+    }
+
+    const image = new Image()
+    image.src = tempImage
+    await new Promise((resolve) => { image.onload = resolve })
+
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Failed to get canvas context')
+
+    canvas.width = croppedAreaPixels.width
+    canvas.height = croppedAreaPixels.height
+
+    ctx.drawImage(
+      image,
+      croppedAreaPixels.x,
+      croppedAreaPixels.y,
+      croppedAreaPixels.width,
+      croppedAreaPixels.height,
+      0,
+      0,
+      croppedAreaPixels.width,
+      croppedAreaPixels.height
+    )
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob)
+      }, 'image/jpeg', 0.95)
+    })
+  }
+
+  const handleCropConfirm = async () => {
+    if (!croppedAreaPixels) return
+
+    setUploading(true)
+    setShowCropper(false)
+
+    try {
+      const croppedBlob = await createCroppedImage()
+      const file = new File([croppedBlob], 'banner.jpg', { type: 'image/jpeg' })
+
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('type', 'profile-banner')
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        throw new Error('Upload failed')
+      }
+
+      const result = await response.json()
+
+      setPreview(result.url)
+      onBannerChange(result.url)
+      setTempImage(null)
+
+      console.log('✅ Banner uploaded:', result.url)
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('Failed to upload banner image')
+      setPreview(currentBanner || null)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleCropCancel = () => {
+    setShowCropper(false)
+    setTempImage(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleRemove = () => {
+    setPreview(null)
+    onBannerChange(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  return (
+    <>
+      {/* Cropper Modal */}
+      {showCropper && tempImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
+          <div className="w-full max-w-4xl p-6">
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
+              <h3 className="text-xl font-bold text-white mb-4">Position Your Banner</h3>
+
+              <div className="relative w-full h-96 bg-black rounded-xl overflow-hidden">
+                <Cropper
+                  image={tempImage}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={3 / 1}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                />
+              </div>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-white mb-2">Zoom</label>
+                <input
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  value={zoom}
+                  onChange={(e) => setZoom(parseFloat(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleCropConfirm}
+                  disabled={uploading}
+                  className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-3 rounded-xl font-medium transition-colors disabled:opacity-50"
+                >
+                  {uploading ? '⏳ Uploading...' : '✓ Apply'}
+                </button>
+                <button
+                  onClick={handleCropCancel}
+                  disabled={uploading}
+                  className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
+                >
+                  ✕ Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium text-white mb-2">
+          Profile Banner
+        </label>
+
+        <div className="relative">
+        {/* Banner Preview */}
+        <div className="w-full h-48 rounded-xl overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 relative group">
+          {preview ? (
+            <img
+              src={preview}
+              alt="Banner preview"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center text-white/70">
+                <div className="text-4xl mb-2">🖼️</div>
+                <p className="text-sm">No banner image</p>
+              </div>
+            </div>
+          )}
+
+          {/* Upload Overlay */}
+          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+            >
+              {uploading ? '⏳ Uploading...' : preview ? '📸 Change' : '📤 Upload'}
+            </button>
+
+            {preview && (
+              <button
+                type="button"
+                onClick={handleRemove}
+                disabled={uploading}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+              >
+                🗑️ Remove
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Hidden File Input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+      </div>
+
+      <p className="text-xs text-gray-400 mt-2">
+        Recommended: 1500x500px • Max 10MB • JPG, PNG, or GIF
+      </p>
+      </div>
+    </>
+  )
+}

@@ -5,7 +5,24 @@ import { useAuth } from '@/providers/AuthProvider'
 import { useRouter } from 'next/navigation'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 import Navbar from '@/components/Navbar'
+import BannerUploader from '@/components/BannerUploader'
 import Link from 'next/link'
+
+// NSFW categories users can opt-in to (FLAG/ALLOW only, excludes REJECT categories)
+const OPTIONAL_NSFW_CATEGORIES = [
+  { label: 'Nudity', description: 'General nudity content' },
+  { label: 'Partial Nudity', description: 'Partial nudity' },
+  { label: 'Suggestive', description: 'Suggestive content' },
+  { label: 'Physical Violence', description: 'Physical violence' },
+  { label: 'Weapon Violence', description: 'Weapons or violence' },
+  { label: 'Visually Disturbing', description: 'Disturbing imagery' },
+  { label: 'Self Injury', description: 'Self-harm imagery' },
+  { label: 'Emaciated Bodies', description: 'Eating disorder content' },
+  { label: 'Corpses', description: 'Deceased bodies' },
+  { label: 'Female Swimwear Or Underwear', description: 'Swimwear/underwear' },
+  { label: 'Male Swimwear Or Underwear', description: 'Swimwear/underwear' },
+  { label: 'Revealing Clothes', description: 'Revealing clothing' }
+]
 
 export default function ProfileEditPage() {
   const { user, loading: authLoading, isAuthenticated, refetchUser } = useAuth()
@@ -17,11 +34,20 @@ export default function ProfileEditPage() {
     username: '',
     bio: '',
     interests: '',
-    avatarSource: 'default'
+    avatarSource: 'default',
+    bannerImage: null as string | null,
+    showNSFW: false,
+    allowedNSFWCategories: [] as string[]
   })
 
   useEffect(() => {
     if (user) {
+      const allowedCategories = user.profile?.allowedNSFWCategories
+        ? (typeof user.profile.allowedNSFWCategories === 'string'
+            ? JSON.parse(user.profile.allowedNSFWCategories)
+            : user.profile.allowedNSFWCategories)
+        : []
+
       setFormData({
         displayName: user.displayName || '',
         username: user.username || '',
@@ -31,7 +57,10 @@ export default function ProfileEditPage() {
               ? JSON.parse(user.profile.interests).join(', ')
               : '')
           : '',
-        avatarSource: (user as any).avatarSource || 'default'
+        avatarSource: (user as any).avatarSource || 'default',
+        bannerImage: user.profile?.bannerImage || null,
+        showNSFW: user.profile?.showNSFW || false,
+        allowedNSFWCategories: Array.isArray(allowedCategories) ? allowedCategories : []
       })
     }
   }, [user])
@@ -50,7 +79,10 @@ export default function ProfileEditPage() {
           username: formData.username,
           bio: formData.bio,
           interests: formData.interests.split(',').map(i => i.trim()).filter(Boolean),
-          avatarSource: formData.avatarSource
+          avatarSource: formData.avatarSource,
+          bannerImage: formData.bannerImage,
+          showNSFW: formData.showNSFW,
+          allowedNSFWCategories: formData.allowedNSFWCategories
         })
       })
 
@@ -116,7 +148,13 @@ export default function ProfileEditPage() {
               </Link>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Banner Image Upload */}
+              <BannerUploader
+                currentBanner={formData.bannerImage}
+                onBannerChange={(url) => setFormData({...formData, bannerImage: url})}
+              />
+
               <div>
                 <label className="block text-sm font-medium text-white mb-1">
                   Display Name
@@ -297,6 +335,62 @@ export default function ProfileEditPage() {
                   )}
                 </div>
               )}
+
+              {/* NSFW Content Preferences */}
+              <div className="bg-black/20 p-4 rounded-lg border border-white/10">
+                <h4 className="text-sm font-medium text-gray-300 mb-2">Content Preferences</h4>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-white font-medium">Auto-show ALL NSFW Content</p>
+                    <p className="text-xs text-gray-400 mt-1">Automatically reveal all NSFW posts without clicking</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, showNSFW: !formData.showNSFW})}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      formData.showNSFW ? 'bg-cyan-500' : 'bg-gray-600'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        formData.showNSFW ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Granular Category Selection - Only show if global toggle is OFF */}
+                {!formData.showNSFW && (
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <p className="text-sm text-white font-medium mb-2">Or choose specific categories to auto-show:</p>
+                    <p className="text-xs text-gray-400 mb-3">Select which types of content you're comfortable seeing automatically</p>
+                    <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto pr-2">
+                      {OPTIONAL_NSFW_CATEGORIES.map((category) => (
+                        <label
+                          key={category.label}
+                          className="flex items-start gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.allowedNSFWCategories.includes(category.label)}
+                            onChange={(e) => {
+                              const newCategories = e.target.checked
+                                ? [...formData.allowedNSFWCategories, category.label]
+                                : formData.allowedNSFWCategories.filter(c => c !== category.label)
+                              setFormData({...formData, allowedNSFWCategories: newCategories})
+                            }}
+                            className="mt-0.5 h-4 w-4 rounded border-gray-400 text-cyan-500 focus:ring-cyan-500"
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm text-white">{category.label}</p>
+                            <p className="text-xs text-gray-400">{category.description}</p>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <div className="flex gap-4">
                 <button
