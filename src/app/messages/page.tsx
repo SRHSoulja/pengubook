@@ -57,19 +57,21 @@ export default function MessagesPage() {
   }, [isAuthenticated, user])
 
   const fetchConversations = async () => {
-    if (!user?.walletAddress || !sessionToken) return
+    if (!user?.id) return
 
     try {
       const response = await fetch('/api/messages/conversations', {
         headers: {
-          'Authorization': `Bearer ${sessionToken}`,
-          'x-wallet-address': user.walletAddress
+          'x-user-id': user.id,
+          'x-wallet-address': user.walletAddress || ''
         }
       })
 
       const result = await response.json()
       if (result.success) {
         setConversations(result.data)
+      } else {
+        console.error('Failed to fetch conversations:', result.error)
       }
     } catch (error) {
       console.error('Error fetching conversations:', error)
@@ -93,15 +95,15 @@ export default function MessagesPage() {
   }
 
   const startNewConversation = async (targetUserId: string) => {
-    if (!user?.walletAddress || !sessionToken) return
+    if (!user?.id) return
 
     try {
       const response = await fetch('/api/messages/conversations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionToken}`,
-          'x-wallet-address': user.walletAddress
+          'x-user-id': user.id,
+          'x-wallet-address': user.walletAddress || ''
         },
         body: JSON.stringify({ participantIds: [targetUserId] })
       })
@@ -114,6 +116,31 @@ export default function MessagesPage() {
       }
     } catch (error) {
       console.error('Error starting conversation:', error)
+    }
+  }
+
+  const deleteConversation = async (conversationId: string) => {
+    if (!user?.id) return
+
+    try {
+      const response = await fetch(`/api/messages/conversations/${conversationId}`, {
+        method: 'DELETE',
+        headers: {
+          'x-user-id': user.id,
+          'x-wallet-address': user.walletAddress || ''
+        }
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        // Remove from local state
+        setConversations(conversations.filter(c => c.id !== conversationId))
+      } else {
+        alert('Failed to delete conversation: ' + (result.error || 'Unknown error'))
+      }
+    } catch (error) {
+      console.error('Error deleting conversation:', error)
+      alert('Failed to delete conversation')
     }
   }
 
@@ -190,12 +217,11 @@ export default function MessagesPage() {
                 </div>
               ) : (
                 conversations.map((conversation) => (
-                  <Link
-                    key={conversation.id}
-                    href={`/messages/${conversation.id}`}
-                    className="block"
-                  >
-                    <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 hover:bg-white/15 transition-all">
+                  <div key={conversation.id} className="relative group">
+                    <div
+                      onClick={() => window.location.href = `/messages/${conversation.id}`}
+                      className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 hover:bg-white/15 transition-all cursor-pointer"
+                    >
                       <div className="flex items-start gap-4">
                         {/* Avatar */}
                         <div className="relative w-14 h-14 flex-shrink-0">
@@ -275,7 +301,21 @@ export default function MessagesPage() {
                         </div>
                       </div>
                     </div>
-                  </Link>
+
+                    {/* Delete Button - Only shows on hover */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (confirm(`Delete conversation with ${conversation.isGroup ? conversation.groupName : conversation.otherParticipants[0]?.displayName}?`)) {
+                          deleteConversation(conversation.id)
+                        }
+                      }}
+                      className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg"
+                      title="Delete conversation"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 ))
               )}
             </div>

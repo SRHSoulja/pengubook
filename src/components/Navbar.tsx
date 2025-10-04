@@ -72,8 +72,8 @@ export default function Navbar() {
 
       const data = await response.json()
 
-      if (data.success && data.conversations) {
-        const totalUnread = data.conversations.reduce((total: number, conversation: any) =>
+      if (data.success && data.data) {
+        const totalUnread = data.data.reduce((total: number, conversation: any) =>
           total + (conversation.unreadCount || 0), 0)
         setUnreadCount(totalUnread)
       }
