@@ -1,10 +1,10 @@
 # 🔗 RPC Setup Guide for Token-Gating
 
-This guide explains how to configure RPC endpoints for token-gating functionality in PenguBook.
+This guide explains how to configure RPC endpoints for token-gating functionality in PeBloq.
 
 ## 🎯 Overview
 
-Token-gating requires blockchain RPC endpoints to verify user token holdings. PenguBook supports:
+Token-gating requires blockchain RPC endpoints to verify user token holdings. PeBloq supports:
 
 - **Abstract Global Wallet** (Primary)
 - **Ethereum Mainnet** (Fallback)
@@ -224,7 +224,7 @@ ABSTRACT_MAINNET_CHAIN_ID=11124
 - **Infura**: [Infura Dashboard](https://infura.io/dashboard)
 - **QuickNode**: [QuickNode Dashboard](https://www.quicknode.com/dashboard)
 
-### PenguBook Issues
+### PeBloq Issues
 
 If you encounter issues with token-gating:
 

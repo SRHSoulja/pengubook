@@ -1,8 +1,8 @@
-# PenguBook Web - Complete Codebase Analysis
+# PeBloq Web - Complete Codebase Analysis
 
 ## Project Overview
 
-**PenguBook** (v2.7.4-arctic-mainnet) is a Web3 social media platform built specifically for the Pudgy Penguins community. It combines traditional social networking features with blockchain technology, enabling cryptocurrency tipping, token-gated communities, and wallet-based authentication.
+**PeBloq** (v2.7.4-arctic-mainnet) is a Web3 social media platform built specifically for the Pudgy Penguins community. It combines traditional social networking features with blockchain technology, enabling cryptocurrency tipping, token-gated communities, and wallet-based authentication.
 
 ### Core Value Proposition
 - **Web3-Native Social Platform**: Users connect via Abstract Global Wallet (AGW) instead of traditional username/password
@@ -667,7 +667,7 @@ const logs = await fetch(ABSTRACT_RPC_URL, {
 ## Directory Structure
 
 ```
-PenguBook/
+PeBloq/
 ├── prisma/
 │   └── schema.prisma           # Database schema
 │
@@ -1015,7 +1015,7 @@ ABSTRACT_RPC_URL=https://api.mainnet.abs.xyz
 ### 1. **Clone and Install**
 ```bash
 git clone <repo>
-cd PenguBook
+cd PeBloq
 npm install
 ```
 
@@ -1047,7 +1047,7 @@ npm run dev
 ### 4. **Connect Wallet**
 - Install Abstract Global Wallet browser extension
 - Create/import wallet
-- Connect on PenguBook homepage
+- Connect on PeBloq homepage
 - You're now a user!
 
 ### 5. **Become Admin** (For Testing)
@@ -1168,7 +1168,7 @@ npm run test:coverage    # Coverage report
 
 ## Conclusion
 
-PenguBook is a sophisticated Web3 social platform with strong fundamentals:
+PeBloq is a sophisticated Web3 social platform with strong fundamentals:
 
 **Strengths:**
 - ✅ Robust wallet authentication via AGW

@@ -9,7 +9,7 @@ export default function ConnectingPage() {
   const { data: client } = useAbstractClient()
   const [error, setError] = useState<string | null>(null)
   const [timedOut, setTimedOut] = useState(false)
-  const [status, setStatus] = useState('Connecting to PenguBook...')
+  const [status, setStatus] = useState('Connecting to PeBloq...')
 
   useEffect(() => {
     const timeout = setTimeout(() => {

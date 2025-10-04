@@ -1,6 +1,6 @@
 # OAuth Integration Setup Guide
 
-PenguBook now supports OAuth integration with Discord and X (Twitter) for verified social connections and notifications.
+PeBloq now supports OAuth integration with Discord and X (Twitter) for verified social connections and notifications.
 
 ## Features
 
@@ -62,7 +62,7 @@ PenguBook now supports OAuth integration with Discord and X (Twitter) for verifi
 ### User Flow
 1. User clicks "Connect Discord" or "Connect X" in settings
 2. Redirected to OAuth provider for authentication
-3. User authorizes PenguBook access
+3. User authorizes PeBloq access
 4. Callback route handles the response
 5. User profile updated with verified social account
 6. Tokens stored securely for notifications

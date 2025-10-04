@@ -35,7 +35,7 @@ const predefinedThemes: Theme[] = [
   {
     id: 'classic',
     name: 'Classic Arctic',
-    description: 'The original PenguBook experience',
+    description: 'The original PeBloq experience',
     colors: {
       from: '#1e3a8a', // blue-900
       via: '#581c87',  // purple-900

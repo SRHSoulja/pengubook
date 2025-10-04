@@ -1,7 +1,7 @@
-# Claude Code Context - PenguBook
+# Claude Code Context - PeBloq
 
 ## Project Overview
-PenguBook is a Next.js 14.2.32 social platform with Web3 wallet integration (Abstract Global Wallet), OAuth authentication (Discord/Twitter via NextAuth.js), and Prisma ORM with PostgreSQL database.
+PeBloq is a Next.js 14.2.32 social platform with Web3 wallet integration (Abstract Global Wallet), OAuth authentication (Discord/Twitter via NextAuth.js), and Prisma ORM with PostgreSQL database.
 
 ## Brand Colors
 Official Pengu brand colors for custom icons and design:
@@ -65,7 +65,7 @@ if (twitterAvatar) {
 // Check if we're in the linking flow
 const isLinkingFlow = typeof window !== 'undefined' && (
   sessionStorage.getItem('linkToUserId') ||
-  sessionStorage.getItem('pengubook-auth')
+  sessionStorage.getItem('pebloq-auth')
 )
 
 if (isLinkingFlow) {
@@ -141,7 +141,7 @@ npm run dev  # Start fresh
 
 ### Issue: OAuth Flow Creating Duplicates
 **Solution**: Check both:
-1. SessionStorage has `pengubook-auth` (indicates wallet user logged in)
+1. SessionStorage has `pebloq-auth` (indicates wallet user logged in)
 2. Server-side check in oauth-register for existing wallet users
 
 ### Issue: Blurry Twitter Avatars

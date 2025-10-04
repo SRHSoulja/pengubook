@@ -1,9 +1,9 @@
 #!/bin/bash
-# Production setup script for PenguBook
+# Production setup script for PeBloq
 
 set -e
 
-echo "🐧 PenguBook Production Setup Script"
+echo "🐧 PeBloq Production Setup Script"
 echo "===================================="
 
 # Colors for output
@@ -183,7 +183,7 @@ if command -v systemctl &> /dev/null; then
 
     cat > /tmp/pengubook.service << EOF
 [Unit]
-Description=PenguBook Social Platform
+Description=PeBloq Social Platform
 After=network.target
 
 [Service]
@@ -208,7 +208,7 @@ fi
 print_status "Creating backup script..."
 cat > scripts/backup.sh << 'EOF'
 #!/bin/bash
-# Backup script for PenguBook production data
+# Backup script for PeBloq production data
 
 BACKUP_DIR="/var/backups/pengubook"
 DATE=$(date +%Y%m%d_%H%M%S)
@@ -237,11 +237,11 @@ chmod +x scripts/backup.sh
 print_status "Creating update script..."
 cat > scripts/update.sh << 'EOF'
 #!/bin/bash
-# Update script for PenguBook
+# Update script for PeBloq
 
 set -e
 
-echo "Updating PenguBook..."
+echo "Updating PeBloq..."
 
 # Pull latest changes
 git pull origin main
@@ -259,7 +259,7 @@ npx prisma db push
 # Restart services
 if systemctl is-active --quiet pengubook; then
     sudo systemctl restart pengubook
-    echo "PenguBook service restarted"
+    echo "PeBloq service restarted"
 else
     echo "Please restart your application manually"
 fi
@@ -296,5 +296,5 @@ echo "- ⚠ Configure rate limiting at proxy level"
 echo "- ⚠ Set up log rotation"
 echo "- ⚠ Configure database backups"
 echo ""
-print_success "PenguBook is ready for production! 🐧"
+print_success "PeBloq is ready for production! 🐧"
 EOF

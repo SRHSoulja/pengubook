@@ -13,7 +13,7 @@ import ThemeWrapper from '@/components/ThemeWrapper'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'PenguBook',
+  title: 'PeBloq',
   description: 'Social platform with AGW integration and Abstract token tipping',
   icons: {
     icon: '/favicon.svg',

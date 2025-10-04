@@ -1,4 +1,4 @@
-// Test setup and configuration for PenguBook
+// Test setup and configuration for PeBloq
 
 import { PrismaClient } from '@prisma/client'
 

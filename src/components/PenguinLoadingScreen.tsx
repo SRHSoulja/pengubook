@@ -44,7 +44,7 @@ export default function PenguinLoadingScreen({ icon, iconAlt }: PenguinLoadingSc
   }, [])
 
   const displayIcon = navIcon?.icon || icon || 'https://gmgnrepeat.com/icons/pengubookicon1.png'
-  const displayIconAlt = navIcon?.alt || iconAlt || 'PenguBook'
+  const displayIconAlt = navIcon?.alt || iconAlt || 'PeBloq'
 
   useEffect(() => {
     // Rotate through facts every 3 seconds

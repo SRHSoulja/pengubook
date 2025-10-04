@@ -7,10 +7,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
- * @title PenguBookSocial
+ * @title PeBloqSocial
  * @dev Gasless social interactions using meta-transactions
  */
-contract PenguBookSocial is EIP712, Ownable, ReentrancyGuard {
+contract PeBloqSocial is EIP712, Ownable, ReentrancyGuard {
     using ECDSA for bytes32;
 
     // Events
@@ -58,7 +58,7 @@ contract PenguBookSocial is EIP712, Ownable, ReentrancyGuard {
     bytes32 private constant POST_TYPEHASH = keccak256("Post(string content,bytes32 contentHash,uint256 timestamp,uint256 nonce)");
     bytes32 private constant INTERACTION_TYPEHASH = keccak256("Interaction(string postId,string action,uint256 timestamp,uint256 nonce)");
 
-    constructor() EIP712("PenguBook", "1") {}
+    constructor() EIP712("PeBloq", "1") {}
 
     /**
      * @dev Create a post with user signature (gasless for user)

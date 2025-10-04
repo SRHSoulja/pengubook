@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Check sessionStorage for existing auth
     try {
-      const storedAuth = sessionStorage.getItem('pengubook-auth')
+      const storedAuth = sessionStorage.getItem('pebloq-auth')
       if (storedAuth) {
         const authData = JSON.parse(storedAuth)
         // Check if auth is still valid (within 24 hours)
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         } else {
           console.log('[AuthProvider] Stored auth expired, clearing sessionStorage')
-          sessionStorage.removeItem('pengubook-auth')
+          sessionStorage.removeItem('pebloq-auth')
         }
       }
     } catch (error) {
@@ -119,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Check if stored auth is for a different wallet address
         if (walletAddress && walletAddress.toLowerCase() !== address.toLowerCase()) {
           console.log('[AuthProvider] Different wallet detected, clearing stored auth')
-          sessionStorage.removeItem('pengubook-auth')
+          sessionStorage.removeItem('pebloq-auth')
           setWalletAddress(null)
           setUser(null)
           setWalletStatus('connected')
@@ -160,7 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (oauthStatus === 'authenticated' && (oauthSession?.user as any)?.id) {
       const isLinkingFlow = typeof window !== 'undefined' && (
         sessionStorage.getItem('linkToUserId') ||
-        sessionStorage.getItem('pengubook-auth')
+        sessionStorage.getItem('pebloq-auth')
       )
 
       if (isLinkingFlow) return
@@ -207,7 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           isAdmin: data.user.isAdmin || isAdminByWallet
         })
         // Store auth info for persistence
-        sessionStorage.setItem('pengubook-auth', JSON.stringify({
+        sessionStorage.setItem('pebloq-auth', JSON.stringify({
           walletAddress: address,
           timestamp: Date.now()
         }))
@@ -244,7 +244,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } else {
         setUser(null)
-        sessionStorage.removeItem('pengubook-auth')
+        sessionStorage.removeItem('pebloq-auth')
       }
     } catch (error) {
       console.error('Failed to fetch user:', error)
@@ -461,7 +461,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false)
       attemptedVerifyForAddr.current = null
 
-      sessionStorage.setItem('pengubook-auth', JSON.stringify({
+      sessionStorage.setItem('pebloq-auth', JSON.stringify({
         walletAddress: address,
         timestamp: Date.now()
       }))

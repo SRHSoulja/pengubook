@@ -348,7 +348,7 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
     const postUrl = `${window.location.origin}/posts/${post.id}`
     const text = `Check out this post by ${post.author.displayName}: "${post.content.slice(0, 100)}${post.content.length > 100 ? '...' : ''}"
 
-via @PenguBook`
+via @PeBloq`
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(postUrl)}`
     const newWindow = window.open(twitterUrl, '_blank', 'width=550,height=420,noopener,noreferrer')
     if (newWindow) newWindow.opener = null // Extra security for older browsers
@@ -609,7 +609,7 @@ via @PenguBook`
                     <span className="text-lg">{isShared ? '✅' : '🔄'}</span>
                     <div className="text-left">
                       <div className="font-medium">{isShared ? 'Shared to Feed' : 'Share to Feed'}</div>
-                      <div className="text-xs text-gray-400">Share within PenguBook</div>
+                      <div className="text-xs text-gray-400">Share within PeBloq</div>
                     </div>
                   </button>
 

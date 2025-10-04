@@ -67,7 +67,7 @@ export default function Home() {
       >
         <div className="text-center space-y-6">
           <div className="flex justify-center">
-            <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PenguBook" className="w-32 h-32 animate-float" />
+            <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PeBloq" className="w-32 h-32 animate-float" />
           </div>
           <h1 className="text-4xl font-display font-bold text-gradient">
             Welcome back, {user?.displayName}!
@@ -111,7 +111,7 @@ export default function Home() {
               <div className="relative group">
                 <img
                   src={`https://gmgnrepeat.com/pengubooklogo1.png?v=${Date.now()}`}
-                  alt="PenguBook Logo"
+                  alt="PeBloq Logo"
                   className="w-56 h-56 md:w-72 md:h-72 lg:w-96 lg:h-96 animate-float filter drop-shadow-2xl transition-all group-hover:scale-[1.02] duration-700 object-contain"
                 />
                 {/* Vibrant multi-layer glow effect */}

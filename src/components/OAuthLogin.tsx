@@ -72,7 +72,7 @@ export default function OAuthLogin() {
     <div className="space-y-4">
       <div className="text-center mb-6">
         <h3 className="text-xl font-bold text-white mb-2">Connect Your Social Accounts</h3>
-        <p className="text-gray-300 text-sm">Link your Discord and X accounts to your PenguBook profile</p>
+        <p className="text-gray-300 text-sm">Link your Discord and X accounts to your PeBloq profile</p>
       </div>
 
       <button
@@ -98,7 +98,7 @@ export default function OAuthLogin() {
       </button>
 
       <div className="text-center text-xs text-gray-400 mt-4">
-        <p>By connecting, you agree to link your social accounts with PenguBook</p>
+        <p>By connecting, you agree to link your social accounts with PeBloq</p>
       </div>
     </div>
   )

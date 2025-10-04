@@ -96,9 +96,9 @@ export default function Navbar() {
         <div className="flex items-center justify-between gap-4">
           {/* Logo - Compact */}
           <a href="/dashboard" className="flex items-center group hover-glow flex-shrink-0">
-            <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PenguBook" className="w-8 h-8 mr-2 animate-float" />
+            <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PeBloq" className="w-8 h-8 mr-2 animate-float" />
             <div className="hidden sm:flex flex-col">
-              <span className="text-lg font-display font-bold text-gradient">PenguBook</span>
+              <span className="text-lg font-display font-bold text-gradient">PeBloq</span>
             </div>
           </a>
 

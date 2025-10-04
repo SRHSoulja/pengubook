@@ -25,7 +25,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center text-white">
           <div className="flex justify-center mb-4">
-            <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PenguBook" className="w-24 h-24" />
+            <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PeBloq" className="w-24 h-24" />
           </div>
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p className="text-gray-300 mb-6">You need to connect your wallet to access the colony!</p>
@@ -53,7 +53,7 @@ export default function Dashboard() {
           <div className="text-center mb-16 relative">
             <div className="relative inline-block">
               <div className="flex justify-center mb-6 animate-float">
-                <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PenguBook" className="w-32 h-32" />
+                <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PeBloq" className="w-32 h-32" />
               </div>
               <div className="absolute inset-0 animate-aurora-flow opacity-30 rounded-full"></div>
             </div>

@@ -58,9 +58,9 @@ export async function sendDiscordNotification(options: NotificationOptions) {
         embeds: [{
           title: options.title,
           description: options.message,
-          color: 0x00AFF4, // PenguBook blue
+          color: 0x00AFF4, // PeBloq blue
           footer: {
-            text: 'PenguBook',
+            text: 'PeBloq',
             icon_url: 'https://your-domain.com/penguin-icon.png'
           }
         }]
@@ -140,7 +140,7 @@ export async function notifyUserOfTip(fromUserId: string, toUserId: string, amou
 
   return sendNotifications({
     title: '🎁 New Tip Received!',
-    message: `${fromUser.displayName} sent you ${amount} ${token} on PenguBook!`,
+    message: `${fromUser.displayName} sent you ${amount} ${token} on PeBloq!`,
     recipientUserId: toUserId,
     type: 'tip'
   })
@@ -153,7 +153,7 @@ export async function notifyUserOfFollow(fromUserId: string, toUserId: string) {
 
   return sendNotifications({
     title: '🐧 New Follower!',
-    message: `${fromUser.displayName} started following you on PenguBook!`,
+    message: `${fromUser.displayName} started following you on PeBloq!`,
     recipientUserId: toUserId,
     type: 'follow'
   })
@@ -166,7 +166,7 @@ export async function notifyUserOfFriendRequest(fromUserId: string, toUserId: st
 
   return sendNotifications({
     title: '🤝 Friend Request!',
-    message: `${fromUser.displayName} sent you a friend request on PenguBook!`,
+    message: `${fromUser.displayName} sent you a friend request on PeBloq!`,
     recipientUserId: toUserId,
     type: 'friend_request'
   })

@@ -1,4 +1,4 @@
-# PenguBook
+# PeBloq
 
 A social platform with Abstract Global Wallet (AGW) integration and token tipping functionality.
 
@@ -15,7 +15,7 @@ A social platform with Abstract Global Wallet (AGW) integration and token tippin
 1. **Clone and install dependencies:**
 ```bash
 git clone <repository-url>
-cd PenguBook
+cd PeBloq
 npm install
 ```
 

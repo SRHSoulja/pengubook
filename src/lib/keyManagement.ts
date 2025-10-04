@@ -27,7 +27,7 @@ interface StoredKeyPair {
 }
 
 class SecureKeyManager {
-  private dbName = 'PenguBookSecureKeys'
+  private dbName = 'PeBloqSecureKeys'
   private dbVersion = 1
   private storeName = 'keyPairs'
   private db: IDBDatabase | null = null

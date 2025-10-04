@@ -333,7 +333,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center text-white">
-            <div className="flex justify-center mb-4"><img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PenguBook" className="w-24 h-24" /></div>
+            <div className="flex justify-center mb-4"><img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PeBloq" className="w-24 h-24" /></div>
             <h1 className="text-2xl font-bold mb-4">Loading Profile...</h1>
             <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
           </div>

@@ -136,7 +136,7 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
   {
     name: 'early_adopter',
     title: 'Early Adopter',
-    description: 'Join PenguBook in its early days',
+    description: 'Join PeBloq in its early days',
     icon: '🐧',
     category: 'MILESTONE',
     rarity: 'RARE',

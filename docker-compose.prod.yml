@@ -1,4 +1,4 @@
-# Production database configuration for PenguBook
+# Production database configuration for PeBloq
 version: '3.8'
 
 services:

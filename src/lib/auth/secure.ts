@@ -136,7 +136,7 @@ async function authenticateWithSignature(request: NextRequest): Promise<Authenti
   await verifyNonce(nonce, walletAddress)
 
   // Construct message to verify
-  const message = `PenguBook Authentication\nWallet: ${walletAddress}\nTimestamp: ${timestamp}\nNonce: ${nonce}`
+  const message = `PeBloq Authentication\nWallet: ${walletAddress}\nTimestamp: ${timestamp}\nNonce: ${nonce}`
 
   // Verify signature
   try {
@@ -241,7 +241,7 @@ export function generateAuthChallenge(): { nonce: string, timestamp: number, mes
   return {
     nonce,
     timestamp,
-    message: `PenguBook Authentication\nTimestamp: ${timestamp}\nNonce: ${nonce}\n\nBy signing this message, you authenticate with PenguBook.\nThis signature will not trigger any blockchain transaction or cost gas.`
+    message: `PeBloq Authentication\nTimestamp: ${timestamp}\nNonce: ${nonce}\n\nBy signing this message, you authenticate with PeBloq.\nThis signature will not trigger any blockchain transaction or cost gas.`
   }
 }
 

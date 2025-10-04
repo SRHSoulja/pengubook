@@ -547,7 +547,7 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
     const postUrl = `${window.location.origin}/posts/${post.id}`
     const text = `Check out this post by ${post.author.displayName}: "${post.content.slice(0, 100)}${post.content.length > 100 ? '...' : ''}"
 
-via @PenguBook`
+via @PeBloq`
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(postUrl)}`
     const newWindow = window.open(twitterUrl, '_blank', 'width=550,height=420,noopener,noreferrer')
     if (newWindow) newWindow.opener = null // Extra security for older browsers
@@ -916,7 +916,7 @@ via @PenguBook`
                           {post.isShared ? 'Already Shared' : 'Share Internally'}
                         </div>
                         <div className="text-xs text-gray-400">
-                          {post.isShared ? 'You shared this post' : 'Share within PenguBook'}
+                          {post.isShared ? 'You shared this post' : 'Share within PeBloq'}
                         </div>
                       </div>
                     </button>
