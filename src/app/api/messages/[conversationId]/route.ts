@@ -140,7 +140,7 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
   try {
     const { conversationId } = params
     const body = await request.json()
-    const { content, messageType = 'TEXT', mediaUrls = [] } = body
+    const { content, messageType = 'TEXT', mediaUrls = [], expiresInMinutes } = body
 
     if (!content || content.trim().length === 0) {
       return NextResponse.json(
@@ -201,6 +201,12 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
       )
     }
 
+    // Calculate expiration time if specified
+    let expiresAt: Date | undefined
+    if (expiresInMinutes && expiresInMinutes > 0) {
+      expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000)
+    }
+
     // Create message with encrypted content
     const message = await prisma.message.create({
       data: {
@@ -208,7 +214,8 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
         senderId: user.id,
         content: encryptMessage(content.trim()), // Encrypt message content before storing
         messageType,
-        mediaUrls: JSON.stringify(sanitizedMediaUrls)
+        mediaUrls: JSON.stringify(sanitizedMediaUrls),
+        expiresAt
       },
       include: {
         sender: {
