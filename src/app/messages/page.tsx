@@ -148,7 +148,7 @@ export default function MessagesPage() {
     return <PenguinLoadingScreen />
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center text-white">
@@ -280,7 +280,7 @@ export default function MessagesPage() {
 
                           <p className="text-gray-300 text-sm mb-2">
                             {conversation.isGroup
-                              ? `${conversation.participants.length} members`
+                              ? `${conversation.participants.length} members • ${conversation.participants.map(p => p.displayName || p.username).join(', ')}`
                               : `@${conversation.otherParticipants.map(p => p.username).join(', ')}`
                             }
                           </p>

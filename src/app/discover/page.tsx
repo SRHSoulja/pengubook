@@ -6,7 +6,6 @@ import { useTheme } from '@/providers/ThemeProvider'
 import Navbar from '@/components/Navbar'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 import UserActions from '@/components/UserActions'
-import TrendingHashtags from '@/components/TrendingHashtags'
 import HashtagSearch from '@/components/HashtagSearch'
 import Link from 'next/link'
 
@@ -112,7 +111,7 @@ export default function DiscoverPage() {
     return <PenguinLoadingScreen />
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center text-white">
@@ -388,13 +387,20 @@ export default function DiscoverPage() {
                     />
                   </div>
 
-                  {/* Trending Hashtags */}
-                  <TrendingHashtags
-                    limit={15}
-                    onHashtagClick={(hashtag) => {
-                      window.location.href = `/feed/search?q=%23${hashtag}`
-                    }}
-                  />
+                  {/* Redirect to Feed */}
+                  <div className="bg-gradient-to-br from-orange-500/20 to-pink-500/20 backdrop-blur-lg rounded-2xl border border-orange-500/30 p-8 text-center">
+                    <div className="text-5xl mb-4">🔥</div>
+                    <h3 className="text-2xl font-bold text-white mb-3">Looking for Trending Tags?</h3>
+                    <p className="text-gray-200 mb-6">
+                      Check out our trending hashtags section in the Feed page!
+                    </p>
+                    <Link
+                      href="/feed"
+                      className="inline-block bg-gradient-to-r from-orange-500 to-pink-500 text-white px-8 py-3 rounded-xl hover:from-orange-600 hover:to-pink-600 transition-all font-semibold shadow-lg"
+                    >
+                      Go to Feed →
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>

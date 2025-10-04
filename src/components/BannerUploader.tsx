@@ -17,6 +17,7 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+  const [imageType, setImageType] = useState<string>('image/jpeg')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Sync preview with currentBanner prop when it changes
@@ -44,6 +45,9 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
       return
     }
 
+    // Store the original image type to preserve transparency
+    setImageType(file.type)
+
     // Show cropper with image
     const imageUrl = URL.createObjectURL(file)
     setTempImage(imageUrl)
@@ -52,7 +56,7 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
     setZoom(1)
   }
 
-  const createCroppedImage = async (): Promise<Blob> => {
+  const createCroppedImage = async (imageType: string): Promise<Blob> => {
     if (!tempImage || !croppedAreaPixels) {
       throw new Error('No image to crop')
     }
@@ -68,6 +72,11 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
     canvas.width = croppedAreaPixels.width
     canvas.height = croppedAreaPixels.height
 
+    // Clear canvas with transparency for PNG images
+    if (imageType === 'image/png') {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+    }
+
     ctx.drawImage(
       image,
       croppedAreaPixels.x,
@@ -81,9 +90,13 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
     )
 
     return new Promise((resolve) => {
+      // Use PNG for transparent images, JPEG for others
+      const mimeType = imageType === 'image/png' ? 'image/png' : 'image/jpeg'
+      const quality = mimeType === 'image/jpeg' ? 0.95 : undefined
+
       canvas.toBlob((blob) => {
         if (blob) resolve(blob)
-      }, 'image/jpeg', 0.95)
+      }, mimeType, quality)
     })
   }
 
@@ -94,8 +107,9 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
     setShowCropper(false)
 
     try {
-      const croppedBlob = await createCroppedImage()
-      const file = new File([croppedBlob], 'banner.jpg', { type: 'image/jpeg' })
+      const croppedBlob = await createCroppedImage(imageType)
+      const fileExtension = imageType === 'image/png' ? 'png' : 'jpg'
+      const file = new File([croppedBlob], `banner.${fileExtension}`, { type: imageType })
 
       const formData = new FormData()
       formData.append('file', file)

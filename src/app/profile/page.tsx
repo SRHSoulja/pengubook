@@ -20,13 +20,13 @@ export default function ProfilePage() {
     }
   }, [authLoading, isAuthenticated, user, router])
 
-  // Show loading screen while checking auth or redirecting
-  if (authLoading || (isAuthenticated && user)) {
+  // Show loading screen while checking auth
+  if (authLoading) {
     return <PenguinLoadingScreen />
   }
 
   // Show access denied if not authenticated
-  if (!isAuthenticated || !user) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center text-white">

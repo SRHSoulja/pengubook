@@ -29,18 +29,35 @@ export async function authenticateRequest(request: NextRequest): Promise<{
     let userId: string | null = null
     let walletAddress: string | null = null
 
-    // Method 1: JWT Token from NextAuth
+    // Method 1: Wallet session cookie (pengubook-session)
     try {
-      const token = await getToken({
-        req: request,
-        secret: process.env.NEXTAUTH_SECRET
-      })
+      const { getSession } = await import('@/lib/auth-session')
+      const session = await getSession(request)
 
-      if (token?.sub) {
-        userId = token.sub
+      if (session?.userId) {
+        userId = session.userId
+        walletAddress = session.walletAddress || null
+        console.log('[Auth] Authenticated via wallet session:', { userId: userId.slice(0, 8) + '...', walletAddress: walletAddress?.slice(0, 6) + '...' })
       }
     } catch (error) {
-      console.error('[Auth] JWT token validation failed:', error)
+      console.error('[Auth] Wallet session validation failed:', error)
+    }
+
+    // Method 2: JWT Token from NextAuth
+    if (!userId) {
+      try {
+        const token = await getToken({
+          req: request,
+          secret: process.env.NEXTAUTH_SECRET
+        })
+
+        if (token?.sub) {
+          userId = token.sub
+          console.log('[Auth] Authenticated via NextAuth JWT:', { userId: userId.slice(0, 8) + '...' })
+        }
+      } catch (error) {
+        console.error('[Auth] JWT token validation failed:', error)
+      }
     }
 
     // Method 2: Authorization header (Bearer token - REMOVED FOR SECURITY)

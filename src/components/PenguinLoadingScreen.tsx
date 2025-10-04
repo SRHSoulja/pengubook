@@ -43,8 +43,9 @@ export default function PenguinLoadingScreen({ icon, iconAlt }: PenguinLoadingSc
     }
   }, [])
 
-  const displayIcon = navIcon?.icon || icon || 'https://gmgnrepeat.com/icons/pengubookicon1.png'
-  const displayIconAlt = navIcon?.alt || iconAlt || 'PeBloq'
+  // Only use nav icon or passed icon - no fallback to main logo
+  const displayIcon = navIcon?.icon || icon
+  const displayIconAlt = navIcon?.alt || iconAlt || 'Loading'
 
   useEffect(() => {
     // Rotate through facts every 3 seconds
@@ -85,19 +86,21 @@ export default function PenguinLoadingScreen({ icon, iconAlt }: PenguinLoadingSc
       </div>
 
       <div className="relative z-10 text-center space-y-8 max-w-2xl px-8">
-        {/* Main penguin animation */}
-        <div className="relative">
-          <div className="flex justify-center animate-bounce">
-            <img src={displayIcon} alt={displayIconAlt} className="w-48 h-48 drop-shadow-2xl" />
-          </div>
-          <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
-              <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+        {/* Main penguin animation - only show if we have a custom icon */}
+        {displayIcon && (
+          <div className="relative">
+            <div className="flex justify-center animate-bounce">
+              <img src={displayIcon} alt={displayIconAlt} className="w-48 h-48 drop-shadow-2xl" />
+            </div>
+            <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Title */}
         <div>

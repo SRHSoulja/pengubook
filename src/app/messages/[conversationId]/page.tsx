@@ -41,6 +41,7 @@ interface ConversationPageProps {
 export default function ConversationPage({ params }: ConversationPageProps) {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const [messages, setMessages] = useState<Message[]>([])
+  const [conversation, setConversation] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
@@ -50,6 +51,8 @@ export default function ConversationPage({ params }: ConversationPageProps) {
   const [reportingMessageId, setReportingMessageId] = useState<string | null>(null)
   const [reportReason, setReportReason] = useState('')
   const [submittingReport, setSubmittingReport] = useState(false)
+  const [showLeaveModal, setShowLeaveModal] = useState(false)
+  const [leavingGroup, setLeavingGroup] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const REACTION_EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🙏']
@@ -128,6 +131,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
       const result = await response.json()
       if (result.success) {
         setMessages(result.messages || [])
+        setConversation(result.conversation || null)
 
         // Mark messages as read after fetching
         markMessagesAsRead()
@@ -289,6 +293,35 @@ export default function ConversationPage({ params }: ConversationPageProps) {
     return date.toLocaleString()
   }
 
+  const handleLeaveGroup = async () => {
+    if (!user?.id) return
+
+    setLeavingGroup(true)
+    try {
+      const response = await fetch(`/api/messages/${params.conversationId}/leave`, {
+        method: 'POST',
+        headers: {
+          'x-user-id': user.id,
+          'x-wallet-address': user.walletAddress || ''
+        }
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        // Redirect to messages page
+        window.location.href = '/messages'
+      } else {
+        alert(result.error || 'Failed to leave group')
+      }
+    } catch (error) {
+      console.error('Error leaving group:', error)
+      alert('Failed to leave group')
+    } finally {
+      setLeavingGroup(false)
+      setShowLeaveModal(false)
+    }
+  }
+
   if (authLoading) {
     return <PenguinLoadingScreen />
   }
@@ -323,12 +356,61 @@ export default function ConversationPage({ params }: ConversationPageProps) {
               ← Back to Messages
             </Link>
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-white">Conversation</h1>
-              <div className="flex items-center space-x-2">
-                <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
-                <span className="text-sm text-gray-300">
-                  {isConnected ? 'Connected' : 'Offline'}
-                </span>
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold text-white">
+                  {conversation?.isGroup ? (conversation.groupName || 'Group Chat') : 'Conversation'}
+                </h1>
+                {conversation?.isGroup && (
+                  <div className="flex items-center gap-3 mt-2">
+                    <p className="text-sm text-gray-300">
+                      {conversation.participants?.length || 0} members
+                      {conversation.groupDescription && ` • ${conversation.groupDescription}`}
+                    </p>
+                    {/* Member avatars */}
+                    {conversation.participants && conversation.participants.length > 0 && (
+                      <div className="flex -space-x-2">
+                        {conversation.participants.slice(0, 5).map((participant: any) => (
+                          <div
+                            key={participant.user.id}
+                            className="w-8 h-8 rounded-full border-2 border-purple-900 bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-xs font-bold text-white overflow-hidden"
+                            title={participant.user.displayName || participant.user.username}
+                          >
+                            {getEffectiveAvatar(participant.user) ? (
+                              <img
+                                src={getEffectiveAvatar(participant.user)!}
+                                alt={participant.user.displayName || participant.user.username}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              getAvatarFallback(participant.user)
+                            )}
+                          </div>
+                        ))}
+                        {conversation.participants.length > 5 && (
+                          <div className="w-8 h-8 rounded-full border-2 border-purple-900 bg-gray-700 flex items-center justify-center text-xs font-bold text-white">
+                            +{conversation.participants.length - 5}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                {conversation?.isGroup && (
+                  <button
+                    onClick={() => setShowLeaveModal(true)}
+                    className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-red-200 border border-red-500/30 rounded-xl transition-colors text-sm font-medium"
+                  >
+                    Leave Group
+                  </button>
+                )}
+                <div className="flex items-center space-x-2">
+                  <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
+                  <span className="text-sm text-gray-300">
+                    {isConnected ? 'Connected' : 'Offline'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -593,6 +675,51 @@ export default function ConversationPage({ params }: ConversationPageProps) {
                 className="flex-1 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors"
               >
                 {submittingReport ? 'Submitting...' : 'Submit Report'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Leave Group Confirmation Modal */}
+      {showLeaveModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white">Leave Group?</h2>
+              <button
+                onClick={() => setShowLeaveModal(false)}
+                className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-gray-300 mb-4">
+                Are you sure you want to leave <span className="font-semibold text-white">{conversation?.groupName || 'this group'}</span>?
+              </p>
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
+                <p className="text-amber-300 text-sm">
+                  <span className="font-medium">Note:</span> You won't be able to see new messages unless someone adds you back to the group.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLeaveModal(false)}
+                disabled={leavingGroup}
+                className="flex-1 px-4 py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLeaveGroup}
+                disabled={leavingGroup}
+                className="flex-1 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors"
+              >
+                {leavingGroup ? 'Leaving...' : 'Leave Group'}
               </button>
             </div>
           </div>

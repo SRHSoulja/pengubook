@@ -109,8 +109,8 @@ export default function ProfileEditPage() {
     return <PenguinLoadingScreen />
   }
 
-  // Show access denied if not authenticated
-  if (!isAuthenticated || !user) {
+  // Show access denied if not authenticated (but only after auth loading is complete)
+  if (!isAuthenticated && !authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
         <Navbar />
@@ -169,16 +169,86 @@ export default function ProfileEditPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white mb-1">
+                <label className="block text-sm font-medium text-white mb-3">
                   Username
                 </label>
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData({...formData, username: e.target.value})}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white/90 text-gray-900"
-                  placeholder="Your unique username"
-                />
+                {(user as any).discordName || (user as any).twitterHandle ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-300 mb-3">
+                      Choose from your linked social accounts:
+                    </p>
+
+                    {(user as any).discordName && (
+                      <div
+                        onClick={() => setFormData({...formData, username: (user as any).discordName})}
+                        className={`p-4 border rounded-xl cursor-pointer transition-all ${
+                          formData.username === (user as any).discordName
+                            ? 'border-[#5865F2] bg-[#5865F2]/10'
+                            : 'border-gray-300 bg-white/5'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="text-2xl">💬</div>
+                            <div>
+                              <h4 className="font-medium text-white">Discord Username</h4>
+                              <p className="text-sm text-gray-300">@{(user as any).discordName}</p>
+                            </div>
+                          </div>
+                          <div className={`w-4 h-4 rounded-full border-2 ${
+                            formData.username === (user as any).discordName ? 'bg-[#5865F2] border-[#5865F2]' : 'border-gray-400'
+                          }`} />
+                        </div>
+                      </div>
+                    )}
+
+                    {(user as any).twitterHandle && (
+                      <div
+                        onClick={() => setFormData({...formData, username: (user as any).twitterHandle.replace('@', '')})}
+                        className={`p-4 border rounded-xl cursor-pointer transition-all ${
+                          formData.username === (user as any).twitterHandle.replace('@', '')
+                            ? 'border-black bg-black/10'
+                            : 'border-gray-300 bg-white/5'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="text-2xl">𝕏</div>
+                            <div>
+                              <h4 className="font-medium text-white">X (Twitter) Username</h4>
+                              <p className="text-sm text-gray-300">{(user as any).twitterHandle}</p>
+                            </div>
+                          </div>
+                          <div className={`w-4 h-4 rounded-full border-2 ${
+                            formData.username === (user as any).twitterHandle.replace('@', '') ? 'bg-black border-black' : 'border-gray-400'
+                          }`} />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                      <p className="text-blue-300 text-sm">
+                        <span className="font-medium">Note:</span> For security and authenticity, usernames must match your linked social accounts.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                    <p className="text-amber-300 text-sm mb-3">
+                      <span className="font-medium">Link a social account to set your username</span>
+                    </p>
+                    <p className="text-amber-200 text-xs mb-3">
+                      To choose a username, please link your Discord or X (Twitter) account in Settings.
+                      Your username will match one of your linked accounts for authenticity.
+                    </p>
+                    <Link
+                      href="/settings"
+                      className="inline-block bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
+                    >
+                      Go to Settings
+                    </Link>
+                  </div>
+                )}
               </div>
 
               <div>

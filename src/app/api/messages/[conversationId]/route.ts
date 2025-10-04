@@ -27,7 +27,9 @@ export const GET = withRateLimit(120, 60 * 1000)(withAuth(async (request: NextRe
       select: {
         participants: true,
         isGroup: true,
-        groupName: true
+        groupName: true,
+        groupDescription: true,
+        groupAvatar: true
       }
     })
 
@@ -111,13 +113,31 @@ export const GET = withRateLimit(120, 60 * 1000)(withAuth(async (request: NextRe
       createdAt: message.createdAt
     }))
 
+    // Get participant details for group display (reuse participantIds from above)
+    const participants = await prisma.user.findMany({
+      where: {
+        id: { in: participantIds }
+      },
+      select: {
+        id: true,
+        username: true,
+        displayName: true,
+        avatar: true,
+        level: true
+      }
+    })
+
     return NextResponse.json({
       success: true,
       messages: formattedMessages.reverse(), // Return in chronological order
       conversation: {
         id: conversationId,
         isGroup: conversation.isGroup,
-        groupName: conversation.groupName
+        groupName: conversation.groupName,
+        groupDescription: conversation.groupDescription,
+        groupAvatar: conversation.groupAvatar,
+        participants: participants,
+        participantCount: participants.length
       },
       pagination: {
         limit,
@@ -183,7 +203,9 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
       select: {
         participants: true,
         isGroup: true,
-        groupName: true
+        groupName: true,
+        groupDescription: true,
+        groupAvatar: true
       }
     })
 

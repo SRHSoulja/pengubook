@@ -114,15 +114,17 @@ export default function ProfileClient({ params }: ProfilePageProps) {
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [tips, setTips] = useState<Tip[]>([])
+  const [sentTips, setSentTips] = useState<Tip[]>([])
   const [posts, setPosts] = useState<Post[]>([])
   const [sharedPosts, setSharedPosts] = useState<any[]>([])
-  const [activeTab, setActiveTab] = useState<'posts' | 'shared'>('posts')
-  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'posts' | 'shared' | 'tips' | 'tipsSent'>('posts')
+  const [loading, setLoading] = useState(false)
+  const [initialLoad, setInitialLoad] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [editingPost, setEditingPost] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
   const [deleting, setDeleting] = useState<string | null>(null)
-  const [walletBalanceCollapsed, setWalletBalanceCollapsed] = useState(false)
+  const [walletBalanceCollapsed, setWalletBalanceCollapsed] = useState(true)
   const [viewingHistory, setViewingHistory] = useState<string | null>(null)
   const [editHistory, setEditHistory] = useState<PostEdit[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
@@ -133,12 +135,14 @@ export default function ProfileClient({ params }: ProfilePageProps) {
 
   const fetchProfile = async () => {
     try {
+      setLoading(true)
       const response = await fetch(`/api/users/${params.id}`)
       const data = await response.json()
       if (response.ok) {
         setProfile(data.data)
         // Fetch related data using the actual user ID
         fetchTips(data.data.id)
+        fetchSentTips(data.data.id)
         fetchPosts(data.data.id)
         fetchSharedPosts(data.data.id)
       } else {
@@ -148,6 +152,7 @@ export default function ProfileClient({ params }: ProfilePageProps) {
       setError('Failed to load profile')
     } finally {
       setLoading(false)
+      setInitialLoad(false)
     }
   }
 
@@ -160,6 +165,18 @@ export default function ProfileClient({ params }: ProfilePageProps) {
       }
     } catch (err) {
       console.error('Failed to fetch tips:', err)
+    }
+  }
+
+  const fetchSentTips = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/tips?userId=${userId}&type=sent&limit=10`)
+      if (response.ok) {
+        const data = await response.json()
+        setSentTips(data.tips || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch sent tips:', err)
     }
   }
 
@@ -327,7 +344,7 @@ export default function ProfileClient({ params }: ProfilePageProps) {
     setEditHistory([])
   }
 
-  if (loading) {
+  if (initialLoad && loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
         <Navbar />
@@ -342,7 +359,7 @@ export default function ProfileClient({ params }: ProfilePageProps) {
     )
   }
 
-  if (error || !profile) {
+  if (!initialLoad && (error || !profile)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
         <Navbar />
@@ -358,6 +375,10 @@ export default function ProfileClient({ params }: ProfilePageProps) {
         </div>
       </div>
     )
+  }
+
+  if (!profile) {
+    return null
   }
 
   return (
@@ -502,27 +523,42 @@ export default function ProfileClient({ params }: ProfilePageProps) {
                   </div>
                 </div>
 
-                {currentUser && currentUser.id !== profile.id && (
-                  <div className="flex gap-3">
-                    <FollowButton
-                      targetUserId={profile.id}
-                      currentUserId={currentUser.id}
-                      initialIsFollowing={false}
-                    />
-                    <UserActions
-                      targetUserId={profile.id}
-                      targetUser={{
-                        username: profile.username,
-                        displayName: profile.displayName
-                      }}
-                      showMessageButton={true}
-                      showFriendButton={true}
-                      showBlockButton={true}
-                      compact={false}
-                    />
-                    <TipButton userId={profile.id} />
-                  </div>
-                )}
+                <div className="flex flex-col gap-3">
+                  {currentUser && currentUser.id !== profile.id && (
+                    <div className="flex gap-3">
+                      <FollowButton
+                        targetUserId={profile.id}
+                        currentUserId={currentUser.id}
+                        initialIsFollowing={false}
+                      />
+                      <UserActions
+                        targetUserId={profile.id}
+                        targetUser={{
+                          username: profile.username,
+                          displayName: profile.displayName
+                        }}
+                        showMessageButton={true}
+                        showFriendButton={true}
+                        showBlockButton={true}
+                        compact={false}
+                      />
+                      <TipButton userId={profile.id} />
+                    </div>
+                  )}
+
+                  {/* Share Profile Button */}
+                  <a
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out @${profile.username} on PeBloq - A Web3 social platform built on Abstract! 🐧`)}&url=${encodeURIComponent(`https://pebloq.gmgnrepeat.com/profile/${profile.id}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 bg-[#1DA1F2] text-white px-4 py-2 rounded-xl hover:bg-[#1a8cd8] transition-colors font-semibold text-sm"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    <span>Share Profile on 𝕏</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -570,6 +606,26 @@ export default function ProfileClient({ params }: ProfilePageProps) {
               onClick={() => setActiveTab('shared')}
             >
               Shared ({sharedPosts.length})
+            </button>
+            <button
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+                activeTab === 'tips'
+                  ? 'bg-cyan-500 text-white'
+                  : 'bg-white/10 text-gray-300 hover:bg-white/20'
+              }`}
+              onClick={() => setActiveTab('tips')}
+            >
+              💰 Received ({tips.length})
+            </button>
+            <button
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+                activeTab === 'tipsSent'
+                  ? 'bg-cyan-500 text-white'
+                  : 'bg-white/10 text-gray-300 hover:bg-white/20'
+              }`}
+              onClick={() => setActiveTab('tipsSent')}
+            >
+              💸 Sent ({sentTips.length})
             </button>
           </div>
 
@@ -624,6 +680,200 @@ export default function ProfileClient({ params }: ProfilePageProps) {
                     <div className="text-6xl mb-4">🔄</div>
                     <h3 className="text-xl font-semibold mb-2">No shared posts</h3>
                     <p>This penguin hasn't shared any posts yet!</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tips Tab */}
+            {activeTab === 'tips' && (
+              <div className="space-y-4">
+                {tips.length > 0 ? (
+                  tips.map((tip: any) => (
+                    <div
+                      key={tip.id}
+                      className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-6 hover:bg-white/15 transition-all"
+                    >
+                      <div className="flex items-start gap-4">
+                        {/* Sender Avatar */}
+                        <Link href={`/profile/${tip.fromUser.id}`}>
+                          <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-cyan-500 to-blue-500 flex-shrink-0 hover:ring-2 hover:ring-cyan-400 transition-all">
+                            {tip.fromUser.avatar ? (
+                              <img
+                                src={tip.fromUser.avatar}
+                                alt={tip.fromUser.username || tip.fromUser.walletAddress}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
+                                {(tip.fromUser.username || tip.fromUser.walletAddress).charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+
+                        {/* Tip Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <Link
+                              href={`/profile/${tip.fromUser.id}`}
+                              className="font-semibold text-white hover:text-cyan-400 transition-colors"
+                            >
+                              {tip.fromUser.username || `${tip.fromUser.walletAddress.slice(0, 6)}...${tip.fromUser.walletAddress.slice(-4)}`}
+                            </Link>
+                            <span className="text-sm text-gray-400">
+                              {new Date(tip.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </span>
+                          </div>
+
+                          {/* Tip Amount */}
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-2xl">💰</span>
+                            <div className="flex flex-col">
+                              <span className="text-xl font-bold text-cyan-400">
+                                {tip.amount} {tip.token}
+                              </span>
+                              {tip.usdValueAtTime && (
+                                <span className="text-sm text-green-400">
+                                  ≈ ${parseFloat(tip.usdValueAtTime).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD at time of tip
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Message */}
+                          {tip.message && (
+                            <div className="bg-white/5 rounded-lg p-4 mb-3">
+                              <p className="text-gray-200 whitespace-pre-wrap break-words">
+                                {tip.message}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Transaction Link */}
+                          {tip.txHash && (
+                            <a
+                              href={`https://explorer.abs.xyz/tx/${tip.txHash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors inline-flex items-center gap-1"
+                            >
+                              <span>View transaction</span>
+                              <span>↗</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-gray-300 py-12">
+                    <div className="text-6xl mb-4">💰</div>
+                    <h3 className="text-xl font-semibold mb-2">No tips received</h3>
+                    <p>This penguin hasn't received any tips yet!</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tips Sent Tab */}
+            {activeTab === 'tipsSent' && (
+              <div className="space-y-4">
+                {sentTips.length > 0 ? (
+                  sentTips.map((tip: any) => (
+                    <div
+                      key={tip.id}
+                      className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-6 hover:bg-white/15 transition-all"
+                    >
+                      <div className="flex items-start gap-4">
+                        {/* Recipient Avatar */}
+                        <Link href={`/profile/${tip.toUser.id}`}>
+                          <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-cyan-500 to-blue-500 flex-shrink-0 hover:ring-2 hover:ring-cyan-400 transition-all">
+                            {tip.toUser.avatar ? (
+                              <img
+                                src={tip.toUser.avatar}
+                                alt={tip.toUser.username || tip.toUser.walletAddress}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
+                                {(tip.toUser.username || tip.toUser.walletAddress).charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+
+                        {/* Tip Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <span className="text-gray-400 text-sm mr-2">To:</span>
+                              <Link
+                                href={`/profile/${tip.toUser.id}`}
+                                className="font-semibold text-white hover:text-cyan-400 transition-colors"
+                              >
+                                {tip.toUser.username || `${tip.toUser.walletAddress.slice(0, 6)}...${tip.toUser.walletAddress.slice(-4)}`}
+                              </Link>
+                            </div>
+                            <span className="text-sm text-gray-400">
+                              {new Date(tip.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </span>
+                          </div>
+
+                          {/* Tip Amount */}
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-2xl">💸</span>
+                            <div className="flex flex-col">
+                              <span className="text-xl font-bold text-cyan-400">
+                                {tip.amount} {tip.token}
+                              </span>
+                              {tip.usdValueAtTime && (
+                                <span className="text-sm text-green-400">
+                                  ≈ ${parseFloat(tip.usdValueAtTime).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD at time of tip
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Message */}
+                          {tip.message && (
+                            <div className="bg-white/5 rounded-lg p-4 mb-3">
+                              <p className="text-gray-400 text-xs mb-1">Your message:</p>
+                              <p className="text-gray-200 whitespace-pre-wrap break-words">
+                                {tip.message}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Transaction Link */}
+                          {tip.txHash && (
+                            <a
+                              href={`https://explorer.abs.xyz/tx/${tip.txHash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors inline-flex items-center gap-1"
+                            >
+                              <span>View transaction</span>
+                              <span>↗</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-gray-300 py-12">
+                    <div className="text-6xl mb-4">💸</div>
+                    <h3 className="text-xl font-semibold mb-2">No tips sent</h3>
+                    <p>This penguin hasn't sent any tips yet!</p>
                   </div>
                 )}
               </div>

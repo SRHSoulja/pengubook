@@ -43,13 +43,13 @@ export default function Home() {
 
   // Auto-redirect authenticated users to dashboard
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !loading) {
       const timer = setTimeout(() => {
         window.location.href = '/dashboard'
       }, 2000)
       return () => clearTimeout(timer)
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, loading])
 
   // Show loading screen while checking auth
   if (loading) {
@@ -57,7 +57,7 @@ export default function Home() {
   }
 
   // If authenticated, redirect to dashboard or show different content
-  if (isAuthenticated) {
+  if (isAuthenticated && !loading) {
     return (
       <main
         className="min-h-screen flex items-center justify-center"

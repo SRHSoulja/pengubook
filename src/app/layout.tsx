@@ -10,6 +10,8 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 import ClientErrorHandler from '@/components/ClientErrorHandler'
 import StreakCheckerWrapper from '@/components/StreakCheckerWrapper'
 import ThemeWrapper from '@/components/ThemeWrapper'
+import Footer from '@/components/Footer'
+import CookieConsent from '@/components/CookieConsent'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -67,9 +69,15 @@ export default function RootLayout({
                 <AuthProvider>
                   <ThemeProvider>
                     <ThemeWrapper>
-                      <StreakCheckerWrapper />
-                      {children}
-                      <MobileBottomNav />
+                      <div className="flex flex-col min-h-screen">
+                        <StreakCheckerWrapper />
+                        <main className="flex-1">
+                          {children}
+                        </main>
+                        <Footer />
+                        <MobileBottomNav />
+                        <CookieConsent />
+                      </div>
                     </ThemeWrapper>
                   </ThemeProvider>
                 </AuthProvider>

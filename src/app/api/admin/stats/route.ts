@@ -7,6 +7,10 @@ export async function GET(request: NextRequest) {
   try {
     
 
+    // Get start of today (midnight in server timezone)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
     // Fetch all statistics in parallel
     const [
       totalUsers,
@@ -24,7 +28,7 @@ export async function GET(request: NextRequest) {
       prisma.user.count({
         where: {
           createdAt: {
-            gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+            gte: today // Since midnight today
           }
         }
       })

@@ -191,7 +191,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUser = async (address: string) => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/users/profile?walletAddress=${address}`)
+      // Normalize address to lowercase for consistent database lookup
+      const normalizedAddress = address.toLowerCase()
+      const response = await fetch(`/api/users/profile?walletAddress=${normalizedAddress}`)
       const data = await response.json()
 
       if (response.ok && data.user) {

@@ -626,7 +626,7 @@ export default function PostClient({ params }: { params: { id: string } }) {
                     className="flex items-center gap-2 text-gray-300 hover:text-cyan-400 transition-colors"
                     title={isBookmarked ? 'Remove bookmark' : 'Bookmark post'}
                   >
-                    <span className="text-lg">{isBookmarked ? '🔖' : '📌'}</span>
+                    <span className="text-lg">🔖</span>
                     <span className="text-sm">{isBookmarked ? 'Saved' : 'Save'}</span>
                   </button>
                   {post.author.id !== user.id && (

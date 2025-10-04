@@ -20,12 +20,28 @@ export default function TipModal({ isOpen, onClose }: TipModalProps) {
   const [tokens, setTokens] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
+  const [usdValue, setUsdValue] = useState<number | null>(null)
 
   useEffect(() => {
     if (isOpen) {
       fetchTokens()
     }
   }, [isOpen])
+
+  // Calculate USD value when amount or token changes
+  useEffect(() => {
+    if (amount && selectedToken && tokens.length > 0) {
+      const token = tokens.find(t => t.symbol === selectedToken)
+      if (token && token.price) {
+        const value = parseFloat(amount) * token.price
+        setUsdValue(value)
+      } else {
+        setUsdValue(null)
+      }
+    } else {
+      setUsdValue(null)
+    }
+  }, [amount, selectedToken, tokens])
 
   // Keyboard navigation: ESC to close
   useKeyboardNavigation(isOpen, onClose)
@@ -206,6 +222,18 @@ export default function TipModal({ isOpen, onClose }: TipModalProps) {
               </select>
             </div>
           </div>
+
+          {/* USD Value Display */}
+          {usdValue !== null && (
+            <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-green-300 text-sm font-medium">💵 USD Value:</span>
+                <span className="text-green-200 text-lg font-bold">
+                  ${usdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-white mb-2">

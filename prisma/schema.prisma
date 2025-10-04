@@ -67,6 +67,7 @@ model User {
   reportsReceived       Report[]             @relation("ReportTarget")
   mutedPhrases          MutedPhrase[]
   hiddenTokens          HiddenToken[]
+  contactSubmissions    ContactSubmission[]
 }
 
 model Profile {
@@ -102,7 +103,9 @@ model Profile {
   theme                 String  @default("default")
   bannerImage           String?
   profileVerified       Boolean @default(false)
+  pinnedPostId          String?
   user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pinnedPost            Post?   @relation("PinnedPost", fields: [pinnedPostId], references: [id], onDelete: SetNull)
 }
 
 model Token {
@@ -126,6 +129,7 @@ model Tip {
   status          String   @default("PENDING")
   message         String?  // Public note/message attached to the tip
   isPublic        Boolean  @default(true) // Whether the tip message is visible on profile
+  usdValueAtTime  String?  // USD value of tip at time of receipt (for tax records)
   createdAt       DateTime @default(now())
   fromUser        User     @relation("TipFrom", fields: [fromUserId], references: [id])
   toUser          User     @relation("TipTo", fields: [toUserId], references: [id])
@@ -160,6 +164,7 @@ model Post {
   bookmarks        Bookmark[]
   reports          Report[]
   hashtags         PostHashtag[]
+  pinnedByProfiles Profile[]  @relation("PinnedPost")
 
   @@index([authorId])
   @@index([createdAt])
@@ -878,4 +883,24 @@ model RateLimit {
 
   @@index([key, resetTime])
   @@index([resetTime]) // For cleanup queries
+}
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  userId    String?  // Optional - can be anonymous
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  type      String   // 'bug', 'feature', 'support', 'other'
+  status    String   @default("PENDING") // 'PENDING', 'REVIEWED', 'RESOLVED', 'CLOSED'
+  adminNotes String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@index([userId])
 }

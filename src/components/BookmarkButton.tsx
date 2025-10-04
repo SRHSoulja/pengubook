@@ -79,15 +79,9 @@ export default function BookmarkButton({
         <div className="animate-spin rounded-full border-2 border-current border-t-transparent" />
       ) : (
         <>
-          <svg
-            className={`${size === 'sm' ? 'w-4 h-4' : size === 'md' ? 'w-5 h-5' : 'w-6 h-6'}`}
-            viewBox="0 0 24 24"
-            fill={bookmarked ? 'currentColor' : 'none'}
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-          </svg>
+          <span className={`${size === 'sm' ? 'text-base' : size === 'md' ? 'text-lg' : 'text-xl'}`}>
+            🔖
+          </span>
           {showLabel && (
             <span className="hidden sm:inline">
               {bookmarked ? 'Saved' : 'Save'}

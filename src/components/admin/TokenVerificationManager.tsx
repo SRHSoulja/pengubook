@@ -28,6 +28,8 @@ export default function TokenVerificationManager() {
   const [manualTokenAddress, setManualTokenAddress] = useState('')
   const [manualTokenSymbol, setManualTokenSymbol] = useState('')
   const [manualTokenName, setManualTokenName] = useState('')
+  const [selectedTokens, setSelectedTokens] = useState<Set<string>>(new Set())
+  const [processingBatch, setProcessingBatch] = useState(false)
 
   useEffect(() => {
     fetchVerifiedTokens()
@@ -134,6 +136,56 @@ export default function TokenVerificationManager() {
     }
   }
 
+  const toggleTokenSelection = (tokenAddress: string) => {
+    const newSelected = new Set(selectedTokens)
+    if (newSelected.has(tokenAddress)) {
+      newSelected.delete(tokenAddress)
+    } else {
+      newSelected.add(tokenAddress)
+    }
+    setSelectedTokens(newSelected)
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedTokens.size === availableTokens.length) {
+      setSelectedTokens(new Set())
+    } else {
+      setSelectedTokens(new Set(availableTokens.map(t => t.tokenAddress)))
+    }
+  }
+
+  const batchVerify = async () => {
+    if (selectedTokens.size === 0) return
+    if (!confirm(`Verify ${selectedTokens.size} token(s)?`)) return
+
+    setProcessingBatch(true)
+    try {
+      const tokensToVerify = availableTokens.filter(t => selectedTokens.has(t.tokenAddress))
+
+      for (const token of tokensToVerify) {
+        await fetch('/api/admin/tokens/verified', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tokenAddress: token.tokenAddress,
+            symbol: token.symbol,
+            name: token.name,
+            userId: user?.id
+          })
+        })
+      }
+
+      setSelectedTokens(new Set())
+      fetchVerifiedTokens()
+      fetchAvailableTokens()
+    } catch (error) {
+      console.error('Error batch verifying:', error)
+      alert('Failed to verify some tokens')
+    } finally {
+      setProcessingBatch(false)
+    }
+  }
+
   return (
     <div className="bg-black/20 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
       <h2 className="text-xl font-semibold text-white mb-6">Token Verification Management</h2>
@@ -141,7 +193,7 @@ export default function TokenVerificationManager() {
       {/* Available Tokens Section */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-white">Available Tokens to Verify</h3>
+          <h3 className="text-lg font-semibold text-white">Available Tokens to Verify ({availableTokens.length})</h3>
           <button
             onClick={() => setShowManualModal(true)}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
@@ -160,30 +212,78 @@ export default function TokenVerificationManager() {
             No unverified tokens found in user wallets
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3">
-            {availableTokens.map((token) => (
-              <div key={token.tokenAddress} className="bg-black/30 rounded-xl p-4 border border-white/10">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1">
-                    <div className="text-white font-semibold">{token.symbol || 'Unknown'}</div>
-                    {token.name && <div className="text-sm text-gray-300">{token.name}</div>}
-                    <div className="text-xs text-gray-500 font-mono mt-1">{token.tokenAddress}</div>
-                  </div>
-                  {token.seenCount && token.seenCount > 1 && (
-                    <div className="text-xs text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded">
-                      Seen {token.seenCount}x
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={() => handleQuickVerify(token)}
-                  className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
-                >
-                  ✓ Verify Token
-                </button>
+          <>
+            {/* Batch Actions Bar */}
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedTokens.size === availableTokens.length && availableTokens.length > 0}
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-white font-medium">
+                    {selectedTokens.size > 0 ? `${selectedTokens.size} selected` : 'Select All'}
+                  </span>
+                </label>
               </div>
-            ))}
-          </div>
+
+              {selectedTokens.size > 0 && (
+                <button
+                  onClick={batchVerify}
+                  disabled={processingBatch}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                >
+                  {processingBatch ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>✓ Verify Selected</>
+                  )}
+                </button>
+              )}
+            </div>
+
+            {/* Token Items */}
+            <div className="grid grid-cols-1 gap-3">
+              {availableTokens.map((token) => (
+                <div key={token.tokenAddress} className="bg-black/30 rounded-xl p-4 border border-white/10">
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedTokens.has(token.tokenAddress)}
+                      onChange={() => toggleTokenSelection(token.tokenAddress)}
+                      className="w-5 h-5 mt-1"
+                    />
+
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex-1">
+                          <div className="text-white font-semibold">{token.symbol || 'Unknown'}</div>
+                          {token.name && <div className="text-sm text-gray-300">{token.name}</div>}
+                          <div className="text-xs text-gray-500 font-mono mt-1">{token.tokenAddress}</div>
+                        </div>
+                        {token.seenCount && token.seenCount > 1 && (
+                          <div className="text-xs text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded">
+                            Seen {token.seenCount}x
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleQuickVerify(token)}
+                        className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
+                      >
+                        ✓ Verify Token
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

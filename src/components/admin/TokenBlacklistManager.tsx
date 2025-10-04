@@ -49,6 +49,8 @@ export default function TokenBlacklistManager({ initialTab = 'reports' }: TokenB
   const [tab, setTab] = useState<'reports' | 'blacklist'>(initialTab)
   const [showBlacklistModal, setShowBlacklistModal] = useState(false)
   const [selectedReport, setSelectedReport] = useState<TokenReport | null>(null)
+  const [selectedReports, setSelectedReports] = useState<Set<string>>(new Set())
+  const [processingBatch, setProcessingBatch] = useState(false)
 
   useEffect(() => {
     fetchBlacklistedTokens()
@@ -151,6 +153,85 @@ export default function TokenBlacklistManager({ initialTab = 'reports' }: TokenB
     }
   }
 
+  const toggleReportSelection = (tokenAddress: string) => {
+    const newSelected = new Set(selectedReports)
+    if (newSelected.has(tokenAddress)) {
+      newSelected.delete(tokenAddress)
+    } else {
+      newSelected.add(tokenAddress)
+    }
+    setSelectedReports(newSelected)
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedReports.size === reports.length) {
+      setSelectedReports(new Set())
+    } else {
+      setSelectedReports(new Set(reports.map(r => r.tokenAddress)))
+    }
+  }
+
+  const batchBlacklist = async () => {
+    if (selectedReports.size === 0) return
+    if (!confirm(`Blacklist ${selectedReports.size} token(s)?`)) return
+
+    setProcessingBatch(true)
+    try {
+      const reportsToBlacklist = reports.filter(r => selectedReports.has(r.tokenAddress))
+
+      for (const report of reportsToBlacklist) {
+        await fetch('/api/admin/tokens/blacklist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tokenAddress: report.tokenAddress,
+            symbol: report.symbol,
+            name: report.name,
+            reason: report.latestReason,
+            userId: user?.id
+          })
+        })
+      }
+
+      setSelectedReports(new Set())
+      fetchBlacklistedTokens()
+      fetchReports()
+    } catch (error) {
+      console.error('Error batch blacklisting:', error)
+      alert('Failed to blacklist some tokens')
+    } finally {
+      setProcessingBatch(false)
+    }
+  }
+
+  const batchDismiss = async () => {
+    if (selectedReports.size === 0) return
+    if (!confirm(`Dismiss ${selectedReports.size} report(s)?`)) return
+
+    setProcessingBatch(true)
+    try {
+      for (const tokenAddress of selectedReports) {
+        await fetch('/api/admin/tokens/reports', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tokenAddress,
+            status: 'DISMISSED',
+            userId: user?.id
+          })
+        })
+      }
+
+      setSelectedReports(new Set())
+      fetchReports()
+    } catch (error) {
+      console.error('Error batch dismissing:', error)
+      alert('Failed to dismiss some reports')
+    } finally {
+      setProcessingBatch(false)
+    }
+  }
+
   return (
     <div className="bg-black/20 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
       <h2 className="text-xl font-semibold text-white mb-6">Token Reports & Blacklist</h2>
@@ -192,43 +273,100 @@ export default function TokenBlacklistManager({ initialTab = 'reports' }: TokenB
               No pending reports
             </div>
           ) : (
-            reports.map((report) => (
-              <div key={report.tokenAddress} className="bg-black/30 rounded-xl p-4 border border-white/10">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <div className="text-white font-semibold">{report.symbol || 'Unknown'}</div>
-                    {report.name && <div className="text-sm text-gray-300">{report.name}</div>}
-                    <div className="text-xs text-gray-500 font-mono mt-1">{report.tokenAddress}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 bg-red-500/20 text-red-300 rounded-full text-sm">
-                      {report.reportCount} {report.reportCount === 1 ? 'report' : 'reports'}
+            <>
+              {/* Batch Actions Bar */}
+              <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedReports.size === reports.length && reports.length > 0}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-white font-medium">
+                      {selectedReports.size > 0 ? `${selectedReports.size} selected` : 'Select All'}
                     </span>
-                  </div>
+                  </label>
                 </div>
 
-                <div className="mb-3">
-                  <div className="text-sm text-gray-300">
-                    <strong>Latest Reason:</strong> {report.latestReason}
+                {selectedReports.size > 0 && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={batchBlacklist}
+                      disabled={processingBatch}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                    >
+                      {processingBatch ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Processing...
+                        </>
+                      ) : (
+                        <>🚫 Blacklist Selected</>
+                      )}
+                    </button>
+                    <button
+                      onClick={batchDismiss}
+                      disabled={processingBatch}
+                      className="px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                    >
+                      {processingBatch ? 'Processing...' : '✕ Dismiss Selected'}
+                    </button>
                   </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleBlacklistToken(report)}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
-                  >
-                    Blacklist Token
-                  </button>
-                  <button
-                    onClick={() => handleDismissReport(report.tokenAddress)}
-                    className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded"
-                  >
-                    Dismiss
-                  </button>
-                </div>
+                )}
               </div>
-            ))
+
+              {/* Report Items */}
+              {reports.map((report) => (
+                <div key={report.tokenAddress} className="bg-black/30 rounded-xl p-4 border border-white/10">
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedReports.has(report.tokenAddress)}
+                      onChange={() => toggleReportSelection(report.tokenAddress)}
+                      className="w-5 h-5 mt-1"
+                    />
+
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <div className="text-white font-semibold">{report.symbol || 'Unknown'}</div>
+                          {report.name && <div className="text-sm text-gray-300">{report.name}</div>}
+                          <div className="text-xs text-gray-500 font-mono mt-1">{report.tokenAddress}</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-1 bg-red-500/20 text-red-300 rounded-full text-sm">
+                            {report.reportCount} {report.reportCount === 1 ? 'report' : 'reports'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mb-3">
+                        <div className="text-sm text-gray-300">
+                          <strong>Latest Reason:</strong> {report.latestReason}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleBlacklistToken(report)}
+                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
+                        >
+                          Blacklist Token
+                        </button>
+                        <button
+                          onClick={() => handleDismissReport(report.tokenAddress)}
+                          className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </>
           )}
         </div>
       )}

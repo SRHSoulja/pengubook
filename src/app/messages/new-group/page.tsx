@@ -49,7 +49,7 @@ export default function NewGroupPage() {
       console.log('Search API response:', data) // Debug log
       if (data.success) {
         // Filter out current user and already selected users
-        const filteredUsers = data.users.filter((u: User) =>
+        const filteredUsers = (data.results || []).filter((u: User) =>
           u.id !== user?.id && !selectedUsers.some(selected => selected.id === u.id)
         )
         console.log('Filtered users:', filteredUsers) // Debug log
@@ -93,23 +93,24 @@ export default function NewGroupPage() {
 
     setLoading(true)
     try {
-      const response = await fetch('/api/messages/groups', {
+      const response = await fetch('/api/messages/conversations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-wallet-address': user.walletAddress
         },
+        credentials: 'include',
         body: JSON.stringify({
+          isGroup: true,
           groupName: groupInfo.name.trim(),
           groupDescription: groupInfo.description.trim() || null,
-          groupAvatar: groupInfo.avatar.trim() || null,
           participantIds: selectedUsers.map(u => u.id)
         })
       })
 
       const data = await response.json()
       if (data.success) {
-        router.push(`/messages/${data.data.id}`)
+        router.push(`/messages/${data.conversation.id}`)
       } else {
         alert(data.error || 'Failed to create group')
       }
@@ -125,7 +126,7 @@ export default function NewGroupPage() {
     return <PenguinLoadingScreen />
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center text-white">

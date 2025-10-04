@@ -37,9 +37,11 @@ export async function GET(request: NextRequest) {
 
     let user = null
     if (walletAddress) {
-      console.log('[UserProfile] Searching for wallet address:', walletAddress)
+      // Normalize wallet address to lowercase for database lookup
+      const normalizedAddress = walletAddress.toLowerCase()
+      console.log('[UserProfile] Searching for wallet address:', normalizedAddress)
       user = await prisma.user.findUnique({
-        where: { walletAddress },
+        where: { walletAddress: normalizedAddress },
         include: { profile: true }
       })
       console.log('[UserProfile] Wallet lookup result:', user ? `Found user ${user.id}, isAdmin: ${user.isAdmin}` : 'Not found')
@@ -217,7 +219,28 @@ export const PUT = withAuth(async (request: NextRequest, user: any) => {
 
     // Sanitize user inputs to prevent XSS attacks
     if (displayName !== undefined) updateData.displayName = sanitizeText(displayName)
-    if (username !== undefined) updateData.username = sanitizeText(username)
+
+    // SECURITY: Username must match one of the linked social accounts
+    if (username !== undefined) {
+      const sanitizedUsername = sanitizeText(username)
+
+      // Check if username matches Discord or Twitter handle
+      const isDiscordUsername = existingUser.discordName && sanitizedUsername === existingUser.discordName
+      const isTwitterUsername = existingUser.twitterHandle && (
+        sanitizedUsername === existingUser.twitterHandle ||
+        sanitizedUsername === existingUser.twitterHandle.replace('@', '')
+      )
+
+      if (!isDiscordUsername && !isTwitterUsername) {
+        return NextResponse.json(
+          { error: 'Username must match one of your linked social accounts (Discord or X/Twitter)' },
+          { status: 400 }
+        )
+      }
+
+      updateData.username = sanitizedUsername
+    }
+
     if (bio !== undefined) updateData.bio = sanitizeHtml(bio) // Allow safe HTML formatting in bio
 
     // Handle avatar source and update avatar URL accordingly

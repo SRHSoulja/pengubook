@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
+import { rateLimiters, RateLimitError } from '@/lib/rateLimit'
 
 export const dynamic = 'force-dynamic'
 
 // Get user's conversations
-export const GET = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRequest, user: any) => {
+export const GET = withAuth(async (request: NextRequest, user: any) => {
   try {
     const { searchParams } = new URL(request.url)
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50)
@@ -130,13 +131,28 @@ export const GET = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextReq
       { status: 500 }
     )
   }
-}))
+})
 
 // Create new conversation
-export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRequest, user: any) => {
+export const POST = withAuth(async (request: NextRequest, user: any) => {
   try {
     const body = await request.json()
-    const { participantIds, isGroup = false, groupName, groupDescription } = body
+    const { participantIds, isGroup = false, groupName, groupDescription, groupAvatar } = body
+
+    // Apply rate limiting for group creation (5 per hour)
+    if (isGroup) {
+      try {
+        rateLimiters.groupCreation(request)
+      } catch (error) {
+        if (error instanceof RateLimitError) {
+          return NextResponse.json(
+            { error: `Too many groups created. Please wait ${error.retryAfter} seconds before creating another group.` },
+            { status: 429, headers: { 'Retry-After': error.retryAfter.toString() } }
+          )
+        }
+        throw error
+      }
+    }
 
     if (!participantIds || !Array.isArray(participantIds) || participantIds.length === 0) {
       return NextResponse.json(
@@ -275,6 +291,24 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
       }
     }
 
+    // For groups, check if a group with same participants already exists
+    if (isGroup) {
+      const sortedParticipants = JSON.stringify(allParticipantIds.sort())
+      const existingGroup = await prisma.conversation.findFirst({
+        where: {
+          isGroup: true,
+          participants: sortedParticipants
+        }
+      })
+
+      if (existingGroup) {
+        return NextResponse.json(
+          { error: 'A group with these participants already exists', conversationId: existingGroup.id },
+          { status: 409 }
+        )
+      }
+    }
+
     // Create conversation
     const conversation = await prisma.conversation.create({
       data: {
@@ -282,6 +316,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
         isGroup,
         groupName: isGroup ? groupName?.trim() : null,
         groupDescription: isGroup ? groupDescription?.trim() : null,
+        groupAvatar: isGroup && groupAvatar?.trim() ? groupAvatar.trim() : null,
         createdBy: user.id,
         adminIds: isGroup ? JSON.stringify([user.id]) : JSON.stringify([])
       }
@@ -320,6 +355,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
         otherParticipants: allParticipants.filter(p => p.id !== user.id),
         isGroup: conversation.isGroup,
         groupName: conversation.groupName,
+        groupAvatar: conversation.groupAvatar,
         groupDescription: conversation.groupDescription,
         createdBy: conversation.createdBy,
         adminIds: JSON.parse(conversation.adminIds || '[]'),
@@ -338,4 +374,4 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
       { status: 500 }
     )
   }
-}))
+})

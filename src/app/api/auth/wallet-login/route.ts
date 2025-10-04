@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const addr = getAddress(walletAddress)
+    const addr = getAddress(walletAddress).toLowerCase() as `0x${string}`
     const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
                      request.headers.get('x-real-ip') ||
                      'unknown'

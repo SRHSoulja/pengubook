@@ -63,7 +63,7 @@ export default function NewMessagePage() {
     return <PenguinLoadingScreen />
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !loading) {
     router.push('/')
     return null
   }

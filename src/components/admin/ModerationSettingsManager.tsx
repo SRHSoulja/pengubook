@@ -53,8 +53,7 @@ export default function ModerationSettingsManager() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-wallet-address': user?.walletAddress || '',
-          'x-user-id': user?.id || ''
+          'x-wallet-address': user?.walletAddress?.toLowerCase() || ''
         },
         credentials: 'include'
       })
@@ -89,8 +88,7 @@ export default function ModerationSettingsManager() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-wallet-address': user?.walletAddress || '',
-          'x-user-id': user?.id || ''
+          'x-wallet-address': user?.walletAddress?.toLowerCase() || ''
         },
         credentials: 'include',
         body: JSON.stringify(editForm)
@@ -115,8 +113,7 @@ export default function ModerationSettingsManager() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-wallet-address': user?.walletAddress || '',
-          'x-user-id': user?.id || ''
+          'x-wallet-address': user?.walletAddress?.toLowerCase() || ''
         },
         credentials: 'include',
         body: JSON.stringify({

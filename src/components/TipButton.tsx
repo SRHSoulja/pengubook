@@ -224,6 +224,12 @@ export default function TipButton({ userId }: TipButtonProps) {
         console.error('Failed to create/fetch token:', err)
       }
 
+      // Calculate USD value at time of tip
+      const tokenPrice = selectedToken === 'ETH'
+        ? nativeToken?.priceUsd
+        : tokens.find(t => t.symbol === selectedToken)?.priceUsd
+      const usdValue = tokenPrice ? (parseFloat(amount) * tokenPrice).toFixed(2) : null
+
       // Record the tip in the backend
       const tipResponse = await fetch('/api/tips', {
         method: 'POST',
@@ -237,7 +243,8 @@ export default function TipButton({ userId }: TipButtonProps) {
           amount: amount,
           message: message || null,
           isPublic: true,
-          transactionHash: txHash
+          transactionHash: txHash,
+          usdValueAtTime: usdValue
         })
       })
 
@@ -434,6 +441,25 @@ export default function TipButton({ userId }: TipButtonProps) {
                   </button>
                 </div>
               )}
+
+              {/* USD Value Display */}
+              {amount && parseFloat(amount) > 0 && (() => {
+                const tokenPrice = selectedToken === 'ETH'
+                  ? nativeToken?.priceUsd
+                  : tokens.find(t => t.symbol === selectedToken)?.priceUsd
+                const usdValue = tokenPrice ? parseFloat(amount) * tokenPrice : null
+
+                return usdValue ? (
+                  <div className="mt-3 bg-green-500/10 border border-green-500/30 rounded-xl p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-green-300 text-sm font-medium">💵 USD Value:</span>
+                      <span className="text-green-200 text-lg font-bold">
+                        ${usdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+                ) : null
+              })()}
             </div>
 
             {/* Message Input */}
@@ -444,7 +470,11 @@ export default function TipButton({ userId }: TipButtonProps) {
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Great post! 🎉"
+                placeholder={
+                  userId === 'platform-pebloq-tips'
+                    ? 'Thanks for building PeBloq! 🐧'
+                    : 'Great post! 🎉'
+                }
                 rows={3}
                 maxLength={200}
                 className="w-full bg-gray-700/30 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent resize-none"

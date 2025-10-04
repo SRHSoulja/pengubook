@@ -6,6 +6,38 @@ import { schemas } from '@/lib/validation'
 
 export const dynamic = 'force-dynamic'
 
+const DEXSCREENER_API = 'https://api.dexscreener.com'
+
+// Get token price from DexScreener
+async function getTokenPrice(tokenAddress: string): Promise<number | undefined> {
+  try {
+    const response = await fetch(`${DEXSCREENER_API}/latest/dex/tokens/${tokenAddress}`)
+    const data = await response.json()
+
+    if (data.pairs && data.pairs.length > 0) {
+      // Filter for Abstract chain pairs
+      const abstractPairs = data.pairs.filter((p: any) =>
+        p.chainId === 'abstract' || p.chainId === 'abstracttestnet'
+      )
+
+      const pairsToConsider = abstractPairs.length > 0 ? abstractPairs : data.pairs
+
+      // Sort by liquidity (highest first)
+      const sortedPairs = pairsToConsider.sort((a: any, b: any) => {
+        const aLiq = parseFloat(a.liquidity?.usd || '0')
+        const bLiq = parseFloat(b.liquidity?.usd || '0')
+        return bLiq - aLiq
+      })
+
+      const bestPair = sortedPairs[0]
+      return bestPair.priceUsd ? parseFloat(bestPair.priceUsd) : undefined
+    }
+  } catch (error) {
+    console.error('Error fetching token price:', error)
+  }
+  return undefined
+}
+
 // Get list of supported tokens
 export async function GET(request: NextRequest) {
   try {
@@ -14,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     logAPI.request('tokens', { enabledOnly })
 
-    
+
 
     const tokens = await prisma.token.findMany({
       where: enabledOnly ? { isEnabled: true } : undefined,
@@ -23,18 +55,26 @@ export async function GET(request: NextRequest) {
       ]
     })
 
+    // Fetch prices for all tokens in parallel
+    const tokensWithPrices = await Promise.all(
+      tokens.map(async (token) => {
+        const price = await getTokenPrice(token.contractAddress)
+        return {
+          id: token.id,
+          name: token.name,
+          symbol: token.symbol,
+          contractAddress: token.contractAddress,
+          decimals: token.decimals,
+          isEnabled: token.isEnabled,
+          logoUrl: token.logoUrl,
+          price: price
+        }
+      })
+    )
 
     return NextResponse.json({
       success: true,
-      tokens: tokens.map(token => ({
-        id: token.id,
-        name: token.name,
-        symbol: token.symbol,
-        contractAddress: token.contractAddress,
-        decimals: token.decimals,
-        isEnabled: token.isEnabled,
-        logoUrl: token.logoUrl
-      }))
+      tokens: tokensWithPrices
     })
 
   } catch (error: any) {

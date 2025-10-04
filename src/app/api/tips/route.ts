@@ -90,6 +90,7 @@ export async function GET(request: NextRequest) {
       transactionHash: tip.transactionHash,
       message: tip.message,
       isPublic: tip.isPublic,
+      usdValueAtTime: tip.usdValueAtTime,
       createdAt: tip.createdAt,
       fromUser: tip.fromUser,
       toUser: tip.toUser,
@@ -118,7 +119,7 @@ export async function GET(request: NextRequest) {
 export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRequest, user: any) => {
   try {
     const body = await request.json()
-    const { toUserId, tokenId, amount, message, isPublic = true, transactionHash } = body
+    const { toUserId, tokenId, amount, message, isPublic = true, transactionHash, usdValueAtTime } = body
 
     // Validate input
     const validation = validate((v) => ({
@@ -127,7 +128,8 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
       amount: v.string(amount, 'amount', { required: true }),
       message: v.string(message, 'message', { maxLength: 500 }),
       isPublic: v.boolean(isPublic, 'isPublic') ?? true,
-      transactionHash: v.string(transactionHash, 'transactionHash', { required: true })
+      transactionHash: v.string(transactionHash, 'transactionHash', { required: true }),
+      usdValueAtTime: v.string(usdValueAtTime, 'usdValueAtTime')
     }))
 
     if (!validation.isValid) {
@@ -138,7 +140,8 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
     }
 
     const { toUserId: validToUserId, tokenId: validTokenId, amount: validAmount,
-            message: validMessage, isPublic: validIsPublic, transactionHash: validTxHash } = validation.sanitizedData
+            message: validMessage, isPublic: validIsPublic, transactionHash: validTxHash,
+            usdValueAtTime: validUsdValue } = validation.sanitizedData
 
     // Self-tipping check
     if (user.id === validToUserId) {
@@ -299,6 +302,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
         transactionHash: validTxHash,
         message: validMessage || null,
         isPublic: validIsPublic,
+        usdValueAtTime: validUsdValue || null,
         status: 'COMPLETED' // Already verified on-chain
       },
       include: {

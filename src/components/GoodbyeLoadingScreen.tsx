@@ -26,7 +26,7 @@ export default function GoodbyeLoadingScreen({ message = 'Leaving the Colony' }:
             👋
           </div>
           <img
-            src="https://gmgnrepeat.com/icons/pengulogo1.png"
+            src="/favicon.svg"
             alt="Pengu"
             className="w-32 h-32 mx-auto mt-4 animate-fade-out opacity-80"
           />

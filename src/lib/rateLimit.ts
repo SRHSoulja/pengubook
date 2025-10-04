@@ -83,6 +83,18 @@ export const rateLimiters = {
     windowMs: 60 * 60 * 1000 // 1 hour
   }),
 
+  // Group conversation creation - prevent spam
+  groupCreation: rateLimit({
+    maxRequests: 5,
+    windowMs: 60 * 60 * 1000, // 1 hour
+    keyGenerator: (request: NextRequest) => {
+      // Rate limit by user ID for group creation
+      const userId = request.headers.get('x-user-id')
+      const walletAddress = request.headers.get('x-wallet-address')
+      return `group_creation:${userId || walletAddress || 'unknown'}`
+    }
+  }),
+
   // Authentication attempts - general auth requests
   authentication: rateLimit({
     maxRequests: 10,

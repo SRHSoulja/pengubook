@@ -12,6 +12,7 @@ import XPEarningManager from '@/components/admin/XPEarningManager'
 import ReactionEmojiManager from '@/components/admin/ReactionEmojiManager'
 import ModerationSettingsManager from '@/components/admin/ModerationSettingsManager'
 import ReviewQueue from '@/components/admin/ReviewQueue'
+import ContactSubmissionsManager from '@/components/admin/ContactSubmissionsManager'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
@@ -20,6 +21,8 @@ export default function AdminPage() {
   const { currentTheme } = useTheme()
   const [activeTab, setActiveTab] = useState('overview')
   const [queueCount, setQueueCount] = useState(0)
+  const [reportsCount, setReportsCount] = useState(0)
+  const [availableTokensCount, setAvailableTokensCount] = useState(0)
   const [stats, setStats] = useState({
     totalUsers: 0,
     verifiedTokens: 0,
@@ -35,11 +38,17 @@ export default function AdminPage() {
     }
   }, [user, activeTab])
 
-  // Poll queue count every 30 seconds
+  // Poll queue count, reports count, and available tokens count every 30 seconds
   useEffect(() => {
     if (user?.isAdmin) {
       fetchQueueCount()
-      const interval = setInterval(fetchQueueCount, 30000)
+      fetchReportsCount()
+      fetchAvailableTokensCount()
+      const interval = setInterval(() => {
+        fetchQueueCount()
+        fetchReportsCount()
+        fetchAvailableTokensCount()
+      }, 30000)
       return () => clearInterval(interval)
     }
   }, [user])
@@ -72,6 +81,45 @@ export default function AdminPage() {
     }
   }
 
+  const fetchReportsCount = async () => {
+    try {
+      const response = await fetch('/api/admin/tokens/reports?status=PENDING')
+      if (response.ok) {
+        const data = await response.json()
+        if (Array.isArray(data)) {
+          // API returns grouped reports, count them
+          setReportsCount(data.length)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching reports count:', error)
+    }
+  }
+
+  const fetchAvailableTokensCount = async () => {
+    try {
+      const response = await fetch('/api/admin/tokens/available')
+      if (response.ok) {
+        const data = await response.json()
+        if (Array.isArray(data)) {
+          // Get last viewed timestamp from localStorage
+          const lastViewed = localStorage.getItem('admin-tokens-last-viewed')
+          const lastViewedTime = lastViewed ? new Date(lastViewed).getTime() : 0
+
+          // Only count tokens discovered after last view
+          const newTokensCount = data.filter((token: any) => {
+            const tokenTime = token.lastSeen ? new Date(token.lastSeen).getTime() : 0
+            return tokenTime > lastViewedTime
+          }).length
+
+          setAvailableTokensCount(newTokensCount)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching available tokens count:', error)
+    }
+  }
+
   if (authLoading) {
     return (
       <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
@@ -87,7 +135,7 @@ export default function AdminPage() {
     )
   }
 
-  if (!isAuthenticated || !user) {
+  if (!isAuthenticated && !authLoading) {
     return (
       <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
         <Navbar />
@@ -123,8 +171,19 @@ export default function AdminPage() {
     )
   }
 
+  const handleTabClick = (tabId: string) => {
+    setActiveTab(tabId)
+
+    // Mark tokens as viewed when admin clicks Verification tab
+    if (tabId === 'verified') {
+      localStorage.setItem('admin-tokens-last-viewed', new Date().toISOString())
+      setAvailableTokensCount(0) // Clear badge immediately
+    }
+  }
+
   const tabs = [
     { id: 'overview', name: 'Overview', icon: '📊' },
+    { id: 'contact', name: 'Contact Submissions', icon: '📬' },
     { id: 'review-queue', name: 'Review Queue', icon: '👀' },
     { id: 'moderation', name: 'Moderation Settings', icon: '⚙️' },
     { id: 'achievements', name: 'Achievements', icon: '🏆' },
@@ -157,7 +216,7 @@ export default function AdminPage() {
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => handleTabClick(tab.id)}
                   className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all duration-200 whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'bg-cyan-500 text-white shadow-lg'
@@ -169,6 +228,16 @@ export default function AdminPage() {
                   {tab.id === 'review-queue' && queueCount > 0 && (
                     <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-1">
                       {queueCount}
+                    </span>
+                  )}
+                  {tab.id === 'reports' && reportsCount > 0 && (
+                    <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-1 animate-pulse">
+                      {reportsCount}
+                    </span>
+                  )}
+                  {tab.id === 'verified' && availableTokensCount > 0 && (
+                    <span className="bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-1">
+                      {availableTokensCount}
                     </span>
                   )}
                 </button>
@@ -233,19 +302,19 @@ export default function AdminPage() {
                   </div>
                   <div className="space-y-3">
                     <button
-                      onClick={() => setActiveTab('reports')}
+                      onClick={() => handleTabClick('reports')}
                       className="w-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/50 py-2 rounded-lg hover:bg-yellow-500/30 transition-colors text-sm"
                     >
                       Review Reports
                     </button>
                     <button
-                      onClick={() => setActiveTab('verified')}
+                      onClick={() => handleTabClick('verified')}
                       className="w-full bg-blue-500/20 text-blue-300 border border-blue-500/50 py-2 rounded-lg hover:bg-blue-500/30 transition-colors text-sm"
                     >
                       Verify Tokens
                     </button>
                     <button
-                      onClick={() => setActiveTab('users')}
+                      onClick={() => handleTabClick('users')}
                       className="w-full bg-purple-500/20 text-purple-300 border border-purple-500/50 py-2 rounded-lg hover:bg-purple-500/30 transition-colors text-sm"
                     >
                       Manage Users
@@ -254,6 +323,8 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
+
+            {activeTab === 'contact' && <ContactSubmissionsManager />}
 
             {activeTab === 'reports' && (
               <TokenBlacklistManager initialTab="reports" />

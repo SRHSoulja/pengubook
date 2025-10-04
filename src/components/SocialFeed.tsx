@@ -1008,8 +1008,39 @@ via @PeBloq`
               }`}
               title={post.isBookmarked ? 'Remove bookmark' : 'Bookmark post'}
             >
-              <span>{post.isBookmarked ? '🔖' : '📌'}</span>
+              <span>🔖</span>
             </button>
+
+            {/* Pin button - only show for own posts */}
+            {post.author.id === userId && (
+              <button
+                onClick={async () => {
+                  try {
+                    const headers: Record<string, string> = {
+                      'Content-Type': 'application/json'
+                    }
+                    if (userId) headers['x-user-id'] = userId
+
+                    const response = await fetch('/api/profile/pin-post', {
+                      method: 'POST',
+                      headers,
+                      body: JSON.stringify({ postId: post.id })
+                    })
+
+                    if (response.ok) {
+                      const data = await response.json()
+                      alert(data.isPinned ? 'Post pinned to your profile!' : 'Post unpinned from your profile')
+                    }
+                  } catch (error) {
+                    console.error('Failed to pin post:', error)
+                  }
+                }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors bg-white/10 text-gray-300 hover:bg-purple-500/20 hover:text-purple-300"
+                title="Pin to profile"
+              >
+                <span>📌</span>
+              </button>
+            )}
 
             {/* Report button - only show for other users' posts */}
             {post.author.id !== userId && (

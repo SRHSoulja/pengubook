@@ -54,7 +54,17 @@ export async function performLogout(options: LogoutOptions = {}): Promise<void> 
       }
     }
 
-    // 2. Logout from NextAuth OAuth session
+    // 2. Logout from wallet session (clear HttpOnly cookie)
+    try {
+      const logoutResponse = await fetch('/api/auth/logout', { method: 'POST' })
+      if (logoutResponse.ok) {
+        console.log('[Logout] Wallet session cleared')
+      }
+    } catch (error) {
+      console.error('[Logout] Wallet session clear failed:', error)
+    }
+
+    // 3. Logout from NextAuth OAuth session
     try {
       await signOut({ redirect: false })
       console.log('[Logout] NextAuth logout successful')
@@ -62,7 +72,7 @@ export async function performLogout(options: LogoutOptions = {}): Promise<void> 
       console.error('[Logout] NextAuth logout failed:', error)
     }
 
-    // 3. Clear all session storage
+    // 4. Clear all session storage
     try {
       const sessionKeys = [
         'pengubook-auth',
@@ -81,7 +91,7 @@ export async function performLogout(options: LogoutOptions = {}): Promise<void> 
       console.error('[Logout] Session storage clear failed:', error)
     }
 
-    // 4. Clear all local storage (keep user preferences like theme)
+    // 5. Clear all local storage (keep user preferences like theme)
     try {
       const localKeys = [
         'pengubook-user',
@@ -98,7 +108,7 @@ export async function performLogout(options: LogoutOptions = {}): Promise<void> 
       console.error('[Logout] Local storage clear failed:', error)
     }
 
-    // 5. Clear authentication cookies
+    // 6. Clear authentication cookies (non-HttpOnly ones)
     try {
       clearAuthCookies()
       console.log('[Logout] Cookies cleared')
@@ -108,7 +118,7 @@ export async function performLogout(options: LogoutOptions = {}): Promise<void> 
 
     console.log('[Logout] Logout complete, redirecting to:', redirectTo)
 
-    // 6. Redirect to specified page
+    // 7. Redirect to specified page
     // Use window.location to ensure full page reload and state reset
     window.location.href = redirectTo
   } catch (error) {

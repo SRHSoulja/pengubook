@@ -2,6 +2,7 @@
 
 import { useLoginWithAbstract, useAbstractClient } from '@abstract-foundation/agw-react'
 import { useState, useEffect, useRef } from 'react'
+import { usePathname } from 'next/navigation'
 import { useAuth } from '@/providers/AuthProvider'
 import UserSearch from './UserSearch'
 import ThemeCustomizer from './ThemeCustomizer'
@@ -11,6 +12,7 @@ export default function Navbar() {
   const { logout } = useLoginWithAbstract()
   const { data: client } = useAbstractClient()
   const { user, isAuthenticated, oauthSession } = useAuth()
+  const pathname = usePathname()
   const [unreadCount, setUnreadCount] = useState(0)
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
@@ -107,7 +109,14 @@ export default function Navbar() {
             <a
               href="/dashboard"
               className="nav-link-compact group relative"
-              onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinhome1.png', alt: 'Home' }))}
+              onClick={(e) => {
+                // Prevent navigation if already on dashboard or home
+                if (pathname === '/dashboard' || pathname === '/') {
+                  e.preventDefault()
+                  return
+                }
+                typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinhome1.png', alt: 'Home' }))
+              }}
             >
               <img src="https://gmgnrepeat.com/icons/penguinhome1.png" alt="Home" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
               <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
@@ -117,7 +126,10 @@ export default function Navbar() {
             <a
               href="/feed"
               className="nav-link-compact group relative"
-              onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinfeed1.png', alt: 'Feed' }))}
+              onClick={(e) => {
+                if (pathname === '/feed') { e.preventDefault(); return }
+                typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinfeed1.png', alt: 'Feed' }))
+              }}
             >
               <img src="https://gmgnrepeat.com/icons/penguinfeed1.png" alt="Feed" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
               <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
@@ -127,7 +139,10 @@ export default function Navbar() {
             <a
               href="/communities"
               className="nav-link-compact group relative"
-              onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguincommunity1.png', alt: 'Communities' }))}
+              onClick={(e) => {
+                if (pathname === '/communities' || pathname.startsWith('/communities/')) { e.preventDefault(); return }
+                typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguincommunity1.png', alt: 'Communities' }))
+              }}
             >
               <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
               <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
@@ -137,7 +152,10 @@ export default function Navbar() {
             <a
               href="/discover"
               className="nav-link-compact group relative"
-              onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguindiscover1.png', alt: 'Discover' }))}
+              onClick={(e) => {
+                if (pathname === '/discover') { e.preventDefault(); return }
+                typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguindiscover1.png', alt: 'Discover' }))
+              }}
             >
               <img src="https://gmgnrepeat.com/icons/penguindiscover1.png" alt="Discover" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
               <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
@@ -147,14 +165,23 @@ export default function Navbar() {
             <a
               href="/friends"
               className="nav-link-compact group relative"
-              onClick={() => typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinfriends1.png', alt: 'Friends' }))}
+              onClick={(e) => {
+                if (pathname === '/friends') { e.preventDefault(); return }
+                typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinfriends1.png', alt: 'Friends' }))
+              }}
             >
               <img src="https://gmgnrepeat.com/icons/penguinfriends1.png" alt="Friends" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
               <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Friends
               </span>
             </a>
-            <a href="/messages" className="nav-link-compact group relative">
+            <a
+              href="/messages"
+              className="nav-link-compact group relative"
+              onClick={(e) => {
+                if (pathname === '/messages' || pathname.startsWith('/messages/')) { e.preventDefault(); return }
+              }}
+            >
               <span className="text-xl">💬</span>
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-gradient-to-r from-pengu-orange to-pengu-green text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 animate-pulse shadow-neon-sm">
