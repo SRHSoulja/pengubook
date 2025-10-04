@@ -127,19 +127,19 @@ export default function AdminPage() {
 
           {/* Navigation Tabs */}
           <div className="mb-8">
-            <nav className="flex space-x-1 bg-black/20 p-1 rounded-2xl backdrop-blur-lg border border-white/20">
+            <nav className="flex flex-wrap gap-2 bg-black/20 p-3 rounded-2xl backdrop-blur-lg border border-white/20">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all duration-200 whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'bg-cyan-500 text-white shadow-lg'
                       : 'text-gray-300 hover:text-white hover:bg-white/10'
                   }`}
                 >
                   <span className="text-lg">{tab.icon}</span>
-                  <span className="font-medium">{tab.name}</span>
+                  <span className="font-medium text-sm md:text-base">{tab.name}</span>
                 </button>
               ))}
             </nav>
