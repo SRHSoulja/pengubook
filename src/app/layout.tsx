@@ -1,5 +1,6 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import AbstractProvider from '@/providers/AbstractProvider'
 import { AuthProvider } from '@/providers/AuthProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
@@ -76,6 +77,7 @@ export default function RootLayout({
             </SessionProvider>
           </ClientErrorHandler>
         </ErrorBoundary>
+        <SpeedInsights />
       </body>
     </html>
   )
