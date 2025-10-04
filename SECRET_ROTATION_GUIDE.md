@@ -11,15 +11,17 @@ echo "NEXTAUTH_SECRET=$(openssl rand -base64 32)"
 # 2. JWT Secret (32 bytes base64)
 echo "JWT_SECRET=$(openssl rand -base64 32)"
 
-# 3. Encryption Secret (32 bytes hex)
+# 3. Session Secret (64 bytes hex) - CRITICAL for wallet session signing
+echo "SESSION_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")"
+
+# 4. Encryption Secret (32 bytes hex)
 echo "ENCRYPTION_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")"
 
-# 4. Cron Secret (32 bytes hex)
+# 5. Cron Secret (32 bytes hex)
 echo "CRON_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")"
-
-# 5. Session Secret (64 bytes hex)
-echo "SESSION_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")"
 ```
+
+**⚠️ IMPORTANT:** SESSION_SECRET is used to sign wallet login sessions. Without it, the app will fall back to NEXTAUTH_SECRET (less secure).
 
 ---
 
@@ -142,9 +144,9 @@ After adding all secrets to Vercel:
 
 - [ ] NEXTAUTH_SECRET (new value)
 - [ ] JWT_SECRET (new value)
+- [ ] SESSION_SECRET (new value) - **CRITICAL for wallet sessions**
 - [ ] ENCRYPTION_SECRET (new value)
 - [ ] CRON_SECRET (new value)
-- [ ] SESSION_SECRET (new value)
 - [ ] DISCORD_CLIENT_ID (production app)
 - [ ] DISCORD_CLIENT_SECRET (production secret)
 - [ ] TWITTER_CLIENT_ID (production app)
