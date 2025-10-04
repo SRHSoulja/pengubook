@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth-session'
-import { prisma } from '@/lib/prisma'
 
 // Force dynamic rendering - don't try to build this at compile time
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 /**
  * Verify if user has a valid session via HTTP-only cookie
@@ -11,6 +10,10 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET(request: NextRequest) {
   try {
+    // Lazy load to avoid build-time execution
+    const { getSession } = await import('@/lib/auth-session')
+    const { prisma } = await import('@/lib/prisma')
+
     const session = await getSession(request)
 
     if (!session || !session.userId) {
