@@ -4,16 +4,23 @@
  */
 
 import { signOut } from 'next-auth/react'
+import { createElement } from 'react'
+import { createRoot } from 'react-dom/client'
 
 interface LogoutOptions {
   /** Redirect URL after logout (default: '/') */
   redirectTo?: string
   /** Whether to call AGW logout function */
   agwLogout?: () => void
+  /** Show goodbye loading screen (default: true) */
+  showGoodbyeScreen?: boolean
+  /** Goodbye screen message */
+  goodbyeMessage?: string
 }
 
 /**
  * Performs a complete logout from all authentication systems
+ * - Shows goodbye loading screen
  * - Logs out from Abstract Global Wallet (AGW)
  * - Logs out from NextAuth OAuth session
  * - Clears all session storage
@@ -22,10 +29,20 @@ interface LogoutOptions {
  * - Redirects to specified page
  */
 export async function performLogout(options: LogoutOptions = {}): Promise<void> {
-  const { redirectTo = '/', agwLogout } = options
+  const {
+    redirectTo = '/',
+    agwLogout,
+    showGoodbyeScreen = true,
+    goodbyeMessage = 'Leaving the Colony'
+  } = options
 
   try {
     console.log('[Logout] Starting comprehensive logout...')
+
+    // Show goodbye screen
+    if (showGoodbyeScreen) {
+      showGoodbyeLoadingScreen(goodbyeMessage)
+    }
 
     // 1. Logout from Abstract Global Wallet if function provided
     if (agwLogout) {
@@ -152,4 +169,22 @@ export function isLoggedIn(): boolean {
   const hasNextAuthSession = document.cookie.includes('next-auth.session-token')
 
   return hasSessionAuth || hasNextAuthSession
+}
+
+/**
+ * Show the goodbye loading screen
+ */
+function showGoodbyeLoadingScreen(message: string): void {
+  // Create container
+  const container = document.createElement('div')
+  container.id = 'goodbye-loading-screen'
+  document.body.appendChild(container)
+
+  // Dynamically import and render GoodbyeLoadingScreen
+  import('@/components/GoodbyeLoadingScreen').then(({ default: GoodbyeLoadingScreen }) => {
+    const root = createRoot(container)
+    root.render(createElement(GoodbyeLoadingScreen, { message }))
+  }).catch(error => {
+    console.error('[Logout] Failed to load goodbye screen:', error)
+  })
 }
