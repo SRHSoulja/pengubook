@@ -366,7 +366,15 @@ export async function POST(request: NextRequest) {
 
         console.log('[AGW Verify] ✅ Auth success', { addr })
 
-        // Create secure HTTP-only session cookie
+        // Create signed and encrypted session
+        const { createSession, setSessionCookie } = await import('@/lib/auth-session')
+        const sessionToken = await createSession({
+          walletAddress: addr,
+          userId: user.id,
+          isAdmin: user.isAdmin
+        })
+
+        // Create response
         const response = NextResponse.json({
           success: true,
           content: 'Wallet authentication successful',
@@ -379,18 +387,8 @@ export async function POST(request: NextRequest) {
           }
         })
 
-        // Set secure HTTP-only cookie (cannot be accessed/modified by JavaScript)
-        response.cookies.set('pengubook-session', JSON.stringify({
-          walletAddress: addr,
-          userId: user.id,
-          timestamp: Date.now()
-        }), {
-          httpOnly: true,      // Cannot be accessed by JavaScript
-          secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-          sameSite: 'lax',     // CSRF protection
-          maxAge: 60 * 60 * 24, // 24 hours
-          path: '/'
-        })
+        // Set secure, signed, HTTP-only cookie
+        setSessionCookie(response, sessionToken)
 
         return response
       } catch (error: any) {

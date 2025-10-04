@@ -7,8 +7,9 @@ export async function middleware(request: NextRequest) {
 
   // Admin route protection
   if (pathname.startsWith('/admin')) {
-    // Check for secure session cookie (HTTP-only, set by server)
-    const sessionCookie = request.cookies.get('pengubook-session')?.value
+    // Verify signed session
+    const { getSession } = await import('@/lib/auth-session')
+    const session = await getSession(request)
 
     // Check for NextAuth OAuth session
     const token = await getToken({
@@ -16,48 +17,12 @@ export async function middleware(request: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET
     })
 
-    let walletAddress: string | null = null
-    let userId: string | null = null
-    let isAdmin = false
+    let walletAddress: string | null = session?.walletAddress || null
+    let userId: string | null = session?.userId || null
+    let isAdmin = session?.isAdmin || false
 
-    // Parse secure session cookie
-    if (sessionCookie) {
-      try {
-        const session = JSON.parse(sessionCookie)
-        walletAddress = session.walletAddress
-        userId = session.userId
-
-        // Verify session is not expired (24 hours)
-        const sessionAge = Date.now() - (session.timestamp || 0)
-        if (sessionAge > 60 * 60 * 24 * 1000) {
-          console.warn('[Middleware] Session expired')
-          walletAddress = null
-          userId = null
-        }
-      } catch (error) {
-        console.error('[Middleware] Invalid session cookie:', error)
-      }
-    }
-
-    // Query database for admin status if we have a wallet
-    if (walletAddress) {
-      try {
-        const { prisma } = await import('@/lib/prisma')
-        const user = await prisma.user.findUnique({
-          where: { walletAddress },
-          select: { isAdmin: true }
-        })
-        isAdmin = user?.isAdmin || false
-
-        console.log('[Middleware] Wallet auth check:', {
-          walletAddress: walletAddress.slice(0, 10) + '...',
-          isAdmin,
-          timestamp: new Date().toISOString()
-        })
-      } catch (error) {
-        console.error('[Middleware] Database error checking admin status:', error)
-      }
-    }
+    // Session already contains verified isAdmin flag from database
+    // No need to query database again (performance optimization)
 
     // Check OAuth auth
     if (!isAdmin && token?.sub) {
@@ -93,7 +58,7 @@ export async function middleware(request: NextRequest) {
         walletAddress: walletAddress?.slice(0, 10) + '...' || 'none',
         userId: userId?.slice(0, 10) + '...' || 'none',
         hasOAuthSession: !!token,
-        hasSecureSession: !!sessionCookie,
+        hasSecureSession: !!session,
         timestamp: new Date().toISOString()
       })
 
