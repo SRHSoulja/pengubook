@@ -115,18 +115,22 @@ export default function ConversationPage({ params }: ConversationPageProps) {
   }
 
   const fetchMessages = async () => {
-    if (!user?.walletAddress) return
+    if (!user?.id) return
 
     try {
       const response = await fetch(`/api/messages/${params.conversationId}`, {
         headers: {
-          'x-wallet-address': user.walletAddress
+          'x-user-id': user.id,
+          'x-wallet-address': user.walletAddress || ''
         }
       })
 
       const result = await response.json()
       if (result.success) {
         setMessages(result.messages || [])
+
+        // Mark messages as read after fetching
+        markMessagesAsRead()
       } else {
         console.error('Failed to fetch messages:', result.error)
       }
@@ -134,6 +138,22 @@ export default function ConversationPage({ params }: ConversationPageProps) {
       console.error('Error fetching messages:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const markMessagesAsRead = async () => {
+    if (!user?.id) return
+
+    try {
+      await fetch(`/api/messages/${params.conversationId}/mark-read`, {
+        method: 'POST',
+        headers: {
+          'x-user-id': user.id,
+          'x-wallet-address': user.walletAddress || ''
+        }
+      })
+    } catch (error) {
+      console.error('Error marking messages as read:', error)
     }
   }
 
