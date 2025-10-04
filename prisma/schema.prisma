@@ -91,6 +91,9 @@ model Profile {
   showTips              Boolean @default(true)
   allowDirectMessages   Boolean @default(true)
   dmPrivacyLevel        String  @default("ALL") // ALL, FRIENDS_ONLY, NONE
+  showReadReceipts      Boolean @default(true) // Show read receipts to others
+  showTypingIndicator   Boolean @default(true) // Show typing indicator to others
+  showOnlineStatus      Boolean @default(true) // Show online/offline status
   showDiscord           Boolean @default(true)
   showTwitter           Boolean @default(true)
   showNSFW              Boolean @default(false) // Auto-show ALL NSFW content
