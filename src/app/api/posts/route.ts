@@ -6,6 +6,7 @@ import { checkAndAwardAchievements } from '@/lib/achievement-checker'
 import { processHashtagsForPost } from '@/lib/hashtag-processor'
 import { updatePostStreak } from '@/lib/streak-tracker'
 import { sanitizeMediaUrls } from '@/lib/utils/url-validator'
+import { sanitizeHtml } from '@/lib/sanitize'
 
 export const dynamic = 'force-dynamic'
 
@@ -137,6 +138,9 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
       )
     }
 
+    // Sanitize post content to prevent XSS attacks (allows safe HTML formatting)
+    const sanitizedContent = sanitizeHtml(content)
+
     // Validate and sanitize media URLs (security: prevent XSS, SSRF)
     const sanitizedMediaUrls = sanitizeMediaUrls(mediaUrls)
 
@@ -168,7 +172,7 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
     const newPost = await prisma.post.create({
       data: {
         authorId,
-        content,
+        content: sanitizedContent,
         contentType,
         mediaUrls: JSON.stringify(sanitizedMediaUrls),
         visibility,
@@ -256,9 +260,9 @@ export const POST = withRateLimit(20, 15 * 60 * 1000)(withAuth(async (request: N
       // Don't fail the post creation if achievement checking fails
     }
 
-    // Process hashtags in the post content
+    // Process hashtags in the post content (use sanitized content)
     try {
-      await processHashtagsForPost(newPost.id, content, prisma)
+      await processHashtagsForPost(newPost.id, sanitizedContent, prisma)
     } catch (hashtagError) {
       console.error('[Posts] Failed to process hashtags:', hashtagError)
       // Don't fail the post creation if hashtag processing fails

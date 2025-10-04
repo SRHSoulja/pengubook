@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sanitizeText, sanitizeHtml, sanitizeUrl } from '@/lib/sanitize'
 
 export const dynamic = 'force-dynamic'
 
@@ -178,9 +179,10 @@ export async function PUT(request: NextRequest) {
     // Prepare update data (excluding social accounts which are OAuth-only)
     const updateData: any = {}
 
-    if (displayName !== undefined) updateData.displayName = displayName
-    if (username !== undefined) updateData.username = username
-    if (bio !== undefined) updateData.bio = bio
+    // Sanitize user inputs to prevent XSS attacks
+    if (displayName !== undefined) updateData.displayName = sanitizeText(displayName)
+    if (username !== undefined) updateData.username = sanitizeText(username)
+    if (bio !== undefined) updateData.bio = sanitizeHtml(bio) // Allow safe HTML formatting in bio
 
     // Handle avatar source and update avatar URL accordingly
     if (avatarSource !== undefined) {
@@ -237,12 +239,22 @@ export async function PUT(request: NextRequest) {
       }
 
       if (bannerImage !== undefined) {
+        // Sanitize URL to prevent XSS
+        const sanitizedBanner = sanitizeUrl(bannerImage)
+
+        if (!sanitizedBanner && bannerImage) {
+          return NextResponse.json(
+            { error: 'Invalid banner image URL' },
+            { status: 400 }
+          )
+        }
+
         // Delete old banner from Cloudinary if replacing
         const existingProfile = await prisma.profile.findUnique({
           where: { userId: updatedUser.id }
         })
 
-        if (existingProfile?.bannerImage && existingProfile.bannerImage !== bannerImage) {
+        if (existingProfile?.bannerImage && existingProfile.bannerImage !== sanitizedBanner) {
           // Extract public ID from old Cloudinary URL
           const urlMatch = existingProfile.bannerImage.match(/\/([^\/]+)\.(jpg|jpeg|png|gif|webp)$/)
           if (urlMatch) {
@@ -258,7 +270,7 @@ export async function PUT(request: NextRequest) {
           }
         }
 
-        profileData.bannerImage = bannerImage
+        profileData.bannerImage = sanitizedBanner || null
       }
 
       // Update or create profile

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { awardXPForComment } from '@/lib/leveling'
+import { sanitizeHtml } from '@/lib/sanitize'
 
 export const dynamic = 'force-dynamic'
 
@@ -104,7 +105,10 @@ export async function POST(
       )
     }
 
-    
+    // Sanitize comment content to prevent XSS attacks (allows safe HTML formatting)
+    const sanitizedContent = sanitizeHtml(content)
+
+
 
     // Check if post exists
     const post = await prisma.post.findUnique({
@@ -152,7 +156,7 @@ export async function POST(
       data: {
         userId: authorId,
         postId,
-        content
+        content: sanitizedContent
       },
       include: {
         user: {

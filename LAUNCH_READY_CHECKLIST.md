@@ -262,10 +262,10 @@ await prisma.user.update({
 ```
 
 **High-priority endpoints:**
-- [x] `/api/users/profile` (username, displayName, bio)
-- [ ] `/api/posts` (post content)
-- [ ] `/api/posts/[id]/comments` (comment content)
-- [ ] `/api/messages/[conversationId]` (message content)
+- [x] `/api/users/profile` (username, displayName, bio) ✅
+- [x] `/api/posts` (post content) ✅
+- [x] `/api/posts/[id]/comments` (comment content) ✅
+- [x] `/api/messages/[conversationId]` (message content) ✅
 
 ---
 
@@ -310,7 +310,7 @@ await prisma.user.update({
 - [ ] Check Vercel Logs dashboard (filter by Error)
 
 ### Should Do Before Public Launch (1-2 days)
-- [ ] Integrate sanitization into all user input endpoints
+- [x] Integrate sanitization into all user input endpoints ✅
 - [ ] Test all auth flows (wallet, Discord, Twitter)
 - [ ] Test content moderation (upload NSFW image)
 - [ ] Review admin panel (moderation queue, settings)

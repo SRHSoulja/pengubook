@@ -4,6 +4,7 @@ import { withAuth, withRateLimit } from '@/lib/auth-middleware'
 import { logger, logAPI } from '@/lib/logger'
 import { sanitizeMediaUrls } from '@/lib/utils/url-validator'
 import { encryptMessage, decryptMessage } from '@/lib/server-encryption'
+import { sanitizeHtml } from '@/lib/sanitize'
 
 export const dynamic = 'force-dynamic'
 
@@ -201,6 +202,9 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
       )
     }
 
+    // Sanitize message content before encryption to prevent XSS (allows safe HTML formatting)
+    const sanitizedContent = sanitizeHtml(content.trim())
+
     // Calculate expiration time if specified
     let expiresAt: Date | undefined
     if (expiresInMinutes && expiresInMinutes > 0) {
@@ -212,7 +216,7 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
       data: {
         conversationId,
         senderId: user.id,
-        content: encryptMessage(content.trim()), // Encrypt message content before storing
+        content: encryptMessage(sanitizedContent), // Sanitize then encrypt message content
         messageType,
         mediaUrls: JSON.stringify(sanitizedMediaUrls),
         expiresAt
@@ -231,17 +235,17 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
       }
     })
 
-    // Update conversation with last message info
+    // Update conversation with last message info (use sanitized content)
     await prisma.conversation.update({
       where: { id: conversationId },
       data: {
-        lastMessage: content.length > 100 ? content.substring(0, 100) + '...' : content,
+        lastMessage: sanitizedContent.length > 100 ? sanitizedContent.substring(0, 100) + '...' : sanitizedContent,
         lastMessageAt: new Date(),
         updatedAt: new Date()
       }
     })
 
-    // Create notifications for other participants
+    // Create notifications for other participants (use sanitized content)
     const otherParticipants = participantIds.filter((id: string) => id !== user.id)
 
     if (otherParticipants.length > 0) {
@@ -250,7 +254,7 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
         toUserId: participantId,
         type: 'MESSAGE',
         title: conversation.isGroup ? `New message in ${conversation.groupName}` : 'New message',
-        content: `${user.displayName}: ${content.length > 50 ? content.substring(0, 50) + '...' : content}`
+        content: `${user.displayName}: ${sanitizedContent.length > 50 ? sanitizedContent.substring(0, 50) + '...' : sanitizedContent}`
       }))
 
       await prisma.notification.createMany({
@@ -263,7 +267,7 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
       messageId: message.id,
       conversationId,
       senderId: user.id.slice(0, 8) + '...',
-      contentLength: content.length,
+      contentLength: sanitizedContent.length,
       hasMedia: mediaUrls.length > 0
     }, 'Messaging')
 
