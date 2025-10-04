@@ -567,6 +567,19 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model RevokedSession {
+  id            String   @id @default(cuid())
+  sessionToken  String   @unique // JWT token ID or hash
+  userId        String
+  revokedAt     DateTime @default(now())
+  reason        String?  // "logout", "security", "admin_action"
+  expiresAt     DateTime // When we can safely delete this record
+
+  @@index([sessionToken])
+  @@index([userId])
+  @@index([expiresAt]) // For cleanup of old revocations
+}
+
 model VerificationToken {
   identifier String
   token      String   @unique
