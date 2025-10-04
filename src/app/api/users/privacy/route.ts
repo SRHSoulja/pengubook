@@ -15,6 +15,9 @@ export const GET = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
       select: {
         allowDirectMessages: true,
         dmPrivacyLevel: true,
+        showReadReceipts: true,
+        showTypingIndicator: true,
+        showOnlineStatus: true,
         isPrivate: true,
         showActivity: true,
         showTips: true,
@@ -53,6 +56,9 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextReq
     const {
       allowDirectMessages,
       dmPrivacyLevel,
+      showReadReceipts,
+      showTypingIndicator,
+      showOnlineStatus,
       isPrivate,
       showActivity,
       showTips,
@@ -101,6 +107,18 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextReq
       updateData.showTwitter = showTwitter
     }
 
+    if (typeof showReadReceipts === 'boolean') {
+      updateData.showReadReceipts = showReadReceipts
+    }
+
+    if (typeof showTypingIndicator === 'boolean') {
+      updateData.showTypingIndicator = showTypingIndicator
+    }
+
+    if (typeof showOnlineStatus === 'boolean') {
+      updateData.showOnlineStatus = showOnlineStatus
+    }
+
     // Update profile
     const updatedProfile = await prisma.profile.upsert({
       where: { userId: user.id },
@@ -112,6 +130,9 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextReq
       select: {
         allowDirectMessages: true,
         dmPrivacyLevel: true,
+        showReadReceipts: true,
+        showTypingIndicator: true,
+        showOnlineStatus: true,
         isPrivate: true,
         showActivity: true,
         showTips: true,

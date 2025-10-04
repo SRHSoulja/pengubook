@@ -6,6 +6,9 @@ import { useAuth } from '@/providers/AuthProvider'
 interface PrivacySettings {
   allowDirectMessages: boolean
   dmPrivacyLevel: 'ALL' | 'FRIENDS_ONLY' | 'NONE'
+  showReadReceipts: boolean
+  showTypingIndicator: boolean
+  showOnlineStatus: boolean
   isPrivate: boolean
   showActivity: boolean
   showTips: boolean
@@ -37,6 +40,9 @@ export default function PrivacySettings() {
   const [settings, setSettings] = useState<PrivacySettings>({
     allowDirectMessages: true,
     dmPrivacyLevel: 'ALL',
+    showReadReceipts: true,
+    showTypingIndicator: true,
+    showOnlineStatus: true,
     isPrivate: false,
     showActivity: true,
     showTips: true,
@@ -259,6 +265,57 @@ export default function PrivacySettings() {
                 </label>
               ))}
             </div>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+            <div>
+              <h3 className="text-white font-medium">Show Read Receipts</h3>
+              <p className="text-gray-400 text-sm">Let others know when you've read their messages</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.showReadReceipts}
+                onChange={(e) => handleToggle('showReadReceipts', e.target.checked)}
+                disabled={saving}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+            <div>
+              <h3 className="text-white font-medium">Show Typing Indicator</h3>
+              <p className="text-gray-400 text-sm">Let others see when you're typing a message</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.showTypingIndicator}
+                onChange={(e) => handleToggle('showTypingIndicator', e.target.checked)}
+                disabled={saving}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+            <div>
+              <h3 className="text-white font-medium">Show Online Status</h3>
+              <p className="text-gray-400 text-sm">Let others see when you're online</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.showOnlineStatus}
+                onChange={(e) => handleToggle('showOnlineStatus', e.target.checked)}
+                disabled={saving}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+            </label>
           </div>
         </div>
       </div>
