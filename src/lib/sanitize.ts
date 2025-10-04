@@ -37,7 +37,7 @@ export function sanitizeHtml(input: string): string {
   return DOMPurify.sanitize(input, {
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'br', 'p', 'ul', 'ol', 'li'],
     ALLOWED_ATTR: {
-      'a': ['href', 'rel', 'target']
+      a: ['href', 'rel', 'target']
     },
     ALLOW_DATA_ATTR: false,
     ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
@@ -50,7 +50,7 @@ export function sanitizeHtml(input: string): string {
         }
       }
     }
-  }).trim()
+  } as any).trim()
 }
 
 /**
@@ -66,10 +66,10 @@ export function sanitizeInlineText(input: string): string {
   return DOMPurify.sanitize(input, {
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a'],
     ALLOWED_ATTR: {
-      'a': ['href']
+      a: ['href']
     },
     ALLOW_DATA_ATTR: false
-  }).trim()
+  } as any).trim()
 }
 
 /**

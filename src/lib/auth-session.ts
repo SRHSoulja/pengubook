@@ -121,7 +121,7 @@ if (process.env.NODE_ENV !== 'production') {
 const secret = new TextEncoder().encode(SESSION_SECRET)
 const SESSION_DURATION = 60 * 60 * 24 // 24 hours
 
-export interface SessionData extends Record<string, unknown> {
+export interface SessionData {
   walletAddress: string
   userId: string
   isAdmin: boolean
@@ -143,7 +143,7 @@ export async function createSession(data: Omit<SessionData, 'timestamp' | 'jti'>
     jti
   }
 
-  const token = await new SignJWT(sessionData)
+  const token = await new SignJWT(sessionData as unknown as Record<string, unknown>)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('24h')
@@ -168,7 +168,8 @@ export async function verifySession(token: string): Promise<SessionData | null> 
 
     // Check if session has been revoked (skip in Edge Runtime/Middleware)
     const jti = payload.jti as string
-    if (jti && typeof EdgeRuntime === 'undefined') {
+    const isEdgeRuntime = typeof (globalThis as any).EdgeRuntime !== 'undefined'
+    if (jti && !isEdgeRuntime) {
       try {
         const { prisma } = await import('@/lib/prisma')
         const revoked = await prisma.revokedSession.findUnique({
