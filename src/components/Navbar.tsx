@@ -311,6 +311,83 @@ export default function Navbar() {
             <span className="text-xl">☰</span>
           </button>
         </div>
+
+        {/* Mobile Menu - Full Navigation for mobile devices */}
+        {showMoreMenu && (
+          <div className="lg:hidden mt-4 glass-card-strong border border-white/30 rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between p-3 border-b border-white/10">
+              <span className="text-white font-semibold">Menu</span>
+              <button
+                onClick={() => setShowMoreMenu(false)}
+                className="text-white text-xl hover:text-pengu-green transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <a href="/dashboard" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+              <img src="https://gmgnrepeat.com/icons/penguinhome1.png" alt="Home" className="w-6 h-6" />
+              <span>Home</span>
+            </a>
+            <a href="/feed" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+              <img src="https://gmgnrepeat.com/icons/penguinfeed1.png" alt="Feed" className="w-6 h-6" />
+              <span>Feed</span>
+            </a>
+            <a href="/communities" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+              <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-6 h-6" />
+              <span>Communities</span>
+            </a>
+            <a href="/discover" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+              <img src="https://gmgnrepeat.com/icons/penguindiscover1.png" alt="Discover" className="w-6 h-6" />
+              <span>Discover</span>
+            </a>
+            <a href="/friends" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+              <img src="https://gmgnrepeat.com/icons/penguinfriends1.png" alt="Friends" className="w-6 h-6" />
+              <span>Friends</span>
+            </a>
+            <a href="/messages" className="dropdown-item flex items-center gap-3 relative" onClick={() => setShowMoreMenu(false)}>
+              <span className="text-xl">💬</span>
+              <span>Messages</span>
+              {unreadCount > 0 && (
+                <span className="ml-auto bg-gradient-to-r from-pengu-orange to-pengu-green text-white text-xs rounded-full min-w-[20px] h-[20px] flex items-center justify-center px-1.5">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </a>
+
+            <div className="border-t border-white/10 mt-2 pt-2">
+              <a href="/achievements" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+                <span className="text-xl">🏆</span>
+                <span>Achievements</span>
+              </a>
+              <a href="/levels" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+                <span className="text-xl">⭐</span>
+                <span>Levels</span>
+              </a>
+              <a href="/bookmarks" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+                <span className="text-xl">🔖</span>
+                <span>Bookmarks</span>
+              </a>
+            </div>
+
+            <div className="border-t border-white/10 mt-2 pt-2">
+              <a href="/apply-project-verification" className="dropdown-item flex items-center gap-3 bg-cyan-500/10" onClick={() => setShowMoreMenu(false)}>
+                <span className="text-xl">🏢</span>
+                <span className="text-cyan-300">Apply as Project</span>
+              </a>
+              {isAdmin && (
+                <a href="/admin" className="dropdown-item flex items-center gap-3 bg-purple-500/10" onClick={() => setShowMoreMenu(false)}>
+                  <span className="text-xl">👑</span>
+                  <span className="text-purple-300 font-semibold">Admin</span>
+                </a>
+              )}
+            </div>
+
+            {/* Search on mobile */}
+            <div className="md:hidden border-t border-white/10 p-4">
+              <UserSearch />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add subtle aurora effect */}
