@@ -53,4 +53,4 @@ dev.db
 tsconfig.tsbuildinfo
 
 # TypeScript
-*.tsbuildinfo
+*.tsbuildinfobuild-output.log
