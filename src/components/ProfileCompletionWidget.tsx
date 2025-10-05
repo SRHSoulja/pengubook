@@ -72,7 +72,7 @@ export default function ProfileCompletionWidget() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-2xl p-6 mb-6 relative">
+    <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-2xl p-4 md:p-6 mb-4 md:mb-6 relative">
       {/* Dismiss Button */}
       <button
         onClick={handleDismiss}
@@ -84,17 +84,17 @@ export default function ProfileCompletionWidget() {
         </svg>
       </button>
 
-      <div className="flex items-start gap-4">
-        <div className="text-4xl">{getStatusEmoji(completion.percentage)}</div>
+      <div className="flex items-start gap-3 md:gap-4">
+        <div className="text-2xl md:text-4xl">{getStatusEmoji(completion.percentage)}</div>
 
         <div className="flex-1">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-bold text-white">Complete Your Profile</h3>
-            <span className="text-2xl font-bold text-white">{completion.percentage}%</span>
+            <h3 className="text-base md:text-lg font-bold text-white">Complete Your Profile</h3>
+            <span className="text-lg md:text-2xl font-bold text-white">{completion.percentage}%</span>
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full bg-white/10 rounded-full h-3 mb-4 overflow-hidden">
+          <div className="w-full bg-white/10 rounded-full h-2 md:h-3 mb-2 md:mb-4 overflow-hidden">
             <div
               className={`h-full bg-gradient-to-r ${getColorClass(completion.percentage)} transition-all duration-500 rounded-full`}
               style={{ width: `${completion.percentage}%` }}

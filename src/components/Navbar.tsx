@@ -244,38 +244,38 @@ export default function Navbar() {
             <div className="relative flex-shrink-0" ref={userMenuRef}>
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-2 glass-card px-3 py-2 hover-lift rounded-lg"
+                className="flex items-center gap-2 md:glass-card md:px-3 md:py-2 hover-lift md:rounded-lg"
               >
-                <div className="flex flex-col items-end">
-                  <span className="text-white text-sm font-display font-medium hidden sm:block">
+                <div className="hidden md:flex flex-col items-end">
+                  <span className="text-white text-sm font-display font-medium ">
                     {user.displayName || 'Penguin'}
                   </span>
                   {client?.account?.address ? (
-                    <span className="text-pengu-green text-xs font-mono hidden sm:block">
+                    <span className="text-pengu-green text-xs font-mono ">
                       {client.account.address.slice(0, 4)}...{client.account.address.slice(-3)}
                     </span>
                   ) : user.walletAddress ? (
-                    <span className="text-pengu-green text-xs font-mono hidden sm:block">
+                    <span className="text-pengu-green text-xs font-mono ">
                       {user.walletAddress.slice(0, 4)}...{user.walletAddress.slice(-3)}
                     </span>
                   ) : null}
                 </div>
-                <img src="https://gmgnrepeat.com/icons/penguinsilhouette1.png" alt="Profile" className="w-8 h-8" />
+                <img src="https://gmgnrepeat.com/icons/penguinsilhouette1.png" alt="Profile" className="w-8 h-8 transition-transform duration-200 hover:scale-110" />
               </button>
 
               {showUserMenu && (
-                <div className="absolute top-full right-0 mt-2 w-56 glass-card border border-white/20 rounded-xl shadow-2xl overflow-hidden z-50">
-                  <div className="px-4 py-3 border-b border-white/10">
-                    <p className="text-white font-semibold">{user.displayName}</p>
-                    <p className="text-gray-300 text-sm">Level {user.level}</p>
+                <div className="absolute top-full right-0 mt-2 w-40 sm:w-56 glass-card border border-white/20 rounded-xl shadow-2xl overflow-hidden z-[100]">
+                  <div className="px-2 py-2 sm:px-4 sm:py-3 border-b border-white/10">
+                    <p className="text-white font-semibold text-xs sm:text-base truncate">{user.displayName}</p>
+                    <p className="text-gray-300 text-xs">Level {user.level}</p>
                   </div>
 
-                  <a href="/profile" className="dropdown-item">
-                    <img src="https://gmgnrepeat.com/icons/penguinsilhouette1.png" alt="Profile" className="w-5 h-5" />
+                  <a href="/profile" className="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-white hover:bg-white/10 transition-colors duration-200 cursor-pointer text-xs sm:text-base">
+                    <img src="https://gmgnrepeat.com/icons/penguinsilhouette1.png" alt="Profile" className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span>Profile</span>
                   </a>
-                  <a href="/settings" className="dropdown-item">
-                    <span className="text-lg">⚙️</span>
+                  <a href="/settings" className="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-white hover:bg-white/10 transition-colors duration-200 cursor-pointer text-xs sm:text-base">
+                    <span className="text-base sm:text-lg">⚙️</span>
                     <span>Settings</span>
                   </a>
                   <button
@@ -283,18 +283,18 @@ export default function Navbar() {
                       setShowThemeCustomizer(true)
                       setShowUserMenu(false)
                     }}
-                    className="dropdown-item w-full"
+                    className="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-white hover:bg-white/10 transition-colors duration-200 cursor-pointer text-xs sm:text-base w-full"
                   >
-                    <img src="https://gmgnrepeat.com/icons/penguintheme1.png" alt="Themes" className="w-5 h-5" />
+                    <img src="https://gmgnrepeat.com/icons/penguintheme1.png" alt="Themes" className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span>Themes</span>
                   </button>
 
                   <div className="border-t border-white/10">
                     <button
                       onClick={handleLogout}
-                      className="dropdown-item text-red-300 hover:bg-red-500/20 w-full"
+                      className="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-red-300 hover:bg-red-500/20 transition-colors duration-200 cursor-pointer text-xs sm:text-base w-full"
                     >
-                      <span className="text-lg">🚪</span>
+                      <span className="text-base sm:text-lg">🚪</span>
                       <span>Logout</span>
                     </button>
                   </div>
