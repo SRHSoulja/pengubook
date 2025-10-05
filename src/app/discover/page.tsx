@@ -506,7 +506,17 @@ export default function DiscoverPage() {
 
                             {/* Follow Button */}
                             <div className="flex-shrink-0">
-                              <UserActions userId={project.id} />
+                              <UserActions
+                                targetUserId={project.id}
+                                targetUser={{
+                                  username: project.username,
+                                  displayName: project.displayName
+                                }}
+                                showMessageButton={true}
+                                showFriendButton={false}
+                                showBlockButton={false}
+                                compact={true}
+                              />
                             </div>
                           </div>
                         </div>
