@@ -39,7 +39,7 @@ export default function MobileBottomNav() {
     },
     {
       id: 'tip',
-      icon: 'https://gmgnrepeat.com/icons/penguintip1.png',
+      icon: <img src="https://gmgnrepeat.com/icons/penguintip1.png" alt="Tip" className="w-5 h-5" />,
       label: 'Tip',
       action: () => setShowTipModal(true)
     },
