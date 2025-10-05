@@ -18,14 +18,7 @@ export const POST = withAuth(async (request: NextRequest, user: any, { params }:
 
     // Fetch the conversation to verify it's a group
     const conversation = await prisma.conversation.findUnique({
-      where: { id: conversationId },
-      include: {
-        participants: {
-          include: {
-            user: true
-          }
-        }
-      }
+      where: { id: conversationId }
     })
 
     if (!conversation) {
@@ -43,28 +36,22 @@ export const POST = withAuth(async (request: NextRequest, user: any, { params }:
       )
     }
 
+    // Parse participants from JSON string
+    const participants = JSON.parse(conversation.participants) as string[]
+
     // Check if user is a participant
-    const participant = conversation.participants.find(p => p.userId === user.id)
-    if (!participant) {
+    if (!participants.includes(user.id)) {
       return NextResponse.json(
         { error: 'You are not a member of this group' },
         { status: 403 }
       )
     }
 
-    // Remove the participant
-    await prisma.conversationParticipant.delete({
-      where: {
-        id: participant.id
-      }
-    })
+    // Remove the user from participants
+    const updatedParticipants = participants.filter(id => id !== user.id)
 
     // If this was the last participant, delete the conversation
-    const remainingParticipants = await prisma.conversationParticipant.count({
-      where: { conversationId }
-    })
-
-    if (remainingParticipants === 0) {
+    if (updatedParticipants.length === 0) {
       await prisma.conversation.delete({
         where: { id: conversationId }
       })
@@ -75,6 +62,14 @@ export const POST = withAuth(async (request: NextRequest, user: any, { params }:
         conversationDeleted: true
       })
     }
+
+    // Update the conversation with the new participants list
+    await prisma.conversation.update({
+      where: { id: conversationId },
+      data: {
+        participants: JSON.stringify(updatedParticipants)
+      }
+    })
 
     return NextResponse.json({
       success: true,
