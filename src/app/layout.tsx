@@ -26,6 +26,12 @@ export const metadata = {
   description: 'Decentralized social platform powered by Abstract Global Wallet with token tipping, communities, and encrypted messaging',
   keywords: ['web3', 'social', 'abstract', 'blockchain', 'crypto', 'pengu', 'tipping', 'AGW'],
   authors: [{ name: 'PeBloq Team' }],
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',

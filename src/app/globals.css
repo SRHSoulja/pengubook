@@ -5,6 +5,49 @@
 /* Import Google Fonts for better typography */
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
+/* Mobile Optimizations */
+@layer base {
+  html {
+    -webkit-tap-highlight-color: rgba(0, 229, 119, 0.2);
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
+  }
+
+  body {
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Prevent horizontal scroll on mobile */
+  * {
+    max-width: 100%;
+  }
+
+  img, video {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Touch-friendly interactive elements */
+@layer components {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 768px) {
+    .touch-target {
+      min-height: 48px;
+      min-width: 48px;
+    }
+  }
+}
+
 /* Enhanced Keyframes */
 @keyframes blob {
   0% {
