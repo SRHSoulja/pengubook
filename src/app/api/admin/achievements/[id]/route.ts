@@ -31,7 +31,9 @@ export async function PUT(
       rarity,
       requirement,
       xpReward,
-      isActive
+      isActive,
+      triggerType,
+      metricType
     } = await req.json()
 
     // Update achievement
@@ -46,7 +48,9 @@ export async function PUT(
         rarity,
         requirement,
         xpReward,
-        isActive
+        isActive,
+        triggerType: triggerType || null,
+        metricType: metricType || null
       }
     })
 

@@ -14,6 +14,8 @@ interface Achievement {
   requirement: number
   xpReward: number
   isActive: boolean
+  triggerType?: string
+  metricType?: string
   createdAt: string
 }
 
@@ -32,11 +34,35 @@ export default function AchievementManager() {
     rarity: 'COMMON',
     requirement: 1,
     xpReward: 10,
-    isActive: true
+    isActive: true,
+    triggerType: '',
+    metricType: ''
   })
 
   const categories = ['ENGAGEMENT', 'SOCIAL', 'CONTENT', 'MILESTONE', 'SPECIAL']
   const rarities = ['COMMON', 'RARE', 'EPIC', 'LEGENDARY']
+  const triggerTypes = [
+    { value: 'post', label: 'Creating Posts' },
+    { value: 'like', label: 'Receiving Likes' },
+    { value: 'follow', label: 'Getting Followers' },
+    { value: 'tip', label: 'Giving Tips' },
+    { value: 'profile', label: 'Profile Completion' },
+    { value: 'streak', label: 'Daily Streaks' },
+    { value: 'social_link', label: 'Linking Social Accounts' },
+    { value: 'loyalty', label: 'Time on Platform' }
+  ]
+  const metricTypes = [
+    { value: 'post_count', label: 'Number of Posts' },
+    { value: 'follower_count', label: 'Number of Followers' },
+    { value: 'likes_received', label: 'Likes Received on Posts' },
+    { value: 'tips_given', label: 'Tips Given' },
+    { value: 'profile_completion', label: 'Profile Completion %' },
+    { value: 'linked_accounts', label: 'Linked Social Accounts' },
+    { value: 'login_streak', label: 'Login Streak Days' },
+    { value: 'post_streak', label: 'Post Streak Days' },
+    { value: 'interaction_streak', label: 'Interaction Streak Days' },
+    { value: 'days_since_join', label: 'Days Since Joining' }
+  ]
   const iconOptions = [
     '🏆', '🎯', '👥', '📝', '🎖️', '✨', '💎', '🔥', '⭐', '🌟',
     '💰', '🎨', '🎭', '🎪', '🎬', '🎮', '🎲', '🎰', '🏅', '🥇',
@@ -118,7 +144,9 @@ export default function AchievementManager() {
       rarity: achievement.rarity,
       requirement: achievement.requirement,
       xpReward: achievement.xpReward,
-      isActive: achievement.isActive
+      isActive: achievement.isActive,
+      triggerType: (achievement as any).triggerType || '',
+      metricType: (achievement as any).metricType || ''
     })
     setShowCreateModal(true)
   }
@@ -134,7 +162,9 @@ export default function AchievementManager() {
       rarity: 'COMMON',
       requirement: 1,
       xpReward: 10,
-      isActive: true
+      isActive: true,
+      triggerType: '',
+      metricType: ''
     })
   }
 
@@ -231,6 +261,67 @@ export default function AchievementManager() {
             </h3>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Achievement Type Guide */}
+              <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-cyan-300 mb-2">✨ How to Create an Achievement</h4>
+                <div className="text-xs text-gray-300 space-y-1">
+                  <p>1. <strong className="text-cyan-400">Select Trigger</strong> - When should we check for this achievement?</p>
+                  <p>2. <strong className="text-cyan-400">Select Metric</strong> - What are we measuring?</p>
+                  <p>3. <strong className="text-cyan-400">Set Threshold</strong> - What value triggers the unlock?</p>
+                  <p className="text-xs text-yellow-300 mt-2">💡 Example: Trigger="Profile Completion" + Metric="Profile %" + Threshold=100 = Profile completion achievement</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Trigger Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Trigger Type (When to check)
+                  </label>
+                  <select
+                    value={formData.triggerType}
+                    onChange={(e) => setFormData({ ...formData, triggerType: e.target.value })}
+                    className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-2 text-white focus:border-cyan-400 outline-none"
+                    style={{ colorScheme: 'dark' }}
+                    required
+                  >
+                    <option value="" className="bg-gray-800 text-white">Select trigger...</option>
+                    {triggerTypes.map((trigger) => (
+                      <option key={trigger.value} value={trigger.value} className="bg-gray-800 text-white">
+                        {trigger.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-400 mt-1">
+                    When should this achievement be checked?
+                  </p>
+                </div>
+
+                {/* Metric Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Metric Type (What to measure)
+                  </label>
+                  <select
+                    value={formData.metricType}
+                    onChange={(e) => setFormData({ ...formData, metricType: e.target.value })}
+                    className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-2 text-white focus:border-cyan-400 outline-none"
+                    style={{ colorScheme: 'dark' }}
+                    required
+                  >
+                    <option value="" className="bg-gray-800 text-white">Select metric...</option>
+                    {metricTypes.map((metric) => (
+                      <option key={metric.value} value={metric.value} className="bg-gray-800 text-white">
+                        {metric.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-400 mt-1">
+                    What value should we track?
+                  </p>
+                </div>
+              </div>
+
               {/* Name (Identifier) */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -240,10 +331,13 @@ export default function AchievementManager() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., first_post, social_butterfly"
+                  placeholder="e.g., profile_master, post_beginner"
                   className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:border-cyan-400 outline-none"
                   required
                 />
+                <p className="text-xs text-gray-400 mt-1">
+                  Unique identifier for this achievement (used internally)
+                </p>
               </div>
 
               {/* Title */}
@@ -318,11 +412,15 @@ export default function AchievementManager() {
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-2 text-white focus:border-cyan-400 outline-none"
+                    style={{ colorScheme: 'dark' }}
                   >
                     {categories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
+                      <option key={cat} value={cat} className="bg-gray-800 text-white">{cat}</option>
                     ))}
                   </select>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Organize achievements by type (cosmetic, doesn't affect functionality)
+                  </p>
                 </div>
 
                 {/* Rarity */}
@@ -334,9 +432,10 @@ export default function AchievementManager() {
                     value={formData.rarity}
                     onChange={(e) => setFormData({ ...formData, rarity: e.target.value })}
                     className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-2 text-white focus:border-cyan-400 outline-none"
+                    style={{ colorScheme: 'dark' }}
                   >
                     {rarities.map((rar) => (
-                      <option key={rar} value={rar}>{rar}</option>
+                      <option key={rar} value={rar} className="bg-gray-800 text-white">{rar}</option>
                     ))}
                   </select>
                 </div>
@@ -346,16 +445,20 @@ export default function AchievementManager() {
                 {/* Requirement */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Requirement
+                    Requirement Threshold
                   </label>
                   <input
                     type="number"
                     value={formData.requirement}
                     onChange={(e) => setFormData({ ...formData, requirement: parseInt(e.target.value) })}
                     min="1"
-                    className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-2 text-white focus:border-cyan-400 outline-none"
+                    placeholder="e.g., 10 for '10 posts'"
+                    className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:border-cyan-400 outline-none"
                     required
                   />
+                  <p className="text-xs text-gray-400 mt-1">
+                    The value needed to unlock (e.g., 100 for 100% profile completion, 10 for 10 posts)
+                  </p>
                 </div>
 
                 {/* XP Reward */}
@@ -368,9 +471,13 @@ export default function AchievementManager() {
                     value={formData.xpReward}
                     onChange={(e) => setFormData({ ...formData, xpReward: parseInt(e.target.value) })}
                     min="1"
-                    className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-2 text-white focus:border-cyan-400 outline-none"
+                    placeholder="e.g., 50"
+                    className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:border-cyan-400 outline-none"
                     required
                   />
+                  <p className="text-xs text-gray-400 mt-1">
+                    XP awarded when unlocked
+                  </p>
                 </div>
               </div>
 

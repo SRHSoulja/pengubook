@@ -68,7 +68,9 @@ export async function POST(req: NextRequest) {
       rarity,
       requirement,
       xpReward,
-      isActive
+      isActive,
+      triggerType,
+      metricType
     } = await req.json()
 
     // Validate required fields
@@ -90,7 +92,9 @@ export async function POST(req: NextRequest) {
         rarity,
         requirement,
         xpReward,
-        isActive: isActive ?? true
+        isActive: isActive ?? true,
+        triggerType: triggerType || null,
+        metricType: metricType || null
       }
     })
 

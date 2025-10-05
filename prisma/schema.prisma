@@ -68,6 +68,7 @@ model User {
   mutedPhrases          MutedPhrase[]
   hiddenTokens          HiddenToken[]
   contactSubmissions    ContactSubmission[]
+  projectApplications   ProjectApplication[]
 }
 
 model Profile {
@@ -103,6 +104,12 @@ model Profile {
   theme                 String  @default("default")
   bannerImage           String?
   profileVerified       Boolean @default(false)
+  isProject             Boolean @default(false) // Is this a token/NFT project account
+  projectType           String? // 'token', 'nft', 'defi', 'game', etc.
+  projectWebsite        String? // Official project website
+  projectTwitter        String? // Official project Twitter
+  projectDiscord        String? // Official project Discord
+  contractAddress       String? // Token/NFT contract address for verification
   pinnedPostId          String?
   user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   pinnedPost            Post?   @relation("PinnedPost", fields: [pinnedPostId], references: [id], onDelete: SetNull)
@@ -902,5 +909,29 @@ model ContactSubmission {
   @@index([status])
   @@index([type])
   @@index([createdAt])
+  @@index([userId])
+}
+
+model ProjectApplication {
+  id                String   @id @default(cuid())
+  userId            String
+  projectName       String
+  projectType       String   // 'token', 'nft', 'defi', 'game', 'dao', 'infrastructure'
+  contractAddress   String
+  officialWebsite   String?
+  officialTwitter   String?
+  officialDiscord   String?
+  description       String   @db.Text
+  teamInfo          String?  @db.Text
+  proofOfOwnership  String   @db.Text // How they prove they own/represent the project
+  status            String   @default("PENDING") // 'PENDING', 'APPROVED', 'REJECTED'
+  adminNotes        String?  @db.Text
+  reviewedBy        String?  // Admin user ID who reviewed
+  reviewedAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
   @@index([userId])
 }

@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar'
 import TipModal from '@/components/TipModal'
 import ThemeCustomizer from '@/components/ThemeCustomizer'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
+import ProfileCompletionWidget from '@/components/ProfileCompletionWidget'
 
 export default function Dashboard() {
   const { user, loading, isAuthenticated } = useAuth()
@@ -72,6 +73,9 @@ export default function Dashboard() {
             <div className="absolute top-0 left-1/4 w-32 h-32 bg-emerald-400/10 rounded-full blur-xl animate-blob"></div>
             <div className="absolute bottom-0 right-1/4 w-24 h-24 bg-purple-500/10 rounded-full blur-xl animate-blob animation-delay-2000"></div>
           </div>
+
+          {/* Profile Completion Widget */}
+          <ProfileCompletionWidget />
 
           {/* Enhanced Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">

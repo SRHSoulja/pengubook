@@ -13,6 +13,8 @@ import ReactionEmojiManager from '@/components/admin/ReactionEmojiManager'
 import ModerationSettingsManager from '@/components/admin/ModerationSettingsManager'
 import ReviewQueue from '@/components/admin/ReviewQueue'
 import ContactSubmissionsManager from '@/components/admin/ContactSubmissionsManager'
+import ProjectVerificationManager from '@/components/admin/ProjectVerificationManager'
+import ProjectApplicationsManager from '@/components/admin/ProjectApplicationsManager'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
@@ -135,7 +137,8 @@ export default function AdminPage() {
     )
   }
 
-  if (!isAuthenticated && !authLoading) {
+  // Show access denied ONLY after loading is complete
+  if (!authLoading && (!isAuthenticated || !user)) {
     return (
       <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
         <Navbar />
@@ -151,6 +154,11 @@ export default function AdminPage() {
         </div>
       </div>
     )
+  }
+
+  // Return null during loading to prevent flash
+  if (authLoading || !user) {
+    return null
   }
 
   if (!user.isAdmin) {
@@ -184,6 +192,7 @@ export default function AdminPage() {
   const tabs = [
     { id: 'overview', name: 'Overview', icon: '📊' },
     { id: 'contact', name: 'Contact Submissions', icon: '📬' },
+    { id: 'project-applications', name: 'Project Applications', icon: '📋' },
     { id: 'review-queue', name: 'Review Queue', icon: '👀' },
     { id: 'moderation', name: 'Moderation Settings', icon: '⚙️' },
     { id: 'achievements', name: 'Achievements', icon: '🏆' },
@@ -193,6 +202,7 @@ export default function AdminPage() {
     { id: 'reports', name: 'Token Reports', icon: '⚠️' },
     { id: 'blacklist', name: 'Blacklist', icon: '🚫' },
     { id: 'verified', name: 'Verification', icon: '✓' },
+    { id: 'projects', name: 'Project Management', icon: '🏢' },
     { id: 'users', name: 'User Management', icon: '👥' },
     { id: 'analytics', name: 'Analytics', icon: '📈' }
   ]
@@ -326,6 +336,8 @@ export default function AdminPage() {
 
             {activeTab === 'contact' && <ContactSubmissionsManager />}
 
+            {activeTab === 'project-applications' && <ProjectApplicationsManager />}
+
             {activeTab === 'reports' && (
               <TokenBlacklistManager initialTab="reports" />
             )}
@@ -349,6 +361,8 @@ export default function AdminPage() {
             {activeTab === 'review-queue' && <ReviewQueue />}
 
             {activeTab === 'moderation' && <ModerationSettingsManager />}
+
+            {activeTab === 'projects' && <ProjectVerificationManager />}
 
             {activeTab === 'analytics' && (
               <div className="bg-black/20 backdrop-blur-lg rounded-2xl border border-white/20 p-6">

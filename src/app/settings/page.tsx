@@ -12,22 +12,8 @@ export default function SettingsPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const { currentTheme } = useTheme()
 
-  if (authLoading) {
-    return (
-      <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
-        <Navbar />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center text-white">
-            <div className="flex justify-center mb-4"><img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PeBloq" className="w-24 h-24" /></div>
-            <h1 className="text-2xl font-bold mb-4">Loading...</h1>
-            <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated || !user) {
+  // Only show access denied if loading is complete and user is not authenticated
+  if (!authLoading && (!isAuthenticated || !user)) {
     return (
       <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
         <Navbar />
@@ -43,6 +29,11 @@ export default function SettingsPage() {
         </div>
       </div>
     )
+  }
+
+  // Show nothing while loading to prevent flash
+  if (authLoading || !user) {
+    return null
   }
 
   return (

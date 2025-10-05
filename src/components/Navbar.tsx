@@ -206,7 +206,7 @@ export default function Navbar() {
               </button>
 
               {showMoreMenu && (
-                <div className="absolute top-full right-0 mt-2 w-48 glass-card-strong border border-white/30 rounded-xl shadow-2xl overflow-hidden z-50">
+                <div className="absolute top-full right-0 mt-2 w-56 glass-card-strong border border-white/30 rounded-xl shadow-2xl overflow-hidden z-50">
                   <a href="/achievements" className="dropdown-item">
                     <span className="text-lg">🏆</span>
                     <span>Achievements</span>
@@ -218,6 +218,10 @@ export default function Navbar() {
                   <a href="/bookmarks" className="dropdown-item">
                     <span className="text-lg">🔖</span>
                     <span>Bookmarks</span>
+                  </a>
+                  <a href="/apply-project-verification" className="dropdown-item border-t border-cyan-500/20 bg-cyan-500/10">
+                    <span className="text-lg">🏢</span>
+                    <span className="text-cyan-300">Apply as Project</span>
                   </a>
                   {isAdmin && (
                     <a href="/admin" className="dropdown-item bg-purple-500/10 border-t border-purple-500/20">

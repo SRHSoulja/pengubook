@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 import Navbar from '@/components/Navbar'
 import BannerUploader from '@/components/BannerUploader'
+import ProfileCompletionWidget from '@/components/ProfileCompletionWidget'
 import Link from 'next/link'
 
 // NSFW categories users can opt-in to (FLAG/ALLOW only, excludes REJECT categories)
@@ -37,7 +38,10 @@ export default function ProfileEditPage() {
     avatarSource: 'default',
     bannerImage: null as string | null,
     showNSFW: false,
-    allowedNSFWCategories: [] as string[]
+    allowedNSFWCategories: [] as string[],
+    projectWebsite: '',
+    projectTwitter: '',
+    projectDiscord: ''
   })
 
   useEffect(() => {
@@ -60,7 +64,10 @@ export default function ProfileEditPage() {
         avatarSource: (user as any).avatarSource || 'default',
         bannerImage: user.profile?.bannerImage || null,
         showNSFW: user.profile?.showNSFW || false,
-        allowedNSFWCategories: Array.isArray(allowedCategories) ? allowedCategories : []
+        allowedNSFWCategories: Array.isArray(allowedCategories) ? allowedCategories : [],
+        projectWebsite: user.profile?.projectWebsite || '',
+        projectTwitter: user.profile?.projectTwitter || '',
+        projectDiscord: user.profile?.projectDiscord || ''
       })
     }
   }, [user])
@@ -82,7 +89,10 @@ export default function ProfileEditPage() {
           avatarSource: formData.avatarSource,
           bannerImage: formData.bannerImage,
           showNSFW: formData.showNSFW,
-          allowedNSFWCategories: formData.allowedNSFWCategories
+          allowedNSFWCategories: formData.allowedNSFWCategories,
+          projectWebsite: formData.projectWebsite,
+          projectTwitter: formData.projectTwitter,
+          projectDiscord: formData.projectDiscord
         })
       })
 
@@ -134,6 +144,9 @@ export default function ProfileEditPage() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
+          {/* Profile Completion Widget */}
+          <ProfileCompletionWidget />
+
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-2xl p-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center">
@@ -276,6 +289,61 @@ export default function ProfileEditPage() {
                   placeholder="Web3, AI, Gaming, NFTs..."
                 />
               </div>
+
+              {/* Project Account Fields - Only visible for verified projects */}
+              {user.profile?.isProject && user.profile?.profileVerified && (
+                <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 p-6 rounded-2xl">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-2xl">🏢</span>
+                    <h3 className="text-lg font-bold text-white">Official Project Links</h3>
+                    <span className="text-blue-400 text-sm ml-2">✓ Verified</span>
+                  </div>
+                  <p className="text-sm text-gray-300 mb-4">
+                    These links will be displayed prominently on your verified project profile
+                  </p>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-1">
+                        Official Website
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.projectWebsite}
+                        onChange={(e) => setFormData({...formData, projectWebsite: e.target.value})}
+                        className="w-full border border-cyan-500/30 rounded-xl px-4 py-3 bg-black/20 text-white placeholder-gray-400"
+                        placeholder="https://yourproject.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-1">
+                        Official Twitter/X
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.projectTwitter}
+                        onChange={(e) => setFormData({...formData, projectTwitter: e.target.value})}
+                        className="w-full border border-cyan-500/30 rounded-xl px-4 py-3 bg-black/20 text-white placeholder-gray-400"
+                        placeholder="@yourproject"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-1">
+                        Official Discord
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.projectDiscord}
+                        onChange={(e) => setFormData({...formData, projectDiscord: e.target.value})}
+                        className="w-full border border-cyan-500/30 rounded-xl px-4 py-3 bg-black/20 text-white placeholder-gray-400"
+                        placeholder="https://discord.gg/..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Avatar Source Selection */}
               <div>

@@ -281,8 +281,9 @@ export const PUT = withAuth(async (request: NextRequest, user: any) => {
       include: { profile: true }
     })
 
-    // Handle profile interests, banner, and NSFW preference separately if provided
-    if ((interests && Array.isArray(interests) && interests.length > 0) || bannerImage !== undefined || showNSFW !== undefined || allowedNSFWCategories !== undefined) {
+    // Handle profile interests, banner, NSFW preference, and project fields separately if provided
+    const { projectWebsite, projectTwitter, projectDiscord } = body
+    if ((interests && Array.isArray(interests) && interests.length > 0) || bannerImage !== undefined || showNSFW !== undefined || allowedNSFWCategories !== undefined || projectWebsite !== undefined || projectTwitter !== undefined || projectDiscord !== undefined) {
       const profileData: any = {}
 
       if (interests && Array.isArray(interests) && interests.length > 0) {
@@ -295,6 +296,23 @@ export const PUT = withAuth(async (request: NextRequest, user: any) => {
 
       if (allowedNSFWCategories !== undefined) {
         profileData.allowedNSFWCategories = JSON.stringify(allowedNSFWCategories)
+      }
+
+      // Only allow project field updates for verified projects
+      const currentProfile = await prisma.profile.findUnique({
+        where: { userId: updatedUser.id }
+      })
+
+      if (currentProfile?.isProject && currentProfile?.profileVerified) {
+        if (projectWebsite !== undefined) {
+          profileData.projectWebsite = projectWebsite || null
+        }
+        if (projectTwitter !== undefined) {
+          profileData.projectTwitter = projectTwitter || null
+        }
+        if (projectDiscord !== undefined) {
+          profileData.projectDiscord = projectDiscord || null
+        }
       }
 
       if (bannerImage !== undefined) {

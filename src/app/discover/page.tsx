@@ -53,12 +53,14 @@ export default function DiscoverPage() {
   const { currentTheme } = useTheme()
   const [suggestedUsers, setSuggestedUsers] = useState<UserSuggestion[]>([])
   const [suggestedCommunities, setSuggestedCommunities] = useState<CommunityRecommendation[]>([])
+  const [verifiedProjects, setVerifiedProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'users' | 'communities' | 'hashtags'>('users')
+  const [activeTab, setActiveTab] = useState<'users' | 'communities' | 'projects' | 'hashtags'>('users')
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchDiscoverData()
+      fetchVerifiedProjects()
     }
   }, [isAuthenticated])
 
@@ -79,6 +81,19 @@ export default function DiscoverPage() {
       console.error('Failed to fetch discover data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchVerifiedProjects = async () => {
+    try {
+      const response = await fetch('/api/projects/verified')
+      const data = await response.json()
+
+      if (response.ok) {
+        setVerifiedProjects(data.projects || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch verified projects:', error)
     }
   }
 
@@ -144,38 +159,53 @@ export default function DiscoverPage() {
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-2 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-2 mb-8">
             <button
               onClick={() => setActiveTab('users')}
-              className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+              className={`py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
                 activeTab === 'users'
                   ? 'bg-cyan-500 text-white shadow-lg'
                   : 'text-gray-300 hover:bg-white/10'
               }`}
             >
               <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="Suggested" className="w-5 h-5" />
-              Suggested Pengus
+              <span className="hidden lg:inline">Suggested Pengus</span>
+              <span className="lg:hidden">Pengus</span>
             </button>
             <button
               onClick={() => setActiveTab('communities')}
-              className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+              className={`py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
                 activeTab === 'communities'
                   ? 'bg-purple-500 text-white shadow-lg'
                   : 'text-gray-300 hover:bg-white/10'
               }`}
             >
               <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-5 h-5" />
-              Recommended Communities
+              <span className="hidden lg:inline">Communities</span>
+              <span className="lg:hidden">Groups</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('projects')}
+              className={`py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+                activeTab === 'projects'
+                  ? 'bg-blue-500 text-white shadow-lg'
+                  : 'text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              <span className="text-lg">🏢</span>
+              <span className="hidden lg:inline">Verified Projects</span>
+              <span className="lg:hidden">Projects</span>
             </button>
             <button
               onClick={() => setActiveTab('hashtags')}
-              className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all ${
+              className={`py-3 px-4 rounded-xl font-semibold transition-all ${
                 activeTab === 'hashtags'
                   ? 'bg-orange-500 text-white shadow-lg'
                   : 'text-gray-300 hover:bg-white/10'
               }`}
             >
-              🔥 Trending Tags
+              🔥 <span className="hidden lg:inline">Trending Tags</span>
+              <span className="lg:hidden">Tags</span>
             </button>
           </div>
 
@@ -367,6 +397,121 @@ export default function DiscoverPage() {
                         </div>
                       </div>
                     ))
+                  )}
+                </>
+              )}
+
+              {activeTab === 'projects' && (
+                <>
+                  {verifiedProjects.length === 0 ? (
+                    <div className="text-center text-white py-12">
+                      <div className="text-6xl mb-4">🏢</div>
+                      <p className="text-xl mb-2">No Verified Projects Yet</p>
+                      <p className="text-gray-300 mb-4">Be the first to get your project verified!</p>
+                      <a
+                        href="/apply-project-verification"
+                        className="inline-block bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-colors font-semibold"
+                      >
+                        Apply for Verification
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4">
+                      {verifiedProjects.map((project: any) => (
+                        <div
+                          key={project.id}
+                          className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 backdrop-blur-lg rounded-2xl border border-blue-500/30 p-6 hover:border-blue-500/50 transition-all"
+                        >
+                          <div className="flex items-start gap-4">
+                            {/* Avatar */}
+                            <Link href={`/profile/${project.id}`}>
+                              {project.avatar ? (
+                                <img
+                                  src={project.avatar}
+                                  alt={project.displayName}
+                                  className="w-16 h-16 rounded-full object-cover border-2 border-blue-400"
+                                />
+                              ) : (
+                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center text-2xl font-bold text-white border-2 border-blue-400">
+                                  {project.displayName.charAt(0)}
+                                </div>
+                              )}
+                            </Link>
+
+                            {/* Project Info */}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Link href={`/profile/${project.id}`} className="text-xl font-bold text-white hover:text-cyan-400 transition-colors">
+                                  {project.displayName}
+                                </Link>
+                                <span className="text-blue-400" title="Verified Project">✓</span>
+                                {project.profile?.projectType && (
+                                  <span className="bg-blue-500/30 text-blue-200 text-xs px-2 py-1 rounded">
+                                    {project.profile.projectType.toUpperCase()}
+                                  </span>
+                                )}
+                              </div>
+
+                              <p className="text-sm text-gray-400 mb-1">@{project.username}</p>
+
+                              {project.bio && (
+                                <p className="text-gray-300 mb-3">{project.bio}</p>
+                              )}
+
+                              {/* Project Links */}
+                              <div className="flex flex-wrap gap-3 mb-3">
+                                {project.profile?.projectWebsite && (
+                                  <a
+                                    href={project.profile.projectWebsite}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                                  >
+                                    🌐 Website
+                                  </a>
+                                )}
+                                {project.profile?.projectTwitter && (
+                                  <a
+                                    href={`https://twitter.com/${project.profile.projectTwitter.replace('@', '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                                  >
+                                    𝕏 Twitter
+                                  </a>
+                                )}
+                                {project.profile?.projectDiscord && (
+                                  <a
+                                    href={project.profile.projectDiscord}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                                  >
+                                    💬 Discord
+                                  </a>
+                                )}
+                                {project.profile?.contractAddress && (
+                                  <span className="text-sm text-gray-400 font-mono">
+                                    {project.profile.contractAddress.slice(0, 6)}...{project.profile.contractAddress.slice(-4)}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Stats */}
+                              <div className="flex gap-4 text-sm text-gray-400">
+                                <span>{project.profile?.followersCount || 0} followers</span>
+                                <span>{project.profile?.postsCount || 0} posts</span>
+                              </div>
+                            </div>
+
+                            {/* Follow Button */}
+                            <div className="flex-shrink-0">
+                              <UserActions userId={project.id} />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </>
               )}

@@ -16,17 +16,18 @@ export function calculateProfileCompletion(
   user: User & { profile: Profile | null }
 ): ProfileCompletionResult {
   const fields = [
-    // Actually editable fields only (7 fields)
-    { key: 'username', value: user.username, weight: 14, label: 'Username' },
-    { key: 'displayName', value: user.displayName, weight: 14, label: 'Display Name' },
-    { key: 'bio', value: user.bio, weight: 14, label: 'Bio' },
-    { key: 'avatar', value: user.avatar, weight: 14, label: 'Avatar' },
-    { key: 'discordId', value: user.discordId, weight: 15, label: 'Discord Account Linked' },
-    { key: 'twitterId', value: user.twitterId, weight: 15, label: 'Twitter/X Account Linked' },
+    // Actually editable fields (8 fields)
+    { key: 'username', value: user.username, weight: 12, label: 'Username' },
+    { key: 'displayName', value: user.displayName, weight: 12, label: 'Display Name' },
+    { key: 'bio', value: user.bio, weight: 13, label: 'Bio' },
+    { key: 'avatar', value: user.avatar, weight: 13, label: 'Avatar' },
+    { key: 'bannerImage', value: user.profile?.bannerImage, weight: 12, label: 'Banner Image' },
+    { key: 'discordId', value: user.discordId, weight: 13, label: 'Discord Account Linked' },
+    { key: 'twitterId', value: user.twitterId, weight: 13, label: 'Twitter/X Account Linked' },
     {
       key: 'interests',
       value: user.profile?.interests ? JSON.parse(user.profile.interests).length > 0 : false,
-      weight: 14,
+      weight: 12,
       label: 'Interests Added'
     },
   ]

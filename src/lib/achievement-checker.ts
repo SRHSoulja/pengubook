@@ -8,6 +8,76 @@ export interface AchievementCheckResult {
   totalEarned: number
 }
 
+// Helper function to detect trigger type from legacy achievement names
+function detectTriggerFromName(name: string): string {
+  if (name.includes('post')) return 'post'
+  if (name.includes('like') || name.includes('crowd') || name.includes('viral')) return 'like'
+  if (name.includes('friend') || name.includes('social_butterfly') || name.includes('influencer') || name.includes('celebrity') || name.includes('megastar')) return 'follow'
+  if (name.includes('tip') || name.includes('whale')) return 'tip'
+  if (name.includes('profile') || name.includes('social_connector')) return 'profile'
+  if (name.includes('streak') || name.includes('daily') || name.includes('consecutive')) return 'streak'
+  if (name.includes('loyal') || name.includes('week') || name.includes('month')) return 'loyalty'
+  return 'post' // default
+}
+
+// Helper function to detect metric type from legacy achievement names
+function detectMetricFromName(name: string): string {
+  if (name.includes('post')) return 'post_count'
+  if (name.includes('friend') || name.includes('follower') || name.includes('social_butterfly') || name.includes('influencer') || name.includes('celebrity') || name.includes('megastar')) return 'follower_count'
+  if (name.includes('like') || name.includes('crowd') || name.includes('viral')) return 'likes_received'
+  if (name.includes('tip') || name.includes('whale')) return 'tips_given'
+  if (name === 'profile_perfectionist') return 'profile_completion'
+  if (name === 'social_connector') return 'linked_accounts'
+  if (name.includes('login_streak')) return 'login_streak'
+  if (name.includes('post_streak')) return 'post_streak'
+  if (name.includes('interaction_streak')) return 'interaction_streak'
+  if (name.includes('loyal') || name.includes('week') || name.includes('month')) return 'days_since_join'
+  return 'post_count' // default
+}
+
+// Helper function to get metric value from user data
+function getMetricValue(user: any, metricType: string, streaks: any): number | null {
+  switch (metricType) {
+    case 'post_count':
+      return user.posts?.length || 0
+
+    case 'follower_count':
+      return user.followers?.length || 0
+
+    case 'likes_received':
+      return user.profile?.likesReceived || 0
+
+    case 'tips_given':
+      return user.tipsGiven?.length || 0
+
+    case 'profile_completion':
+      return getProfileCompletionPercentage(user)
+
+    case 'linked_accounts':
+      let count = 0
+      if (user.discordId) count++
+      if (user.twitterId) count++
+      return count
+
+    case 'login_streak':
+      return streaks.dailyLogin?.currentCount || 0
+
+    case 'post_streak':
+      return streaks.dailyPost?.currentCount || 0
+
+    case 'interaction_streak':
+      return streaks.dailyInteraction?.currentCount || 0
+
+    case 'days_since_join':
+      return Math.floor(
+        (Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+      )
+
+    default:
+      return null
+  }
+}
+
 export async function checkAndAwardAchievements(
   userId: string,
   triggerType?: 'post' | 'like' | 'follow' | 'tip' | 'profile' | 'streak' | 'all'
@@ -50,105 +120,24 @@ export async function checkAndAwardAchievements(
       )
       if (hasAchievement) continue
 
-      // Skip if trigger type doesn't match (optimization)
-      if (triggerType && triggerType !== 'all') {
-        const relevantAchievements = {
-          post: ['first_post', 'prolific_poster', 'content_creator', 'posting_legend'],
-          like: ['first_like', 'crowd_pleaser', 'viral_sensation', 'like_magnet'],
-          follow: ['first_friend', 'social_butterfly', 'influencer', 'celebrity', 'megastar'],
-          tip: ['first_tip', 'crypto_whale'],
-          profile: ['social_connector', 'profile_perfectionist'],
-          streak: [] // Streak achievements will be checked by name pattern
-        }
+      // Get trigger and metric types from database (fallback to name-based detection for legacy achievements)
+      const achTriggerType = (achievement as any).triggerType || detectTriggerFromName(achievement.name)
+      const achMetricType = (achievement as any).metricType || detectMetricFromName(achievement.name)
 
-        // Check if achievement name contains streak-related keywords when trigger is 'streak'
-        if (triggerType === 'streak') {
-          const isStreakAchievement = achievement.name.includes('streak') ||
-                                       achievement.name.includes('consecutive') ||
-                                       achievement.name.includes('daily')
-          if (!isStreakAchievement) {
-            continue
-          }
-        } else if (!relevantAchievements[triggerType]?.includes(achievement.name)) {
-          continue
-        }
+      // Skip if trigger type doesn't match (optimization)
+      if (triggerType && triggerType !== 'all' && achTriggerType !== triggerType) {
+        continue
       }
 
-      let currentValue = 0
+      // Calculate current value based on metric type
+      const currentValue = getMetricValue(user, achMetricType, streaks)
 
-      // Calculate current value based on achievement type
-      switch (achievement.name) {
-        case 'first_post':
-        case 'prolific_poster':
-        case 'content_creator':
-        case 'posting_legend':
-          currentValue = user.posts.length
-          break
-
-        case 'first_friend':
-        case 'social_butterfly':
-        case 'influencer':
-        case 'celebrity':
-        case 'megastar':
-          currentValue = user.followers.length
-          break
-
-        case 'first_like':
-        case 'crowd_pleaser':
-        case 'viral_sensation':
-        case 'like_magnet':
-          currentValue = user.profile?.likesReceived || 0
-          break
-
-        case 'first_tip':
-        case 'crypto_whale':
-          currentValue = user.tipsGiven.length
-          break
-
-        case 'one_week_strong':
-        case 'monthly_regular':
-        case 'loyal_penguin':
-          const daysSinceJoining = Math.floor(
-            (Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)
-          )
-          currentValue = daysSinceJoining
-          break
-
-        case 'social_connector':
-          let linkedAccounts = 0
-          if (user.discordId) linkedAccounts++
-          if (user.twitterId) linkedAccounts++
-          currentValue = linkedAccounts
-          break
-
-        case 'profile_perfectionist':
-          currentValue = getProfileCompletionPercentage(user as any)
-          break
-
-        default:
-          // Handle streak-based achievements
-          if (achievement.name.includes('login_streak')) {
-            currentValue = streaks.dailyLogin?.currentCount || 0
-          } else if (achievement.name.includes('post_streak')) {
-            currentValue = streaks.dailyPost?.currentCount || 0
-          } else if (achievement.name.includes('interaction_streak')) {
-            currentValue = streaks.dailyInteraction?.currentCount || 0
-          } else if (achievement.name.includes('streak')) {
-            // Generic streak - check best across all streak types
-            currentValue = Math.max(
-              streaks.dailyLogin?.currentCount || 0,
-              streaks.dailyPost?.currentCount || 0,
-              streaks.dailyInteraction?.currentCount || 0
-            )
-          } else {
-            continue
-          }
+      if (currentValue === null) {
+        continue // Skip if we can't calculate this metric
       }
 
       // Check if achievement is earned
-      const progress = checkAchievementProgress(achievement.name, currentValue)
-
-      if (progress.earned) {
+      if (currentValue >= achievement.requirement) {
         // Award the achievement
         await prisma.userAchievement.create({
           data: {
