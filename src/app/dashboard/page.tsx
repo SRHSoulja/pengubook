@@ -10,18 +10,18 @@ import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 import ProfileCompletionWidget from '@/components/ProfileCompletionWidget'
 
 export default function Dashboard() {
-  const { user, loading, isAuthenticated } = useAuth()
+  const { user, loading: authLoading, isAuthenticated } = useAuth()
   const { currentTheme, themeKey } = useTheme()
   const [showTipModal, setShowTipModal] = useState(false)
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false)
 
   // Show loading screen while checking auth
-  if (loading) {
+  if (authLoading) {
     return <PenguinLoadingScreen />
   }
 
   // Show access denied if not authenticated (and not loading)
-  if (!isAuthenticated && !loading) {
+  if (!isAuthenticated && !authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center text-white">

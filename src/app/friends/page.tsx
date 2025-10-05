@@ -127,7 +127,7 @@ export default function FriendsPage() {
     )
   }
 
-  if (!isAuthenticated && !loading) {
+  if (!isAuthenticated && !authLoading) {
     return (
       <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
         <Navbar />
