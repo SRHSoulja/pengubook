@@ -154,7 +154,7 @@ export default function ProfileEditPage() {
                 <h1 className="text-3xl font-bold text-white">Edit Profile</h1>
               </div>
               <Link
-                href={`/profile/${user.id}`}
+                href={`/profile/${user?.id || ''}`}
                 className="bg-gray-500 text-white px-6 py-2 rounded-xl hover:bg-gray-600 transition-colors"
               >
                 ❄️ Cancel
@@ -291,7 +291,7 @@ export default function ProfileEditPage() {
               </div>
 
               {/* Project Account Fields - Only visible for verified projects */}
-              {user.profile?.isProject && user.profile?.profileVerified && (
+              {user?.profile?.isProject && user?.profile?.profileVerified && (
                 <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 p-6 rounded-2xl">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-2xl">🏢</span>
@@ -453,22 +453,22 @@ export default function ProfileEditPage() {
               </div>
 
               {/* Social accounts are read-only - managed via OAuth linking */}
-              {(user.discordName || user.twitterHandle) && (
+              {(user?.discordName || user?.twitterHandle) && (
                 <div className="bg-black/20 p-4 rounded-lg border border-white/10">
                   <h4 className="text-sm font-medium text-gray-300 mb-2">Linked Social Accounts</h4>
                   <p className="text-xs text-gray-300 mb-3">These are managed via Settings → Social Account Linking</p>
 
-                  {user.discordName && (
+                  {user?.discordName && (
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-gray-300">Discord:</span>
-                      <span className="text-sm text-white bg-black/30 px-2 py-1 rounded">{user.discordName}</span>
+                      <span className="text-sm text-white bg-black/30 px-2 py-1 rounded">{user?.discordName}</span>
                     </div>
                   )}
 
-                  {user.twitterHandle && (
+                  {user?.twitterHandle && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-300">X (Twitter):</span>
-                      <span className="text-sm text-white bg-black/30 px-2 py-1 rounded">{user.twitterHandle}</span>
+                      <span className="text-sm text-white bg-black/30 px-2 py-1 rounded">{user?.twitterHandle}</span>
                     </div>
                   )}
                 </div>

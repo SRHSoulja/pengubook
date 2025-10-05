@@ -210,7 +210,7 @@ export default function TokenBlacklistManager({ initialTab = 'reports' }: TokenB
 
     setProcessingBatch(true)
     try {
-      for (const tokenAddress of selectedReports) {
+      for (const tokenAddress of Array.from(selectedReports)) {
         await fetch('/api/admin/tokens/reports', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },

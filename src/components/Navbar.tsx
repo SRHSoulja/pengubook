@@ -140,7 +140,7 @@ export default function Navbar() {
               href="/communities"
               className="nav-link-compact group relative"
               onClick={(e) => {
-                if (pathname === '/communities' || pathname.startsWith('/communities/')) { e.preventDefault(); return }
+                if (pathname === '/communities' || pathname?.startsWith('/communities/')) { e.preventDefault(); return }
                 typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguincommunity1.png', alt: 'Communities' }))
               }}
             >
@@ -179,7 +179,7 @@ export default function Navbar() {
               href="/messages"
               className="nav-link-compact group relative"
               onClick={(e) => {
-                if (pathname === '/messages' || pathname.startsWith('/messages/')) { e.preventDefault(); return }
+                if (pathname === '/messages' || pathname?.startsWith('/messages/')) { e.preventDefault(); return }
               }}
             >
               <span className="text-xl">💬</span>
