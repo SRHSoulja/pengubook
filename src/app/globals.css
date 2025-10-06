@@ -342,7 +342,7 @@
 .nav-link-compact {
   @apply flex items-center justify-center p-2.5 rounded-lg
          text-gray-300 hover:text-white hover:bg-white/10
-         transition-all duration-200 hover-lift focus-visible
+         transition-all duration-200 focus-visible
          min-w-[44px] min-h-[44px];
 }
 
