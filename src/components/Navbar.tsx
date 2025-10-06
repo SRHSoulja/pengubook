@@ -325,27 +325,63 @@ export default function Navbar() {
                 ✕
               </button>
             </div>
-            <a href="/dashboard" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+            <button
+              onClick={() => {
+                router.push('/dashboard')
+                setShowMoreMenu(false)
+              }}
+              className="dropdown-item flex items-center gap-3 w-full text-left"
+            >
               <img src="https://gmgnrepeat.com/icons/penguinhome1.png" alt="Home" className="w-6 h-6" />
               <span>Home</span>
-            </a>
-            <a href="/feed" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+            </button>
+            <button
+              onClick={() => {
+                router.push('/feed')
+                setShowMoreMenu(false)
+              }}
+              className="dropdown-item flex items-center gap-3 w-full text-left"
+            >
               <img src="https://gmgnrepeat.com/icons/penguinfeed1.png" alt="Feed" className="w-6 h-6" />
               <span>Feed</span>
-            </a>
-            <a href="/communities" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+            </button>
+            <button
+              onClick={() => {
+                router.push('/communities')
+                setShowMoreMenu(false)
+              }}
+              className="dropdown-item flex items-center gap-3 w-full text-left"
+            >
               <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-6 h-6" />
               <span>Communities</span>
-            </a>
-            <a href="/discover" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+            </button>
+            <button
+              onClick={() => {
+                router.push('/discover')
+                setShowMoreMenu(false)
+              }}
+              className="dropdown-item flex items-center gap-3 w-full text-left"
+            >
               <img src="https://gmgnrepeat.com/icons/penguindiscover1.png" alt="Discover" className="w-6 h-6" />
               <span>Discover</span>
-            </a>
-            <a href="/friends" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+            </button>
+            <button
+              onClick={() => {
+                router.push('/friends')
+                setShowMoreMenu(false)
+              }}
+              className="dropdown-item flex items-center gap-3 w-full text-left"
+            >
               <img src="https://gmgnrepeat.com/icons/penguinfriends1.png" alt="Friends" className="w-6 h-6" />
               <span>Friends</span>
-            </a>
-            <a href="/messages" className="dropdown-item flex items-center gap-3 relative" onClick={() => setShowMoreMenu(false)}>
+            </button>
+            <button
+              onClick={() => {
+                router.push('/messages')
+                setShowMoreMenu(false)
+              }}
+              className="dropdown-item flex items-center gap-3 relative w-full text-left"
+            >
               <span className="text-xl">💬</span>
               <span>Messages</span>
               {unreadCount > 0 && (
@@ -353,21 +389,39 @@ export default function Navbar() {
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
-            </a>
+            </button>
 
             <div className="border-t border-white/10 mt-2 pt-2">
-              <a href="/achievements" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+              <button
+                onClick={() => {
+                  router.push('/achievements')
+                  setShowMoreMenu(false)
+                }}
+                className="dropdown-item flex items-center gap-3 w-full text-left"
+              >
                 <span className="text-xl">🏆</span>
                 <span>Achievements</span>
-              </a>
-              <a href="/levels" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+              </button>
+              <button
+                onClick={() => {
+                  router.push('/levels')
+                  setShowMoreMenu(false)
+                }}
+                className="dropdown-item flex items-center gap-3 w-full text-left"
+              >
                 <span className="text-xl">⭐</span>
                 <span>Levels</span>
-              </a>
-              <a href="/bookmarks" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+              </button>
+              <button
+                onClick={() => {
+                  router.push('/bookmarks')
+                  setShowMoreMenu(false)
+                }}
+                className="dropdown-item flex items-center gap-3 w-full text-left"
+              >
                 <span className="text-xl">🔖</span>
                 <span>Bookmarks</span>
-              </a>
+              </button>
             </div>
 
             <div className="border-t border-white/10 mt-2 pt-2">
