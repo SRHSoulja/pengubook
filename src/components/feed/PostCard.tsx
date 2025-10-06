@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import { Post, PostInteractionRequest } from '@/types'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
 import TipButton from '@/components/TipButton'
@@ -189,9 +190,6 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
   const [sharesCount, setSharesCount] = useState(post._count?.shares || 0)
   const [reactionCounts, setReactionCounts] = useState<{ [key: string]: number }>({})
   const [userReactions, setUserReactions] = useState<Set<string>>(new Set())
-  const [showComments, setShowComments] = useState(false)
-  const [newComment, setNewComment] = useState('')
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [isInteracting, setIsInteracting] = useState<string | null>(null)
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -302,21 +300,27 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
   }, [showShareMenu])
 
   const handleReaction = async (reactionType: string) => {
-    if (!client?.account?.address || isInteracting) {
-      console.log('Cannot react:', { hasClient: !!client, hasAddress: !!client?.account?.address, isInteracting })
+    if (!currentUser?.id || isInteracting) {
+      console.log('Cannot react:', { hasCurrentUser: !!currentUser, hasUserId: !!currentUser?.id, isInteracting })
       return
     }
 
     setIsInteracting(reactionType)
 
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+
+      if (currentUser.id) {
+        headers['x-user-id'] = currentUser.id
+      }
+
       const response = await fetch(`/api/posts/${post.id}/reactions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': client.account.address
-        },
-        body: JSON.stringify({ reactionType })
+        headers,
+        body: JSON.stringify({ reactionType }),
+        credentials: 'include'
       })
 
       const result = await response.json()
@@ -397,37 +401,6 @@ via @PeBloq`
       alert('Link copied to clipboard!')
     }
     setShowShareMenu(false)
-  }
-
-  const handleAddComment = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!newComment.trim() || !client?.account?.address || isSubmittingComment) return
-
-    setIsSubmittingComment(true)
-
-    try {
-      const response = await fetch(`/api/posts/${post.id}/comments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': client.account.address
-        },
-        body: JSON.stringify({ content: newComment.trim() })
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        setNewComment('')
-        setCommentsCount(prev => prev + 1)
-        // Optionally refresh comments here
-      }
-    } catch (error) {
-      console.error('Error adding comment:', error)
-    } finally {
-      setIsSubmittingComment(false)
-    }
   }
 
   return (
@@ -604,17 +577,16 @@ via @PeBloq`
         </div>
       </div>
 
-      {/* Enhanced action buttons */}
+      {/* Post Actions */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pt-4 border-t border-white/10">
         <div className="flex flex-wrap items-center gap-2 md:gap-3">
-          {/* Comment button */}
-          <button
-            onClick={() => setShowComments(!showComments)}
+          <Link
+            href={`/posts/${post.id}`}
             className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
           >
             <span>💬</span>
             <span>{commentsCount}</span>
-          </button>
+          </Link>
 
           {/* Share button with dropdown */}
           <div className="relative" ref={shareMenuRef}>
@@ -790,120 +762,6 @@ via @PeBloq`
           userId={post.author.id}
         />
       </div>
-
-      {/* Comments section */}
-      {showComments && (
-        <div className="mt-6 pt-6 border-t border-white/10 space-y-4">
-          {/* Add comment form */}
-          <form onSubmit={handleAddComment} className="flex space-x-3">
-            <input
-              type="text"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Add a comment..."
-              className="flex-1 bg-white/5 text-white placeholder-gray-300 rounded-lg px-4 py-2 border border-white/10 outline-none focus:border-cyan-400"
-              maxLength={500}
-            />
-            <button
-              type="submit"
-              disabled={!newComment.trim() || isSubmittingComment}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                !newComment.trim() || isSubmittingComment
-                  ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                  : 'bg-cyan-500 text-white hover:bg-cyan-600'
-              }`}
-            >
-              {isSubmittingComment ? '...' : 'Post'}
-            </button>
-          </form>
-
-          {/* Recent comments */}
-          {post.comments && post.comments.slice(0, 3).map((comment) => (
-            <div key={comment.id} className="flex space-x-3">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center overflow-hidden">
-                  {getEffectiveAvatar(comment.user || comment.author) ? (
-                    <img src={getEffectiveAvatar(comment.user || comment.author)!} alt={(comment.user || comment.author)?.displayName} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-sm">🐧</span>
-                  )}
-                </div>
-              </div>
-              <div className="flex-1">
-                <div className="bg-white/5 rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium text-white text-sm">{(comment.user || comment.author)?.displayName}</span>
-                      <span className="text-xs text-gray-300">{formatDate(comment.createdAt)}</span>
-                    </div>
-                    {currentUser?.id && (comment.user || comment.author)?.id !== currentUser.id && (
-                      <button
-                        onClick={async () => {
-                          const reason = prompt('Select a reason for reporting:\n\n1. SPAM\n2. HARASSMENT\n3. INAPPROPRIATE_CONTENT\n4. COPYRIGHT\n5. IMPERSONATION\n6. VIOLENCE\n7. HATE_SPEECH\n8. SELF_HARM\n9. FALSE_INFORMATION\n10. OTHER\n\nEnter the number (1-10):')
-                          if (!reason) return
-
-                          const reasons = ['SPAM', 'HARASSMENT', 'INAPPROPRIATE_CONTENT', 'COPYRIGHT', 'IMPERSONATION', 'VIOLENCE', 'HATE_SPEECH', 'SELF_HARM', 'FALSE_INFORMATION', 'OTHER']
-                          const selectedReason = reasons[parseInt(reason) - 1]
-                          if (!selectedReason) {
-                            alert('Invalid selection')
-                            return
-                          }
-
-                          const description = prompt('Additional details (optional):')
-
-                          try {
-                            const response = await fetch('/api/reports', {
-                              method: 'POST',
-                              headers: {
-                                'Content-Type': 'application/json',
-                                'x-user-id': currentUser.id
-                              },
-                              body: JSON.stringify({
-                                commentId: comment.id,
-                                targetId: (comment.user || comment.author)?.id,
-                                reason: selectedReason,
-                                description
-                              })
-                            })
-
-                            if (response.ok) {
-                              alert('Report submitted successfully. Our team will review it.')
-                            } else {
-                              const data = await response.json()
-                              alert(data.error || 'Failed to submit report')
-                            }
-                          } catch (error) {
-                            console.error('Failed to submit report:', error)
-                            alert('Failed to submit report')
-                          }
-                        }}
-                        className="text-xs text-gray-400 hover:text-red-300 transition-colors"
-                        title="Report comment"
-                      >
-                        ⚠️
-                      </button>
-                    )}
-                  </div>
-                  <FilteredContent
-                    shouldWarn={(comment as any).contentFilter?.shouldWarn || false}
-                    matchedPhrases={(comment as any).contentFilter?.matchedPhrases || []}
-                    contentType="comment"
-                  >
-                    <p className="text-gray-200 text-sm">{comment.content}</p>
-                  </FilteredContent>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* Show more comments */}
-          {commentsCount > 3 && (
-            <button className="text-pengu-green text-sm hover:text-pengu-400 min-h-[44px] min-w-[44px] py-2 px-3">
-              View all {commentsCount} comments
-            </button>
-          )}
-        </div>
-      )}
 
       {/* Post Interactions Modal */}
       <PostInteractionsModal
