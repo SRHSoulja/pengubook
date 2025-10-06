@@ -67,7 +67,7 @@ export default function Home() {
       >
         <div className="text-center space-y-6">
           <div className="flex justify-center">
-            <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="PeBloq" className="w-32 h-32 animate-float" />
+            <img src="https://gmgnrepeat.com/pengubooklogo1.png" alt="PeBloq Logo" className="w-32 h-32 md:w-40 md:h-40 animate-float object-contain" />
           </div>
           <h1 className="text-4xl font-display font-bold text-gradient">
             Welcome back, {user?.displayName}!
