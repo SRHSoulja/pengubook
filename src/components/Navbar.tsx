@@ -241,7 +241,7 @@ export default function Navbar() {
 
           {/* User Menu */}
           {isAuthenticated && user && (
-            <div className="relative flex-shrink-0" ref={userMenuRef}>
+            <div className="relative flex-shrink-0 hidden lg:block" ref={userMenuRef}>
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center gap-2 md:glass-card md:px-3 md:py-2 hover-lift md:rounded-lg"
@@ -370,6 +370,27 @@ export default function Navbar() {
             </div>
 
             <div className="border-t border-white/10 mt-2 pt-2">
+              <a href="/profile" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+                <img src="https://gmgnrepeat.com/icons/penguinsilhouette1.png" alt="Profile" className="w-5 h-5" />
+                <span>My Profile</span>
+              </a>
+              <a href="/settings" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+                <span className="text-xl">⚙️</span>
+                <span>Settings</span>
+              </a>
+              <button
+                onClick={() => {
+                  setShowThemeCustomizer(true)
+                  setShowMoreMenu(false)
+                }}
+                className="dropdown-item flex items-center gap-3 w-full text-left"
+              >
+                <img src="https://gmgnrepeat.com/icons/penguintheme1.png" alt="Themes" className="w-5 h-5" />
+                <span>Themes</span>
+              </button>
+            </div>
+
+            <div className="border-t border-white/10 mt-2 pt-2">
               <a href="/apply-project-verification" className="dropdown-item flex items-center gap-3 bg-cyan-500/10" onClick={() => setShowMoreMenu(false)}>
                 <span className="text-xl">🏢</span>
                 <span className="text-cyan-300">Apply as Project</span>
@@ -385,6 +406,20 @@ export default function Navbar() {
             {/* Search on mobile */}
             <div className="md:hidden border-t border-white/10 p-4">
               <UserSearch />
+            </div>
+
+            {/* Logout at the bottom */}
+            <div className="border-t border-white/10">
+              <button
+                onClick={() => {
+                  handleLogout()
+                  setShowMoreMenu(false)
+                }}
+                className="dropdown-item flex items-center gap-3 w-full text-left text-red-300 hover:bg-red-500/20"
+              >
+                <span className="text-xl">🚪</span>
+                <span>Logout</span>
+              </button>
             </div>
           </div>
         )}
