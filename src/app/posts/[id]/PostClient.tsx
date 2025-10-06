@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import ReportButton from '@/components/ReportButton'
 import { useToast } from '@/components/ui/Toast'
+import BookmarkButton from '@/components/BookmarkButton'
 
 // Helper function to render text with clickable hashtags
 function renderTextWithHashtags(text: string): JSX.Element[] {
@@ -643,14 +644,13 @@ export default function PostClient({ params }: { params: { id: string } }) {
               <div className="flex-1"></div>
               {isAuthenticated && user && (
                 <>
-                  <button
-                    onClick={toggleBookmark}
-                    className="flex items-center gap-1 sm:gap-2 text-gray-300 hover:text-cyan-400 transition-colors touch-target"
-                    title={isBookmarked ? 'Remove bookmark' : 'Bookmark post'}
-                  >
-                    <span className="text-base sm:text-lg">🔖</span>
-                    <span className="text-xs sm:text-sm hidden sm:inline">{isBookmarked ? 'Saved' : 'Save'}</span>
-                  </button>
+                  <BookmarkButton
+                    postId={params.id}
+                    isBookmarked={isBookmarked}
+                    onToggle={(bookmarked) => setIsBookmarked(bookmarked)}
+                    size="md"
+                    showLabel={true}
+                  />
                   {post.author.id !== user.id && (
                     <button
                       onClick={() => setShowReportModal(true)}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 
 interface BookmarkButtonProps {
@@ -21,6 +21,11 @@ export default function BookmarkButton({
   const { user } = useAuth()
   const [bookmarked, setBookmarked] = useState(isBookmarked)
   const [loading, setLoading] = useState(false)
+
+  // Sync internal state with prop when it changes
+  useEffect(() => {
+    setBookmarked(isBookmarked)
+  }, [isBookmarked])
 
   const sizeClasses = {
     sm: 'w-4 h-4 p-1 text-xs',
@@ -79,11 +84,27 @@ export default function BookmarkButton({
         <div className="animate-spin rounded-full border-2 border-current border-t-transparent" />
       ) : (
         <>
-          <span className={`${size === 'sm' ? 'text-base' : size === 'md' ? 'text-lg' : 'text-xl'}`}>
-            🔖
-          </span>
+          {bookmarked ? (
+            <svg
+              className={`${size === 'sm' ? 'w-4 h-4' : size === 'md' ? 'w-5 h-5' : 'w-6 h-6'}`}
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+            </svg>
+          ) : (
+            <svg
+              className={`${size === 'sm' ? 'w-4 h-4' : size === 'md' ? 'w-5 h-5' : 'w-6 h-6'}`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+            </svg>
+          )}
           {showLabel && (
-            <span className="hidden sm:inline">
+            <span className="hidden sm:inline ml-1">
               {bookmarked ? 'Saved' : 'Save'}
             </span>
           )}
