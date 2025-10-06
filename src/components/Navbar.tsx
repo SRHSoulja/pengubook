@@ -118,10 +118,10 @@ export default function Navbar() {
                 typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinhome1.png', alt: 'Home' }))
                 router.push('/dashboard')
               }}
-              className="nav-link-compact group relative"
+              className="nav-link-compact group"
             >
               <img src="https://gmgnrepeat.com/icons/penguinhome1.png" alt="Home" className="w-[42px] h-[42px] transition-transform duration-150 group-hover:scale-110" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Home
               </span>
             </button>
@@ -131,10 +131,10 @@ export default function Navbar() {
                 typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinfeed1.png', alt: 'Feed' }))
                 router.push('/feed')
               }}
-              className="nav-link-compact group relative"
+              className="nav-link-compact group"
             >
               <img src="https://gmgnrepeat.com/icons/penguinfeed1.png" alt="Feed" className="w-[42px] h-[42px] transition-transform duration-150 group-hover:scale-110" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Feed
               </span>
             </button>
@@ -144,10 +144,10 @@ export default function Navbar() {
                 typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguincommunity1.png', alt: 'Communities' }))
                 router.push('/communities')
               }}
-              className="nav-link-compact group relative"
+              className="nav-link-compact group"
             >
               <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-[42px] h-[42px] transition-transform duration-150 group-hover:scale-110" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Communities
               </span>
             </button>
@@ -157,10 +157,10 @@ export default function Navbar() {
                 typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguindiscover1.png', alt: 'Discover' }))
                 router.push('/discover')
               }}
-              className="nav-link-compact group relative"
+              className="nav-link-compact group"
             >
               <img src="https://gmgnrepeat.com/icons/penguindiscover1.png" alt="Discover" className="w-[42px] h-[42px] transition-transform duration-150 group-hover:scale-110" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Discover
               </span>
             </button>
@@ -170,10 +170,10 @@ export default function Navbar() {
                 typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinfriends1.png', alt: 'Friends' }))
                 router.push('/friends')
               }}
-              className="nav-link-compact group relative"
+              className="nav-link-compact group"
             >
               <img src="https://gmgnrepeat.com/icons/penguinfriends1.png" alt="Friends" className="w-[42px] h-[42px] transition-transform duration-150 group-hover:scale-110" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Friends
               </span>
             </button>
@@ -182,7 +182,7 @@ export default function Navbar() {
                 if (pathname === '/messages' || pathname?.startsWith('/messages/')) return
                 router.push('/messages')
               }}
-              className="nav-link-compact group relative"
+              className="nav-link-compact group"
             >
               <span className="text-xl">💬</span>
               {unreadCount > 0 && (
@@ -190,7 +190,7 @@ export default function Navbar() {
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Messages
               </span>
             </button>
@@ -199,10 +199,10 @@ export default function Navbar() {
             <div className="relative" ref={moreMenuRef}>
               <button
                 onClick={() => setShowMoreMenu(!showMoreMenu)}
-                className="nav-link-compact group relative"
+                className="nav-link-compact group"
               >
                 <span className="text-xl">⋯</span>
-                <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+                <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
                   More
                 </span>
               </button>
