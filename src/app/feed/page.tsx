@@ -583,12 +583,17 @@ export default function FeedPage() {
             )}
           </div>
 
+          {/* Trending Hashtags - Mobile */}
+          <div className="lg:hidden mb-8">
+            <TrendingHashtags limit={5} />
+          </div>
+
           {/* Social Feed */}
           <SocialFeed userId={user?.id} limit={15} />
           </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
+          {/* Sidebar - Desktop Only */}
+          <div className="hidden lg:block lg:col-span-1">
             <div className="sticky top-8 space-y-6">
               <TrendingHashtags limit={10} />
             </div>
