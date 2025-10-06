@@ -112,81 +112,77 @@ export default function Navbar() {
 
           {/* Primary Navigation - Condensed */}
           <div className="hidden lg:flex items-center gap-1 flex-1 justify-center">
-            <a
-              href="/dashboard"
-              className="nav-link-compact group relative"
-              onClick={(e) => {
-                // Prevent navigation if already on dashboard or home
-                if (pathname === '/dashboard' || pathname === '/') {
-                  e.preventDefault()
-                  return
-                }
+            <button
+              onClick={() => {
+                if (pathname === '/dashboard' || pathname === '/') return
                 typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinhome1.png', alt: 'Home' }))
+                router.push('/dashboard')
               }}
+              className="nav-link-compact group relative"
             >
-              <img src="https://gmgnrepeat.com/icons/penguinhome1.png" alt="Home" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <img src="https://gmgnrepeat.com/icons/penguinhome1.png" alt="Home" className="w-[42px] h-[42px] transition-transform duration-150 group-hover:scale-110" />
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Home
               </span>
-            </a>
-            <a
-              href="/feed"
-              className="nav-link-compact group relative"
-              onClick={(e) => {
-                if (pathname === '/feed') { e.preventDefault(); return }
+            </button>
+            <button
+              onClick={() => {
+                if (pathname === '/feed') return
                 typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinfeed1.png', alt: 'Feed' }))
+                router.push('/feed')
               }}
+              className="nav-link-compact group relative"
             >
-              <img src="https://gmgnrepeat.com/icons/penguinfeed1.png" alt="Feed" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <img src="https://gmgnrepeat.com/icons/penguinfeed1.png" alt="Feed" className="w-[42px] h-[42px] transition-transform duration-150 group-hover:scale-110" />
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Feed
               </span>
-            </a>
-            <a
-              href="/communities"
-              className="nav-link-compact group relative"
-              onClick={(e) => {
-                if (pathname === '/communities' || pathname?.startsWith('/communities/')) { e.preventDefault(); return }
+            </button>
+            <button
+              onClick={() => {
+                if (pathname === '/communities' || pathname?.startsWith('/communities/')) return
                 typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguincommunity1.png', alt: 'Communities' }))
+                router.push('/communities')
               }}
+              className="nav-link-compact group relative"
             >
-              <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-[42px] h-[42px] transition-transform duration-150 group-hover:scale-110" />
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Communities
               </span>
-            </a>
-            <a
-              href="/discover"
-              className="nav-link-compact group relative"
-              onClick={(e) => {
-                if (pathname === '/discover') { e.preventDefault(); return }
+            </button>
+            <button
+              onClick={() => {
+                if (pathname === '/discover') return
                 typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguindiscover1.png', alt: 'Discover' }))
+                router.push('/discover')
               }}
+              className="nav-link-compact group relative"
             >
-              <img src="https://gmgnrepeat.com/icons/penguindiscover1.png" alt="Discover" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <img src="https://gmgnrepeat.com/icons/penguindiscover1.png" alt="Discover" className="w-[42px] h-[42px] transition-transform duration-150 group-hover:scale-110" />
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Discover
               </span>
-            </a>
-            <a
-              href="/friends"
-              className="nav-link-compact group relative"
-              onClick={(e) => {
-                if (pathname === '/friends') { e.preventDefault(); return }
+            </button>
+            <button
+              onClick={() => {
+                if (pathname === '/friends') return
                 typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: 'https://gmgnrepeat.com/icons/penguinfriends1.png', alt: 'Friends' }))
+                router.push('/friends')
               }}
+              className="nav-link-compact group relative"
             >
-              <img src="https://gmgnrepeat.com/icons/penguinfriends1.png" alt="Friends" className="w-[42px] h-[42px] transition-transform duration-200 group-hover:scale-125" />
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <img src="https://gmgnrepeat.com/icons/penguinfriends1.png" alt="Friends" className="w-[42px] h-[42px] transition-transform duration-150 group-hover:scale-110" />
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Friends
               </span>
-            </a>
-            <a
-              href="/messages"
-              className="nav-link-compact group relative"
-              onClick={(e) => {
-                if (pathname === '/messages' || pathname?.startsWith('/messages/')) { e.preventDefault(); return }
+            </button>
+            <button
+              onClick={() => {
+                if (pathname === '/messages' || pathname?.startsWith('/messages/')) return
+                router.push('/messages')
               }}
+              className="nav-link-compact group relative"
             >
               <span className="text-xl">💬</span>
               {unreadCount > 0 && (
@@ -194,10 +190,10 @@ export default function Navbar() {
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
-              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+              <span className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-gradient-to-r from-pengu-green to-pengu-600 text-white text-sm font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none shadow-lg z-50">
                 Messages
               </span>
-            </a>
+            </button>
 
             {/* More Menu Dropdown */}
             <div className="relative" ref={moreMenuRef}>
@@ -213,27 +209,27 @@ export default function Navbar() {
 
               {showMoreMenu && (
                 <div className="absolute top-full right-0 mt-2 w-56 glass-card-strong border border-white/30 rounded-xl shadow-2xl overflow-hidden z-50">
-                  <a href="/achievements" className="dropdown-item">
+                  <button onClick={() => { router.push('/achievements'); setShowMoreMenu(false) }} className="dropdown-item w-full text-left">
                     <span className="text-lg">🏆</span>
                     <span>Achievements</span>
-                  </a>
-                  <a href="/levels" className="dropdown-item">
+                  </button>
+                  <button onClick={() => { router.push('/levels'); setShowMoreMenu(false) }} className="dropdown-item w-full text-left">
                     <span className="text-lg">⭐</span>
                     <span>Levels</span>
-                  </a>
-                  <a href="/bookmarks" className="dropdown-item">
+                  </button>
+                  <button onClick={() => { router.push('/bookmarks'); setShowMoreMenu(false) }} className="dropdown-item w-full text-left">
                     <span className="text-lg">🔖</span>
                     <span>Bookmarks</span>
-                  </a>
-                  <a href="/apply-project-verification" className="dropdown-item border-t border-cyan-500/20 bg-cyan-500/10">
+                  </button>
+                  <button onClick={() => { router.push('/apply-project-verification'); setShowMoreMenu(false) }} className="dropdown-item border-t border-cyan-500/20 bg-cyan-500/10 w-full text-left">
                     <span className="text-lg">🏢</span>
                     <span className="text-cyan-300">Apply as Project</span>
-                  </a>
+                  </button>
                   {isAdmin && (
-                    <a href="/admin" className="dropdown-item bg-purple-500/10 border-t border-purple-500/20">
+                    <button onClick={() => { router.push('/admin'); setShowMoreMenu(false) }} className="dropdown-item bg-purple-500/10 border-t border-purple-500/20 w-full text-left">
                       <span className="text-lg">👑</span>
                       <span className="text-purple-300 font-semibold">Admin</span>
-                    </a>
+                    </button>
                   )}
                 </div>
               )}
@@ -276,14 +272,14 @@ export default function Navbar() {
                     <p className="text-gray-300 text-xs">Level {user.level}</p>
                   </div>
 
-                  <a href="/profile" className="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-white hover:bg-white/10 transition-colors duration-200 cursor-pointer text-xs sm:text-base">
+                  <button onClick={() => { router.push('/profile'); setShowUserMenu(false) }} className="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-white hover:bg-white/10 transition-colors duration-150 cursor-pointer text-xs sm:text-base w-full text-left">
                     <img src="https://gmgnrepeat.com/icons/penguinsilhouette1.png" alt="Profile" className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span>Profile</span>
-                  </a>
-                  <a href="/settings" className="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-white hover:bg-white/10 transition-colors duration-200 cursor-pointer text-xs sm:text-base">
+                  </button>
+                  <button onClick={() => { router.push('/settings'); setShowUserMenu(false) }} className="flex items-center gap-2 px-2 py-2 sm:px-4 sm:py-3 text-white hover:bg-white/10 transition-colors duration-150 cursor-pointer text-xs sm:text-base w-full text-left">
                     <span className="text-base sm:text-lg">⚙️</span>
                     <span>Settings</span>
-                  </a>
+                  </button>
                   <button
                     onClick={() => {
                       setShowThemeCustomizer(true)
