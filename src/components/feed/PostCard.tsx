@@ -4,8 +4,6 @@ import { useState, useEffect, useRef } from 'react'
 import { Post, PostInteractionRequest } from '@/types'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
 import TipButton from '@/components/TipButton'
-import BookmarkButton from '@/components/BookmarkButton'
-import ReportButton from '@/components/ReportButton'
 import FilteredContent from '@/components/FilteredContent'
 import { detectMediaType, getYouTubeEmbedUrl, isYouTubeUrl, getGiphyEmbedUrl, isGiphyUrl } from '@/lib/media-utils'
 import { getEffectiveAvatar, getAvatarFallback } from '@/lib/avatar-utils'
@@ -222,14 +220,15 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
 
   const getReactionEmoji = (reactionType: string) => {
     switch (reactionType) {
-      case 'PENGUIN_REACT': return '🐧'
+      case 'HAPPY': return '😀'
       case 'LAUGH': return '😂'
+      case 'LOVE': return '😍'
+      case 'SHOCK': return '😮'
       case 'CRY': return '😢'
-      case 'SHOCK': return '😲'
       case 'ANGER': return '😡'
       case 'THUMBS_UP': return '👍'
       case 'THUMBS_DOWN': return '👎'
-      default: return '🐧'
+      default: return '😀'
     }
   }
 
@@ -241,6 +240,14 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
         const result = await response.json()
         if (result.success) {
           setReactionCounts(result.data.counts || {})
+
+          // Load user's reactions if we have a current user
+          if (currentUser && result.data.reactions) {
+            const userReactionTypes = result.data.reactions
+              .filter((r: any) => r.userId === currentUser.id)
+              .map((r: any) => r.reactionType)
+            setUserReactions(new Set(userReactionTypes))
+          }
         }
       } catch (error) {
         console.error('Error loading reactions:', error)
@@ -261,9 +268,8 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
       }
     }
 
-    loadReactions()
-    loadCurrentUser()
-  }, [post.id, client?.account?.address])
+    loadCurrentUser().then(() => loadReactions())
+  }, [post.id, client?.account?.address, currentUser?.id])
 
   // Handle click outside to close share menu
   useEffect(() => {
@@ -553,46 +559,52 @@ via @PeBloq`
       </div>
 
       {/* Enhanced reaction buttons - Pengu brand colors */}
-      <div className="mb-4">
+      <div className="mb-4 pb-4 border-b border-white/10">
         <div className="flex items-center flex-wrap gap-2">
-          {['PENGUIN_REACT', 'LAUGH', 'CRY', 'SHOCK', 'ANGER', 'THUMBS_UP', 'THUMBS_DOWN'].map((reactionType) => (
+          {['HAPPY', 'LAUGH', 'LOVE', 'SHOCK', 'CRY', 'ANGER', 'THUMBS_UP', 'THUMBS_DOWN'].map((reactionType) => (
             <button
               key={reactionType}
               onClick={() => handleReaction(reactionType)}
               disabled={isInteracting === reactionType}
-              className={`flex items-center space-x-1 px-3 py-2 rounded-lg transition-all hover-glow click-scale font-medium ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all hover:scale-105 ${
                 userReactions.has(reactionType)
-                  ? 'bg-pengu-green/20 text-pengu-green border border-pengu-green/30 shadow-neon-sm'
-                  : 'glass-card text-gray-300 hover:text-pengu-green hover:border-pengu-green/20'
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                  : 'bg-white/10 text-gray-300 hover:bg-white/20 border border-transparent'
               }`}
             >
-              <span className="text-lg hover:animate-float">{getReactionEmoji(reactionType)}</span>
-              <span className="text-sm font-mono">{reactionCounts[reactionType] || 0}</span>
+              <span className="text-lg">{getReactionEmoji(reactionType)}</span>
+              {(reactionCounts[reactionType] || 0) > 0 && (
+                <span className="text-sm font-mono">{reactionCounts[reactionType]}</span>
+              )}
             </button>
           ))}
         </div>
       </div>
 
       {/* Enhanced action buttons */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pt-4 border-t border-white/10">
         <div className="flex flex-wrap items-center gap-2 md:gap-3">
           {/* Comment button */}
           <button
             onClick={() => setShowComments(!showComments)}
-            className="cyber-button bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-blue-400/50 text-blue-300 hover:text-blue-200"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
           >
-            <span className="hover:animate-float">💬</span>
-            <span className="font-medium">Comment</span>
+            <span>💬</span>
+            <span>{commentsCount}</span>
           </button>
 
           {/* Share button with dropdown */}
           <div className="relative" ref={shareMenuRef}>
             <button
               onClick={() => setShowShareMenu(!showShareMenu)}
-              className="cyber-button bg-gradient-to-r from-gray-500/20 to-gray-600/20 border-gray-400/50 text-gray-300 hover:text-green-300 hover:border-green-400/50"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                isShared
+                  ? 'bg-green-500/20 text-green-300'
+                  : 'bg-white/10 text-gray-300 hover:bg-white/20'
+              }`}
             >
-              <span className="hover:animate-float">📤</span>
-              <span className="font-medium">Share</span>
+              <span>🔄</span>
+              <span>{sharesCount}</span>
             </button>
 
             {/* Share dropdown menu */}
@@ -669,20 +681,85 @@ via @PeBloq`
           </div>
 
           {/* Bookmark button */}
-          <BookmarkButton
-            postId={post.id}
-            isBookmarked={isBookmarked}
-            onToggle={setIsBookmarked}
-            showLabel={true}
-          />
+          <button
+            onClick={async () => {
+              if (!currentUser?.id) return
+              try {
+                const response = await fetch('/api/bookmarks', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': currentUser.id
+                  },
+                  body: JSON.stringify({ postId: post.id })
+                })
+
+                if (response.ok) {
+                  const data = await response.json()
+                  setIsBookmarked(data.isBookmarked)
+                }
+              } catch (error) {
+                console.error('Failed to toggle bookmark:', error)
+              }
+            }}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+              isBookmarked
+                ? 'bg-yellow-500/20 text-yellow-300'
+                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+            }`}
+            title={isBookmarked ? 'Remove bookmark' : 'Bookmark post'}
+          >
+            <span>🔖</span>
+          </button>
 
           {/* Report button */}
-          <ReportButton
-            postId={post.id}
-            targetName={`Post by ${post.author.displayName}`}
-            size="md"
-            className="ml-2"
-          />
+          {currentUser?.id && currentUser.id !== post.author.id && (
+            <button
+              onClick={async () => {
+                const reason = prompt('Select a reason for reporting:\n\n1. SPAM\n2. HARASSMENT\n3. INAPPROPRIATE_CONTENT\n4. COPYRIGHT\n5. IMPERSONATION\n6. VIOLENCE\n7. HATE_SPEECH\n8. SELF_HARM\n9. FALSE_INFORMATION\n10. OTHER\n\nEnter the number (1-10):')
+                if (!reason) return
+
+                const reasons = ['SPAM', 'HARASSMENT', 'INAPPROPRIATE_CONTENT', 'COPYRIGHT', 'IMPERSONATION', 'VIOLENCE', 'HATE_SPEECH', 'SELF_HARM', 'FALSE_INFORMATION', 'OTHER']
+                const selectedReason = reasons[parseInt(reason) - 1]
+                if (!selectedReason) {
+                  alert('Invalid selection')
+                  return
+                }
+
+                const description = prompt('Additional details (optional):')
+
+                try {
+                  const response = await fetch('/api/reports', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'x-user-id': currentUser.id
+                    },
+                    body: JSON.stringify({
+                      postId: post.id,
+                      targetId: post.author.id,
+                      reason: selectedReason,
+                      description
+                    })
+                  })
+
+                  if (response.ok) {
+                    alert('Report submitted successfully. Our team will review it.')
+                  } else {
+                    const data = await response.json()
+                    alert(data.error || 'Failed to submit report')
+                  }
+                } catch (error) {
+                  console.error('Failed to submit report:', error)
+                  alert('Failed to submit report')
+                }
+              }}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-red-500/20 hover:text-red-300 transition-colors"
+              title="Report post"
+            >
+              <span>⚠️</span>
+            </button>
+          )}
         </div>
 
         {/* Tip button */}

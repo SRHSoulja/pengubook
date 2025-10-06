@@ -1,0 +1,198 @@
+
+> pebloq@2.7.4 build
+> prisma generate && prisma migrate deploy && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v5.22.0) to ./node_modules/@prisma/client in 468ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: https://pris.ly/--optimize
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "neondb", schema "public" at "ep-plain-hill-ae080est-pooler.c-2.us-east-2.aws.neon.tech"
+
+5 migrations found in prisma/migrations
+
+
+No pending migrations to apply.
+  ▲ Next.js 14.2.32
+  - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+[SECURITY WARNING] SESSION_SECRET has low entropy (3.94 bits/char).
+This indicates a weak or predictable secret.
+Generate a cryptographically secure secret with:
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+ ⚠ Using edge runtime on a page currently disables static generation for that page
+   Generating static pages (0/42) ...
+[SECURITY WARNING] SESSION_SECRET has low entropy (3.94 bits/char).
+This indicates a weak or predictable secret.
+Generate a cryptographically secure secret with:
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+WebSocket server initialized
+WebSocket HTTP server listening on port 3002
+   Generating static pages (10/42) 
+   Generating static pages (20/42) 
+   Generating static pages (31/42) 
+Token gating service initialized with RPC: https://api.mainnet.abs.xyz
+ ✓ Generating static pages (42/42)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                          Size     First Load JS
+┌ ○ /                                                5.06 kB         257 kB
+├ ○ /_not-found                                      880 B          88.2 kB
+├ ○ /achievements                                    2.95 kB         271 kB
+├ ○ /admin                                           17.8 kB         286 kB
+├ ƒ /api/achievements                                0 B                0 B
+├ ƒ /api/achievements/init                           0 B                0 B
+├ ƒ /api/admin/achievements                          0 B                0 B
+├ ƒ /api/admin/achievements/[id]                     0 B                0 B
+├ ƒ /api/admin/contact-submissions                   0 B                0 B
+├ ƒ /api/admin/contact-submissions/[id]              0 B                0 B
+├ ƒ /api/admin/moderation-settings                   0 B                0 B
+├ ƒ /api/admin/moderation-settings/seed              0 B                0 B
+├ ƒ /api/admin/moderation/approve                    0 B                0 B
+├ ƒ /api/admin/moderation/queue                      0 B                0 B
+├ ƒ /api/admin/moderation/reject                     0 B                0 B
+├ ƒ /api/admin/project-applications                  0 B                0 B
+├ ƒ /api/admin/project-applications/[id]             0 B                0 B
+├ ƒ /api/admin/projects                              0 B                0 B
+├ ƒ /api/admin/projects/[id]                         0 B                0 B
+├ ƒ /api/admin/reaction-emojis                       0 B                0 B
+├ ƒ /api/admin/stats                                 0 B                0 B
+├ ƒ /api/admin/tokens/available                      0 B                0 B
+├ ƒ /api/admin/tokens/blacklist                      0 B                0 B
+├ ƒ /api/admin/tokens/reports                        0 B                0 B
+├ ƒ /api/admin/tokens/verified                       0 B                0 B
+├ ƒ /api/admin/users                                 0 B                0 B
+├ ƒ /api/admin/users/[id]                            0 B                0 B
+├ ƒ /api/admin/xp-earning                            0 B                0 B
+├ ƒ /api/admin/xp-levels                             0 B                0 B
+├ ƒ /api/admin/xp-levels/[id]                        0 B                0 B
+├ ƒ /api/auth/[...nextauth]                          0 B                0 B
+├ ƒ /api/auth/cleanup-nonces                         0 B                0 B
+├ ƒ /api/auth/link-social                            0 B                0 B
+├ ƒ /api/auth/logout                                 0 B                0 B
+├ ƒ /api/auth/nonce                                  0 B                0 B
+├ ƒ /api/auth/oauth-register                         0 B                0 B
+├ ƒ /api/auth/unlink-social                          0 B                0 B
+├ ƒ /api/auth/verify-session                         0 B                0 B
+├ ƒ /api/auth/wallet-login                           0 B                0 B
+├ ƒ /api/bookmarks                                   0 B                0 B
+├ ƒ /api/communities                                 0 B                0 B
+├ ƒ /api/communities/[id]                            0 B                0 B
+├ ƒ /api/communities/[id]/join                       0 B                0 B
+├ ƒ /api/communities/[id]/members/[userId]/moderate  0 B                0 B
+├ ƒ /api/communities/[id]/members/[userId]/title     0 B                0 B
+├ ƒ /api/communities/[id]/moderators                 0 B                0 B
+├ ƒ /api/communities/[id]/verify-access              0 B                0 B
+├ ƒ /api/contact                                     0 B                0 B
+├ ƒ /api/cron/cleanup-messages                       0 B                0 B
+├ ƒ /api/cron/cleanup-nonces                         0 B                0 B
+├ ƒ /api/debug/session                               0 B                0 B
+├ ○ /api/debug/test-profile                          0 B                0 B
+├ ƒ /api/feed                                        0 B                0 B
+├ ƒ /api/friends/requests                            0 B                0 B
+├ ƒ /api/friends/requests/[id]                       0 B                0 B
+├ ƒ /api/giphy/search                                0 B                0 B
+├ ƒ /api/hashtags/search                             0 B                0 B
+├ ƒ /api/hashtags/trending                           0 B                0 B
+├ ƒ /api/health/oauth                                0 B                0 B
+├ ○ /api/hello                                       0 B                0 B
+├ ƒ /api/message-reactions/[messageId]/reactions     0 B                0 B
+├ ƒ /api/messages/[conversationId]                   0 B                0 B
+├ ƒ /api/messages/[conversationId]/leave             0 B                0 B
+├ ƒ /api/messages/[conversationId]/mark-read         0 B                0 B
+├ ƒ /api/messages/[conversationId]/read              0 B                0 B
+├ ƒ /api/messages/conversations                      0 B                0 B
+├ ƒ /api/messages/conversations/[conversationId]     0 B                0 B
+├ ƒ /api/messages/message/[messageId]                0 B                0 B
+├ ƒ /api/muted-phrases                               0 B                0 B
+├ ƒ /api/muted-phrases/[id]                          0 B                0 B
+├ ƒ /api/og                                          0 B                0 B
+├ ƒ /api/posts                                       0 B                0 B
+├ ƒ /api/posts/[id]                                  0 B                0 B
+├ ƒ /api/posts/[id]/comments                         0 B                0 B
+├ ƒ /api/posts/[id]/edits                            0 B                0 B
+├ ƒ /api/posts/[id]/interactions                     0 B                0 B
+├ ƒ /api/posts/[id]/like                             0 B                0 B
+├ ƒ /api/posts/[id]/reactions                        0 B                0 B
+├ ƒ /api/posts/search                                0 B                0 B
+├ ƒ /api/profile/completion                          0 B                0 B
+├ ƒ /api/profile/pin-post                            0 B                0 B
+├ ƒ /api/projects/apply                              0 B                0 B
+├ ƒ /api/projects/verified                           0 B                0 B
+├ ƒ /api/reports                                     0 B                0 B
+├ ƒ /api/social/discover                             0 B                0 B
+├ ƒ /api/social/follow                               0 B                0 B
+├ ƒ /api/social/friends                              0 B                0 B
+├ ○ /api/socket                                      0 B                0 B
+├ ○ /api/system/stats                                0 B                0 B
+├ ○ /api/test                                        0 B                0 B
+├ ƒ /api/tips                                        0 B                0 B
+├ ƒ /api/tips/[id]/verify                            0 B                0 B
+├ ƒ /api/tokens                                      0 B                0 B
+├ ƒ /api/tokens/[id]                                 0 B                0 B
+├ ƒ /api/tokens/hidden                               0 B                0 B
+├ ƒ /api/tokens/report                               0 B                0 B
+├ ƒ /api/upload                                      0 B                0 B
+├ ƒ /api/users/[id]                                  0 B                0 B
+├ ƒ /api/users/[id]/follow                           0 B                0 B
+├ ƒ /api/users/[id]/shares                           0 B                0 B
+├ ƒ /api/users/[id]/streaks                          0 B                0 B
+├ ƒ /api/users/block                                 0 B                0 B
+├ ƒ /api/users/check-streak                          0 B                0 B
+├ ƒ /api/users/featured-community                    0 B                0 B
+├ ƒ /api/users/friends                               0 B                0 B
+├ ƒ /api/users/friends/[friendshipId]                0 B                0 B
+├ ƒ /api/users/privacy                               0 B                0 B
+├ ƒ /api/users/profile                               0 B                0 B
+├ ƒ /api/users/search                                0 B                0 B
+├ ƒ /api/users/update-login-streak                   0 B                0 B
+├ ƒ /api/wallet/balance                              0 B                0 B
+├ ○ /apply-project-verification                      2.64 kB         271 kB
+├ ○ /bookmarks                                       2.21 kB         270 kB
+├ ○ /communities                                     3.63 kB         369 kB
+├ ƒ /communities/[id]                                4.4 kB          370 kB
+├ ○ /connecting                                      1.45 kB         238 kB
+├ ○ /contact                                         2.16 kB         270 kB
+├ ○ /dashboard                                       3.37 kB         274 kB
+├ ○ /discover                                        5.94 kB         274 kB
+├ ○ /feed                                            69.3 kB         344 kB
+├ ○ /feed/search                                     10.3 kB         283 kB
+├ ○ /friends                                         2.79 kB         271 kB
+├ ○ /icon                                            0 B                0 B
+├ ○ /levels                                          2.66 kB         271 kB
+├ ○ /messages                                        2.55 kB         270 kB
+├ ƒ /messages/[conversationId]                       19.3 kB         287 kB
+├ ○ /messages/new                                    1.1 kB          253 kB
+├ ○ /messages/new-group                              2.92 kB         271 kB
+├ ƒ /posts/[id]                                      5.96 kB         274 kB
+├ ○ /privacy                                         2.51 kB         270 kB
+├ ○ /profile                                         854 B           253 kB
+├ ƒ /profile/[id]                                    11 kB           291 kB
+├ ○ /profile/edit                                    13.6 kB         282 kB
+├ ○ /search                                          2.25 kB         270 kB
+├ ○ /settings                                        8.58 kB         277 kB
+├ ○ /terms                                           2.15 kB         270 kB
+├ ○ /tip-platform                                    2.27 kB         275 kB
+└ ○ /wall-of-thanks                                  2.09 kB         270 kB
++ First Load JS shared by all                        87.4 kB
+  ├ chunks/2117-7813b630dbb3ea4f.js                  31.8 kB
+  ├ chunks/fd9d1056-affa66197639be0c.js              53.6 kB
+  └ other shared chunks (total)                      1.97 kB
+
+
+ƒ Middleware                                         67.3 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
