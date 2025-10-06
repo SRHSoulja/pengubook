@@ -145,67 +145,64 @@ export default function DiscoverPage() {
     <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
       <Navbar />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 md:py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-4 flex items-center justify-center">
-              <img src="https://gmgnrepeat.com/icons/penguindiscover1.png" alt="Discover" className="w-12 h-12 mr-3" />
-              Discover Penguins
+          <div className="text-center mb-4 md:mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 md:mb-4 flex items-center justify-center gap-2 md:gap-3">
+              <img src="https://gmgnrepeat.com/icons/penguindiscover1.png" alt="Discover" className="w-10 h-10 md:w-12 md:h-12" />
+              <span>Discover Penguins</span>
             </h1>
-            <p className="text-xl text-gray-300">
+            <p className="text-base md:text-xl text-gray-300">
               Find new friends and communities to waddle with!
             </p>
           </div>
 
           {/* Tab Navigation */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-2 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 md:gap-2 bg-white/10 backdrop-blur-lg rounded-xl md:rounded-2xl border border-white/20 p-1.5 md:p-2 mb-4 md:mb-8">
             <button
               onClick={() => setActiveTab('users')}
-              className={`py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+              className={`py-2 px-2 md:py-3 md:px-4 rounded-lg md:rounded-xl font-semibold text-sm md:text-base transition-all flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 ${
                 activeTab === 'users'
                   ? 'bg-cyan-500 text-white shadow-lg'
                   : 'text-gray-300 hover:bg-white/10'
               }`}
             >
               <img src="https://gmgnrepeat.com/icons/pengubookicon1.png" alt="Suggested" className="w-5 h-5" />
-              <span className="hidden lg:inline">Suggested Pengus</span>
-              <span className="lg:hidden">Pengus</span>
+              <span>Pengus</span>
             </button>
             <button
               onClick={() => setActiveTab('communities')}
-              className={`py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+              className={`py-2 px-2 md:py-3 md:px-4 rounded-lg md:rounded-xl font-semibold text-sm md:text-base transition-all flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 ${
                 activeTab === 'communities'
                   ? 'bg-purple-500 text-white shadow-lg'
                   : 'text-gray-300 hover:bg-white/10'
               }`}
             >
               <img src="https://gmgnrepeat.com/icons/penguincommunity1.png" alt="Communities" className="w-5 h-5" />
-              <span className="hidden lg:inline">Communities</span>
-              <span className="lg:hidden">Groups</span>
+              <span>Groups</span>
             </button>
             <button
               onClick={() => setActiveTab('projects')}
-              className={`py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+              className={`py-2 px-2 md:py-3 md:px-4 rounded-lg md:rounded-xl font-semibold text-sm md:text-base transition-all flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 ${
                 activeTab === 'projects'
                   ? 'bg-blue-500 text-white shadow-lg'
                   : 'text-gray-300 hover:bg-white/10'
               }`}
             >
               <span className="text-lg">🏢</span>
-              <span className="hidden lg:inline">Verified Projects</span>
-              <span className="lg:hidden">Projects</span>
+              <span>Projects</span>
             </button>
             <button
               onClick={() => setActiveTab('hashtags')}
-              className={`py-3 px-4 rounded-xl font-semibold transition-all ${
+              className={`py-2 px-2 md:py-3 md:px-4 rounded-lg md:rounded-xl font-semibold text-sm md:text-base transition-all flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 ${
                 activeTab === 'hashtags'
                   ? 'bg-orange-500 text-white shadow-lg'
                   : 'text-gray-300 hover:bg-white/10'
               }`}
             >
-              🔥 <span className="hidden lg:inline">Trending Tags</span>
-              <span className="lg:hidden">Tags</span>
+              <span className="text-lg">🔥</span>
+              <span>Tags</span>
             </button>
           </div>
 
@@ -229,79 +226,83 @@ export default function DiscoverPage() {
                     suggestedUsers.map((suggestion) => (
                       <div
                         key={suggestion.user.id}
-                        className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 hover:bg-white/15 transition-all"
+                        className="bg-white/10 backdrop-blur-lg rounded-xl md:rounded-2xl border border-white/20 p-3 md:p-6 hover:bg-white/15 transition-all"
                       >
-                        <div className="flex items-start gap-4">
-                          {/* Avatar */}
-                          <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-2xl font-bold text-white">
-                            {suggestion.user.avatar ? (
-                              <img
-                                src={suggestion.user.avatar}
-                                alt={suggestion.user.displayName}
-                                className="w-full h-full rounded-xl object-cover"
-                              />
-                            ) : (
-                              suggestion.user.displayName.charAt(0)
-                            )}
-                          </div>
-
-                          {/* User Info */}
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="text-lg font-bold text-white">
-                                {suggestion.user.displayName}
-                              </h3>
-                              {suggestion.user.profile.profileVerified && (
-                                <span className="text-blue-400">✓</span>
-                              )}
-                              <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-xs">
-                                Level {suggestion.user.level}
-                              </span>
-                            </div>
-
-                            <p className="text-gray-300 text-sm mb-2">@{suggestion.user.username}</p>
-
-                            <p className="text-cyan-300 text-sm mb-3">
-                              {suggestion.reason}
-                            </p>
-
-                            <div className="flex items-center gap-4 text-xs text-gray-300 mb-4">
-                              <span>👥 {suggestion.user.profile.followersCount} followers</span>
-                              <span>📝 {suggestion.user.profile.postsCount} posts</span>
-                              {suggestion.mutualConnections > 0 && (
-                                <span>🤝 {suggestion.mutualConnections} mutual</span>
+                        <div className="flex flex-col md:flex-row md:items-start gap-3 md:gap-4">
+                          <div className="flex items-start gap-3 md:gap-4">
+                            {/* Avatar */}
+                            <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-xl md:text-2xl font-bold text-white flex-shrink-0">
+                              {suggestion.user.avatar ? (
+                                <img
+                                  src={suggestion.user.avatar}
+                                  alt={suggestion.user.displayName}
+                                  className="w-full h-full rounded-xl object-cover"
+                                />
+                              ) : (
+                                suggestion.user.displayName.charAt(0)
                               )}
                             </div>
 
-                            {suggestion.commonInterests.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mb-4">
-                                {suggestion.commonInterests.slice(0, 3).map((interest, index) => (
-                                  <span
-                                    key={index}
-                                    className="px-2 py-1 bg-purple-500/20 text-purple-200 rounded-full text-xs"
-                                  >
-                                    {interest}
-                                  </span>
-                                ))}
+                            {/* User Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center flex-wrap gap-1.5 md:gap-2 mb-1">
+                                <h3 className="text-base md:text-lg font-bold text-white truncate">
+                                  {suggestion.user.displayName}
+                                </h3>
+                                {suggestion.user.profile.profileVerified && (
+                                  <span className="text-blue-400 flex-shrink-0">✓</span>
+                                )}
+                                <span className="px-1.5 md:px-2 py-0.5 md:py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-xs flex-shrink-0">
+                                  Level {suggestion.user.level}
+                                </span>
                               </div>
-                            )}
+
+                              <p className="text-gray-300 text-xs md:text-sm mb-1.5 md:mb-2 truncate">@{suggestion.user.username}</p>
+
+                              <p className="text-cyan-300 text-xs md:text-sm mb-2 md:mb-3 line-clamp-2">
+                                {suggestion.reason}
+                              </p>
+
+                              <div className="flex items-center flex-wrap gap-2 md:gap-4 text-xs text-gray-300 mb-2 md:mb-4">
+                                <span>👥 {suggestion.user.profile.followersCount}</span>
+                                <span>📝 {suggestion.user.profile.postsCount}</span>
+                                {suggestion.mutualConnections > 0 && (
+                                  <span>🤝 {suggestion.mutualConnections}</span>
+                                )}
+                              </div>
+
+                              {suggestion.commonInterests.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mb-2 md:mb-4">
+                                  {suggestion.commonInterests.slice(0, 3).map((interest, index) => (
+                                    <span
+                                      key={index}
+                                      className="px-2 py-1 bg-purple-500/20 text-purple-200 rounded-full text-xs"
+                                    >
+                                      {interest}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
 
                           {/* Actions */}
-                          <div className="flex flex-col gap-2">
+                          <div className="flex md:flex-col flex-wrap gap-2 w-full md:w-auto md:flex-shrink-0">
                             <Link
                               href={`/profile/${suggestion.user.id}`}
-                              className="bg-white/20 text-white px-4 py-2 rounded-lg hover:bg-white/30 transition-colors text-center text-sm"
+                              className="flex-1 md:flex-none bg-white/20 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-white/30 transition-colors text-center text-xs md:text-sm whitespace-nowrap"
                             >
                               View Profile
                             </Link>
-                            <UserActions
-                              targetUserId={suggestion.user.id}
-                              targetUser={suggestion.user}
-                              compact={true}
-                              showMessageButton={true}
-                              showFriendButton={true}
-                            />
+                            <div className="flex-1 md:flex-none w-full md:w-auto">
+                              <UserActions
+                                targetUserId={suggestion.user.id}
+                                targetUser={suggestion.user}
+                                compact={true}
+                                showMessageButton={true}
+                                showFriendButton={true}
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
