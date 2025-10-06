@@ -446,6 +446,7 @@ model Community {
   tokenIds             String?              @default("[]")
   tokenSymbol          String?
   tokenDecimals        Int?
+  customIcons          String?              @default("[]") // JSON array of up to 5 custom icons (emojis or URLs)
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
   members              CommunityMember[]
@@ -463,6 +464,7 @@ model CommunityMember {
   communityId String
   role        String    @default("MEMBER") // MEMBER, MODERATOR, CREATOR
   customTitle String?   // Custom title/role name set by creator/mods
+  customIcon  String?   // Custom icon (emoji or URL) assigned by creator/mods
   status      String    @default("ACTIVE") // ACTIVE, BANNED, MUTED
   joinedAt    DateTime  @default(now())
   community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)

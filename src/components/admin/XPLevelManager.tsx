@@ -313,6 +313,18 @@ export default function XPLevelManager() {
                     </button>
                   ))}
                 </div>
+                <div className="mt-2">
+                  <label className="block text-xs text-gray-400 mb-1">
+                    Or use custom icon (emoji or URL):
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.icon}
+                    onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                    placeholder="Enter emoji or image URL"
+                    className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:border-cyan-400 outline-none"
+                  />
+                </div>
               </div>
 
               {/* Perks */}

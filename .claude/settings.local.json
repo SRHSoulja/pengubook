@@ -69,7 +69,8 @@
       "Bash(xargs:*)",
       "Bash(do sed -i 's/addToast/toast/g' \"$file\")",
       "Bash(git pull:*)",
-      "Bash(perl:*)"
+      "Bash(perl:*)",
+      "Read(//mnt/**)"
     ],
     "deny": [],
     "ask": []
