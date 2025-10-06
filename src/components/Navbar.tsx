@@ -208,7 +208,7 @@ export default function Navbar() {
               </button>
 
               {showMoreMenu && (
-                <div className="absolute top-full right-0 mt-2 w-56 glass-card-strong border border-white/30 rounded-xl shadow-2xl overflow-hidden z-50">
+                <div className="absolute top-full right-0 mt-2 w-64 glass-card-strong border border-white/30 rounded-xl shadow-2xl overflow-hidden z-50">
                   <button onClick={() => { router.push('/achievements'); setShowMoreMenu(false) }} className="dropdown-item w-full text-left">
                     <span className="text-lg">🏆</span>
                     <span>Achievements</span>
