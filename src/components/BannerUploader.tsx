@@ -11,7 +11,7 @@ interface BannerUploaderProps {
 }
 
 export default function BannerUploader({ currentBanner, onBannerChange }: BannerUploaderProps) {
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(currentBanner || null)
   const [showCropper, setShowCropper] = useState(false)
@@ -37,13 +37,13 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      addToast('Only images are allowed for banners', 'error')
+      toast('Only images are allowed for banners', 'error')
       return
     }
 
     // Validate file size (10MB)
     if (file.size > 10 * 1024 * 1024) {
-      addToast('Image must be less than 10MB', 'error')
+      toast('Image must be less than 10MB', 'error')
       return
     }
 
@@ -135,7 +135,7 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
       console.log('✅ Banner uploaded:', result.url)
     } catch (error) {
       console.error('Upload error:', error)
-      addToast('Failed to upload banner image', 'error')
+      toast('Failed to upload banner image', 'error')
       setPreview(currentBanner || null)
     } finally {
       setUploading(false)

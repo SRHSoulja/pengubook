@@ -22,7 +22,7 @@ interface AvailableToken {
 
 export default function TokenVerificationManager() {
   const { user } = useAuth()
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [verifiedTokens, setVerifiedTokens] = useState<VerifiedToken[]>([])
   const [availableTokens, setAvailableTokens] = useState<AvailableToken[]>([])
   const [loading, setLoading] = useState(true)
@@ -83,11 +83,11 @@ export default function TokenVerificationManager() {
         fetchAvailableTokens()
       } else {
         const data = await response.json()
-        addToast(data.error || 'Failed to verify token', 'error')
+        toast(data.error || 'Failed to verify token', 'error')
       }
     } catch (error) {
       console.error('Error verifying token:', error)
-      addToast('Failed to verify token', 'error')
+      toast('Failed to verify token', 'error')
     }
   }
 
@@ -113,11 +113,11 @@ export default function TokenVerificationManager() {
         setManualTokenName('')
       } else {
         const data = await response.json()
-        addToast(data.error || 'Failed to verify token', 'error')
+        toast(data.error || 'Failed to verify token', 'error')
       }
     } catch (error) {
       console.error('Error verifying token:', error)
-      addToast('Failed to verify token', 'error')
+      toast('Failed to verify token', 'error')
     }
   }
 
@@ -182,7 +182,7 @@ export default function TokenVerificationManager() {
       fetchAvailableTokens()
     } catch (error) {
       console.error('Error batch verifying:', error)
-      addToast('Failed to verify some tokens', 'error')
+      toast('Failed to verify some tokens', 'error')
     } finally {
       setProcessingBatch(false)
     }

@@ -19,7 +19,7 @@ interface ModerationSetting {
 
 export default function ModerationSettingsManager() {
   const { user } = useAuth()
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [settings, setSettings] = useState<ModerationSetting[]>([])
   const [loading, setLoading] = useState(true)
   const [seeding, setSeeding] = useState(false)
@@ -61,14 +61,14 @@ export default function ModerationSettingsManager() {
       })
       const data = await response.json()
       if (data.success) {
-        addToast(data.message, 'success')
+        toast(data.message, 'success')
         fetchSettings()
       } else {
-        addToast(`Error: ${data.error}`, 'error')
+        toast(`Error: ${data.error}`, 'error')
       }
     } catch (error) {
       console.error('Error seeding settings:', error)
-      addToast('Failed to seed settings', 'error')
+      toast('Failed to seed settings', 'error')
     } finally {
       setSeeding(false)
     }
@@ -97,15 +97,15 @@ export default function ModerationSettingsManager() {
       })
       const data = await response.json()
       if (data.success) {
-        addToast('Setting updated', 'success')
+        toast('Setting updated', 'success')
         fetchSettings()
         cancelEdit()
       } else {
-        addToast(`Error: ${data.error}`, 'error')
+        toast(`Error: ${data.error}`, 'error')
       }
     } catch (error) {
       console.error('Error saving setting:', error)
-      addToast('Failed to save setting', 'error')
+      toast('Failed to save setting', 'error')
     }
   }
 

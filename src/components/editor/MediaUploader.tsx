@@ -26,7 +26,7 @@ export default function MediaUploader({
   allowMedia = true,
   maxFiles = 4
 }: MediaUploaderProps) {
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -46,13 +46,13 @@ export default function MediaUploader({
 
       // Validate file type
       if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-        addToast('Only images and videos are supported', 'error')
+        toast('Only images and videos are supported', 'error')
         continue
       }
 
       // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
-        addToast('File size must be less than 10MB', 'error')
+        toast('File size must be less than 10MB', 'error')
         continue
       }
 
@@ -111,7 +111,7 @@ export default function MediaUploader({
         console.error('Upload error:', error)
         // Remove failed upload
         onMediaFilesChange(prev => prev.filter(f => f.id !== mediaFile.id))
-        addToast('Failed to upload file', 'error')
+        toast('Failed to upload file', 'error')
       }
     })
 

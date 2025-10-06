@@ -22,7 +22,7 @@ interface QueueItem {
 }
 
 export default function ReviewQueue() {
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [items, setItems] = useState<QueueItem[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -76,14 +76,14 @@ export default function ReviewQueue() {
 
       if (res.ok) {
         setItems(prev => prev.filter(p => p.id !== id))
-        addToast('Post approved', 'success')
+        toast('Post approved', 'success')
       } else {
         const error = await res.json()
-        addToast(`Error: ${error.error}`, 'error')
+        toast(`Error: ${error.error}`, 'error')
       }
     } catch (error) {
       console.error('Error approving post:', error)
-      addToast('Failed to approve post', 'error')
+      toast('Failed to approve post', 'error')
     }
   }
 
@@ -101,14 +101,14 @@ export default function ReviewQueue() {
 
       if (res.ok) {
         setItems(prev => prev.filter(p => p.id !== id))
-        addToast('Post rejected and hidden from feed', 'success')
+        toast('Post rejected and hidden from feed', 'success')
       } else {
         const error = await res.json()
-        addToast(`Error: ${error.error}`, 'error')
+        toast(`Error: ${error.error}`, 'error')
       }
     } catch (error) {
       console.error('Error rejecting post:', error)
-      addToast('Failed to reject post', 'error')
+      toast('Failed to reject post', 'error')
     }
   }
 

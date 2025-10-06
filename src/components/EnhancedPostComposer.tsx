@@ -13,7 +13,7 @@ const MAX_CHARS = 5000
 
 export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostComposerProps) {
   const { user } = useAuth()
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [isPosting, setIsPosting] = useState(false)
@@ -66,10 +66,10 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
       localStorage.removeItem('post-draft')
       setTitle('')
       setContent('')
-      addToast('Post published successfully!', 'success')
+      toast('Post published successfully!', 'success')
     } catch (error: any) {
       console.error('Failed to post:', error)
-      addToast(error.message || 'Failed to publish post', 'error')
+      toast(error.message || 'Failed to publish post', 'error')
     } finally {
       setIsPosting(false)
     }

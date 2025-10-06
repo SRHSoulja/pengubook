@@ -38,7 +38,7 @@ interface BlockedUser {
 
 export default function PrivacySettings() {
   const { user } = useAuth()
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [settings, setSettings] = useState<PrivacySettings>({
     allowDirectMessages: true,
     dmPrivacyLevel: 'ALL',
@@ -143,7 +143,7 @@ export default function PrivacySettings() {
       }
     } catch (error) {
       console.error('Error updating privacy settings:', error)
-      addToast('Failed to update privacy settings', 'error')
+      toast('Failed to update privacy settings', 'error')
     } finally {
       setSaving(false)
     }
@@ -165,7 +165,7 @@ export default function PrivacySettings() {
       }
     } catch (error) {
       console.error('Error unblocking user:', error)
-      addToast('Failed to unblock user', 'error')
+      toast('Failed to unblock user', 'error')
     }
   }
 
@@ -189,7 +189,7 @@ export default function PrivacySettings() {
       }
     } catch (error) {
       console.error('Error updating featured community:', error)
-      addToast('Failed to update featured community', 'error')
+      toast('Failed to update featured community', 'error')
     } finally {
       setSaving(false)
     }

@@ -11,7 +11,7 @@ interface FriendButtonProps {
 
 export default function FriendButton({ targetUserId, currentUserId }: FriendButtonProps) {
   const { data: client } = useAbstractClient()
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [friendshipStatus, setFriendshipStatus] = useState<'none' | 'pending' | 'friends' | 'sent'>('none')
   const [loading, setLoading] = useState(false)
 
@@ -82,11 +82,11 @@ export default function FriendButton({ targetUserId, currentUserId }: FriendButt
         setFriendshipStatus('sent')
       } else {
         console.error('Friend request failed:', data.error)
-        addToast(data.error || 'Failed to send friend request', 'error')
+        toast(data.error || 'Failed to send friend request', 'error')
       }
     } catch (error) {
       console.error('Error sending friend request:', error)
-      addToast('Failed to send friend request', 'error')
+      toast('Failed to send friend request', 'error')
     } finally {
       setLoading(false)
     }

@@ -33,7 +33,7 @@ export default function RichContentEditor({
   allowGifs = true,
   allowEmbeds = true
 }: RichContentEditorProps) {
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [gifSearchQuery, setGifSearchQuery] = useState('')
@@ -60,13 +60,13 @@ export default function RichContentEditor({
 
       // Validate file type
       if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-        addToast('Only images and videos are supported', 'error')
+        toast('Only images and videos are supported', 'error')
         continue
       }
 
       // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
-        addToast('File size must be less than 10MB', 'error')
+        toast('File size must be less than 10MB', 'error')
         continue
       }
 
@@ -237,7 +237,7 @@ export default function RichContentEditor({
     try {
       new URL(embedUrl)
     } catch {
-      addToast('Please enter a valid URL', 'error')
+      toast('Please enter a valid URL', 'error')
       return
     }
 
