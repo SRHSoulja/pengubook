@@ -332,8 +332,8 @@ export async function POST(request: NextRequest) {
           },
           create: {
             walletAddress: addr,
-            username: `user_${addr.slice(-6)}`,
-            displayName: `Penguin ${addr.slice(-4)}`,
+            username: addr,
+            displayName: `USER_${addr.slice(-4).toUpperCase()}`,
             profile: {
               create: {
                 isPrivate: false,

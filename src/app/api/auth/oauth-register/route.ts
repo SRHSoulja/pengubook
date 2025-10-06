@@ -118,8 +118,9 @@ export async function POST(request: NextRequest) {
       }
 
       // Create new user from OAuth data
-      const username = String(token.actualUsername || token.name || `user_${token.sub.slice(-6)}`)
-      const displayName = String(token.name || `User ${token.sub.slice(-4)}`)
+      // Username for OAuth users should be their social handle
+      const username = String(token.actualUsername || token.name || token.email || `oauth_user_${token.sub.slice(-8)}`)
+      const displayName = String(token.actualUsername || token.name || `User ${token.sub.slice(-4)}`)
 
       try {
         user = await prisma.user.create({
