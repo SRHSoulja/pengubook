@@ -206,7 +206,7 @@ export default function PostClient({ params }: { params: { id: string } }) {
       if (user.id) headers['x-user-id'] = user.id
 
       const response = await fetch('/api/bookmarks', {
-        method: isBookmarked ? 'DELETE' : 'POST',
+        method: 'POST',
         headers,
         body: JSON.stringify({ postId: params.id }),
         credentials: 'include'
@@ -214,7 +214,7 @@ export default function PostClient({ params }: { params: { id: string } }) {
 
       const data = await response.json()
       if (data.success) {
-        setIsBookmarked(!isBookmarked)
+        setIsBookmarked(data.isBookmarked)
       } else {
         alert(data.error || 'Failed to toggle bookmark')
       }
