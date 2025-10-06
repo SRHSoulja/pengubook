@@ -8,6 +8,7 @@ import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 import UserActions from '@/components/UserActions'
 import HashtagSearch from '@/components/HashtagSearch'
 import Link from 'next/link'
+import { useToast } from '@/components/ui/Toast'
 
 interface UserSuggestion {
   user: {
@@ -51,6 +52,7 @@ interface CommunityRecommendation {
 export default function DiscoverPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const { currentTheme } = useTheme()
+  const { addToast } = useToast()
   const [suggestedUsers, setSuggestedUsers] = useState<UserSuggestion[]>([])
   const [suggestedCommunities, setSuggestedCommunities] = useState<CommunityRecommendation[]>([])
   const [verifiedProjects, setVerifiedProjects] = useState<any[]>([])
@@ -112,13 +114,13 @@ export default function DiscoverPage() {
       if (response.ok) {
         // Remove community from suggestions
         setSuggestedCommunities(prev => prev.filter(suggestion => suggestion.community.id !== communityId))
-        alert(data.message)
+        addToast(data.message, 'success')
       } else {
-        alert(data.error || 'Failed to join community')
+        addToast(data.error || 'Failed to join community', 'error')
       }
     } catch (error) {
       console.error('Error joining community:', error)
-      alert('Failed to join community')
+      addToast('Failed to join community', 'error')
     }
   }
 

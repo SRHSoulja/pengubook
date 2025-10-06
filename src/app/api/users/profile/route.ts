@@ -217,47 +217,38 @@ export const PUT = withAuth(async (request: NextRequest, user: any) => {
     // Prepare update data (excluding social accounts which are OAuth-only)
     const updateData: any = {}
 
-    // Sanitize user inputs to prevent XSS attacks
-    if (displayName !== undefined) updateData.displayName = sanitizeText(displayName)
+    // SECURITY: Display Name can ONLY be wallet address, Discord username, or Twitter handle
+    if (displayName !== undefined) {
+      const sanitizedDisplayName = sanitizeText(displayName)
 
-    // SECURITY: Username must match one of the linked social accounts OR be wallet-based
-    if (username !== undefined) {
-      const sanitizedUsername = sanitizeText(username)
-
-      // Check if username matches Discord or Twitter handle
-      const isDiscordUsername = existingUser.discordName && sanitizedUsername === existingUser.discordName
-      const isTwitterUsername = existingUser.twitterHandle && (
-        sanitizedUsername === existingUser.twitterHandle ||
-        sanitizedUsername === existingUser.twitterHandle.replace('@', '')
+      // Check if displayName is valid (wallet address, Discord username, or Twitter handle)
+      const isWalletAddress = sanitizedDisplayName === existingUser.walletAddress ||
+                              sanitizedDisplayName === existingUser.walletAddress.toLowerCase()
+      const isDiscordName = existingUser.discordName && sanitizedDisplayName === existingUser.discordName
+      const isTwitterHandle = existingUser.twitterHandle && (
+        sanitizedDisplayName === existingUser.twitterHandle ||
+        sanitizedDisplayName === existingUser.twitterHandle.replace('@', '')
       )
 
-      // For wallet-only users, allow wallet address or wallet-based usernames
-      const isWalletBased = existingUser.walletAddress && (
-        sanitizedUsername === existingUser.walletAddress ||
-        sanitizedUsername === existingUser.walletAddress.toLowerCase() ||
-        sanitizedUsername.startsWith('0x') // Allow any wallet-style username for wallet users
-      )
+      // Also allow USER_XXXX format (default displayName for wallet-only users)
+      const walletLast4 = existingUser.walletAddress ? existingUser.walletAddress.slice(-4).toUpperCase() : ''
+      const isUserFormat = sanitizedDisplayName === `USER_${walletLast4}` ||
+                          sanitizedDisplayName.toUpperCase() === `USER_${walletLast4}`
 
-      // Allow if matches social accounts OR if wallet-only user with wallet-based username
-      const hasSocialAccounts = existingUser.discordId || existingUser.twitterId
-      const isValid = isDiscordUsername || isTwitterUsername || (!hasSocialAccounts && isWalletBased) || isWalletBased
+      const isValid = isWalletAddress || isDiscordName || isTwitterHandle || isUserFormat
 
       if (!isValid) {
-        if (hasSocialAccounts) {
-          return NextResponse.json(
-            { error: 'Username must match one of your linked social accounts (Discord or X/Twitter)' },
-            { status: 400 }
-          )
-        } else {
-          return NextResponse.json(
-            { error: 'Username must be your wallet address for wallet-only accounts' },
-            { status: 400 }
-          )
-        }
+        return NextResponse.json(
+          { error: 'Display name must be your wallet address, Discord username, or Twitter handle' },
+          { status: 400 }
+        )
       }
 
-      updateData.username = sanitizedUsername
+      updateData.displayName = sanitizedDisplayName
     }
+
+    // Username is ALWAYS the wallet address - it never changes and is not updated here
+    // The username field in the database is set once during account creation
 
     if (bio !== undefined) updateData.bio = sanitizeHtml(bio) // Allow safe HTML formatting in bio
 

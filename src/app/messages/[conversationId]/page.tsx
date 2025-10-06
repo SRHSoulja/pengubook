@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useToast } from '@/components/ui/Toast'
 import { useWebSocket } from '@/hooks/useWebSocket'
 import Navbar from '@/components/Navbar'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
@@ -40,6 +41,7 @@ interface ConversationPageProps {
 
 export default function ConversationPage({ params }: ConversationPageProps) {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
+  const { addToast } = useToast()
   const [messages, setMessages] = useState<Message[]>([])
   const [conversation, setConversation] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -223,12 +225,12 @@ export default function ConversationPage({ params }: ConversationPageProps) {
           setNewMessage('')
         } else {
           console.error('Failed to send message:', result.error)
-          alert('Failed to send message')
+          addToast('Failed to send message', 'error')
         }
       }
     } catch (error) {
       console.error('Error sending message:', error)
-      alert('Failed to send message')
+      addToast('Failed to send message', 'error')
     } finally {
       setSending(false)
     }
@@ -267,16 +269,16 @@ export default function ConversationPage({ params }: ConversationPageProps) {
 
       const data = await response.json()
       if (data.success) {
-        alert('Report submitted successfully. Our team will review it.')
+        addToast('Report submitted successfully. Our team will review it.', 'success')
         setShowReportModal(false)
         setReportReason('')
         setReportingMessageId(null)
       } else {
-        alert(data.error || 'Failed to submit report')
+        addToast(data.error || 'Failed to submit report', 'error')
       }
     } catch (error) {
       console.error('Failed to submit report:', error)
-      alert('Failed to submit report')
+      addToast('Failed to submit report', 'error')
     } finally {
       setSubmittingReport(false)
     }
@@ -311,11 +313,11 @@ export default function ConversationPage({ params }: ConversationPageProps) {
         // Redirect to messages page
         window.location.href = '/messages'
       } else {
-        alert(result.error || 'Failed to leave group')
+        addToast(result.error || 'Failed to leave group', 'error')
       }
     } catch (error) {
       console.error('Error leaving group:', error)
-      alert('Failed to leave group')
+      addToast('Failed to leave group', 'error')
     } finally {
       setLeavingGroup(false)
       setShowLeaveModal(false)

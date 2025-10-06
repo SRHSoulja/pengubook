@@ -600,3 +600,132 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ========================================
+   REACTION ANIMATIONS
+   ======================================== */
+
+@keyframes reaction-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes heart-beat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.3);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  75% {
+    transform: scale(1.25);
+  }
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100%) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.reaction-pop {
+  animation: reaction-pop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.float-up {
+  animation: float-up 1s ease-out forwards;
+}
+
+.heart-beat {
+  animation: heart-beat 0.6s ease-in-out;
+}
+
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  animation: confetti-fall 3s ease-in forwards;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.reaction-button {
+  @apply relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
+    bg-white/10 hover:bg-white/20 transition-all duration-200
+    text-sm font-medium text-gray-300 hover:text-white
+    active:scale-95;
+}
+
+.reaction-button.active {
+  @apply bg-pengu-green/20 text-pengu-green border border-pengu-green/50;
+}
+
+.reaction-button.active .reaction-icon {
+  @apply animate-pulse;
+}
+
+/* ========================================
+   SCROLLBAR UTILITIES
+   ======================================== */
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+
+/* Custom styled scrollbar (for desktop areas where visible scrollbar is desired) */
+.scrollbar-custom {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 225, 119, 0.3) transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background: rgba(0, 225, 119, 0.3);
+  border-radius: 3px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 225, 119, 0.5);
+}

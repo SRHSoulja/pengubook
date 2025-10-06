@@ -7,6 +7,7 @@ import NSFWBlurOverlay from '@/components/NSFWBlurOverlay'
 import { useAuth } from '@/providers/AuthProvider'
 import TipButton from '@/components/TipButton'
 import { SkeletonPostGrid } from '@/components/skeletons/SkeletonPostCard'
+import { useToast } from '@/components/ui/Toast'
 
 // Function to extract URLs from content
 function extractUrlsFromContent(content: string): string[] {
@@ -220,6 +221,7 @@ const defaultReactionEmojis: { [key: string]: string } = {
 
 export default function SocialFeed({ userId, communityId, authorId, limit = 10 }: SocialFeedProps) {
   const { user } = useAuth()
+  const { addToast } = useToast()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -489,11 +491,11 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
         setEditContent('')
       } else {
         const errorData = await response.json()
-        alert(errorData.error || 'Failed to update post')
+        addToast(errorData.error || 'Failed to update post', 'error')
       }
     } catch (error) {
       console.error('Failed to edit post:', error)
-      alert('Failed to update post')
+      addToast('Failed to update post', 'error')
     }
   }
 
@@ -520,7 +522,7 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
       if (response.ok) {
         const data = await response.json()
         console.log('Post shared successfully:', data)
-        alert('Post shared successfully!')
+        addToast('Post shared successfully!', 'success')
 
         // Update local state to reflect the share
         setPosts(prev => prev.map(post =>
@@ -530,11 +532,11 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
         ))
       } else {
         const errorData = await response.json()
-        alert(errorData.error || 'Failed to share post')
+        addToast(errorData.error || 'Failed to share post', 'error')
       }
     } catch (error) {
       console.error('Failed to share post:', error)
-      alert('Failed to share post')
+      addToast('Failed to share post', 'error')
     } finally {
       setShowShareMenu(null)
     }
@@ -555,9 +557,9 @@ via @PeBloq`
     const postUrl = `${window.location.origin}/posts/${post.id}`
     try {
       await navigator.clipboard.writeText(postUrl)
-      alert('Link copied to clipboard!')
+      addToast('Link copied to clipboard!', 'success')
     } catch (error) {
-      alert(`Share this post: ${postUrl}`)
+      addToast(`Share this post: ${postUrl}`, 'info')
     } finally {
       setShowShareMenu(null)
     }
@@ -1009,7 +1011,7 @@ via @PeBloq`
 
                     if (response.ok) {
                       const data = await response.json()
-                      alert(data.isPinned ? 'Post pinned to your profile!' : 'Post unpinned from your profile')
+                      addToast(data.isPinned ? 'Post pinned to your profile!' : 'Post unpinned from your profile', 'success')
                     }
                   } catch (error) {
                     console.error('Failed to pin post:', error)
@@ -1032,7 +1034,7 @@ via @PeBloq`
                   const reasons = ['SPAM', 'HARASSMENT', 'INAPPROPRIATE_CONTENT', 'COPYRIGHT', 'IMPERSONATION', 'VIOLENCE', 'HATE_SPEECH', 'SELF_HARM', 'FALSE_INFORMATION', 'OTHER']
                   const selectedReason = reasons[parseInt(reason) - 1]
                   if (!selectedReason) {
-                    alert('Invalid selection')
+                    addToast('Invalid selection', 'error')
                     return
                   }
 
@@ -1056,14 +1058,14 @@ via @PeBloq`
                     })
 
                     if (response.ok) {
-                      alert('Report submitted successfully. Our team will review it.')
+                      addToast('Report submitted successfully. Our team will review it.', 'success')
                     } else {
                       const data = await response.json()
-                      alert(data.error || 'Failed to submit report')
+                      addToast(data.error || 'Failed to submit report', 'error')
                     }
                   } catch (error) {
                     console.error('Failed to submit report:', error)
-                    alert('Failed to submit report')
+                    addToast('Failed to submit report', 'error')
                   }
                 }}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-red-500/20 hover:text-red-300 transition-colors"

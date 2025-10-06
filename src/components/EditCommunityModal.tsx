@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import TokenGateConfig from './TokenGateConfig'
+import { useToast } from '@/components/ui/Toast'
 
 interface Community {
   id: string
@@ -33,6 +34,7 @@ interface EditCommunityModalProps {
 
 export default function EditCommunityModal({ community, isOpen, onClose, onSuccess }: EditCommunityModalProps) {
   const { user } = useAuth()
+  const { success, error } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     displayName: '',
@@ -117,14 +119,15 @@ export default function EditCommunityModal({ community, isOpen, onClose, onSucce
       const data = await response.json()
 
       if (response.ok) {
+        success('Community updated successfully!')
         onSuccess()
         onClose()
       } else {
-        alert(data.error || 'Failed to update community')
+        error(data.error || 'Failed to update community')
       }
-    } catch (error) {
-      console.error('Error updating community:', error)
-      alert('Failed to update community')
+    } catch (err) {
+      console.error('Error updating community:', err)
+      error('Failed to update community')
     } finally {
       setLoading(false)
     }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
+import { useToast } from '@/components/ui/Toast'
 
 interface FriendButtonProps {
   targetUserId: string
@@ -10,6 +11,7 @@ interface FriendButtonProps {
 
 export default function FriendButton({ targetUserId, currentUserId }: FriendButtonProps) {
   const { data: client } = useAbstractClient()
+  const { addToast } = useToast()
   const [friendshipStatus, setFriendshipStatus] = useState<'none' | 'pending' | 'friends' | 'sent'>('none')
   const [loading, setLoading] = useState(false)
 
@@ -80,11 +82,11 @@ export default function FriendButton({ targetUserId, currentUserId }: FriendButt
         setFriendshipStatus('sent')
       } else {
         console.error('Friend request failed:', data.error)
-        alert(data.error || 'Failed to send friend request')
+        addToast(data.error || 'Failed to send friend request', 'error')
       }
     } catch (error) {
       console.error('Error sending friend request:', error)
-      alert('Failed to send friend request')
+      addToast('Failed to send friend request', 'error')
     } finally {
       setLoading(false)
     }

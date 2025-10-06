@@ -7,6 +7,7 @@ import GiphyPicker from '@/components/GiphyPicker'
 import Button, { IconButton } from '@/components/ui/Button'
 import dynamic from 'next/dynamic'
 import { Theme } from 'emoji-picker-react'
+import { useToast } from '@/components/ui/Toast'
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false })
 
@@ -28,6 +29,7 @@ interface UploadedFile {
 
 export default function PostCreator({ onPostCreated, className = '' }: PostCreatorProps) {
   const { data: client } = useAbstractClient()
+  const { success, error } = useToast()
   const [content, setContent] = useState('')
   const [contentType, setContentType] = useState<PostType>('TEXT')
   const [visibility, setVisibility] = useState<Visibility>('PUBLIC')
@@ -88,12 +90,12 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
 
           setUploadProgress('')
         } else {
-          alert(`Upload failed: ${result.error}`)
+          error(`Upload failed: ${result.error}`)
         }
       }
-    } catch (error) {
-      console.error('Upload error:', error)
-      alert('Failed to upload file')
+    } catch (err) {
+      console.error('Upload error:', err)
+      error('Failed to upload file')
     } finally {
       setIsUploading(false)
       setUploadProgress('')
@@ -145,17 +147,19 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         setContentType('TEXT')
         setVisibility('PUBLIC')
 
+        success('Post created successfully!')
+
         // Notify parent component
         if (onPostCreated) {
           onPostCreated(result.data)
         }
       } else {
         console.error('Failed to create post:', result.error)
-        alert(result.error || 'Failed to create post')
+        error(result.error || 'Failed to create post')
       }
-    } catch (error) {
-      console.error('Error creating post:', error)
-      alert('Failed to create post')
+    } catch (err) {
+      console.error('Error creating post:', err)
+      error('Failed to create post')
     } finally {
       setIsSubmitting(false)
     }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useToast } from '@/components/ui/Toast'
 
 interface VerifiedToken {
   id: string
@@ -21,6 +22,7 @@ interface AvailableToken {
 
 export default function TokenVerificationManager() {
   const { user } = useAuth()
+  const { addToast } = useToast()
   const [verifiedTokens, setVerifiedTokens] = useState<VerifiedToken[]>([])
   const [availableTokens, setAvailableTokens] = useState<AvailableToken[]>([])
   const [loading, setLoading] = useState(true)
@@ -81,11 +83,11 @@ export default function TokenVerificationManager() {
         fetchAvailableTokens()
       } else {
         const data = await response.json()
-        alert(data.error || 'Failed to verify token')
+        addToast(data.error || 'Failed to verify token', 'error')
       }
     } catch (error) {
       console.error('Error verifying token:', error)
-      alert('Failed to verify token')
+      addToast('Failed to verify token', 'error')
     }
   }
 
@@ -111,11 +113,11 @@ export default function TokenVerificationManager() {
         setManualTokenName('')
       } else {
         const data = await response.json()
-        alert(data.error || 'Failed to verify token')
+        addToast(data.error || 'Failed to verify token', 'error')
       }
     } catch (error) {
       console.error('Error verifying token:', error)
-      alert('Failed to verify token')
+      addToast('Failed to verify token', 'error')
     }
   }
 
@@ -180,7 +182,7 @@ export default function TokenVerificationManager() {
       fetchAvailableTokens()
     } catch (error) {
       console.error('Error batch verifying:', error)
-      alert('Failed to verify some tokens')
+      addToast('Failed to verify some tokens', 'error')
     } finally {
       setProcessingBatch(false)
     }

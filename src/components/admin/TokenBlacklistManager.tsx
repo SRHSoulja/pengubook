@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useToast } from '@/components/ui/Toast'
 
 interface BlacklistedToken {
   id: string
@@ -43,6 +44,7 @@ interface TokenBlacklistManagerProps {
 
 export default function TokenBlacklistManager({ initialTab = 'reports' }: TokenBlacklistManagerProps) {
   const { user } = useAuth()
+  const { error } = useToast()
   const [blacklistedTokens, setBlacklistedTokens] = useState<BlacklistedToken[]>([])
   const [reports, setReports] = useState<TokenReport[]>([])
   const [loading, setLoading] = useState(true)
@@ -196,9 +198,9 @@ export default function TokenBlacklistManager({ initialTab = 'reports' }: TokenB
       setSelectedReports(new Set())
       fetchBlacklistedTokens()
       fetchReports()
-    } catch (error) {
-      console.error('Error batch blacklisting:', error)
-      alert('Failed to blacklist some tokens')
+    } catch (err) {
+      console.error('Error batch blacklisting:', err)
+      error('Failed to blacklist some tokens')
     } finally {
       setProcessingBatch(false)
     }
@@ -224,9 +226,9 @@ export default function TokenBlacklistManager({ initialTab = 'reports' }: TokenB
 
       setSelectedReports(new Set())
       fetchReports()
-    } catch (error) {
-      console.error('Error batch dismissing:', error)
-      alert('Failed to dismiss some reports')
+    } catch (err) {
+      console.error('Error batch dismissing:', err)
+      error('Failed to dismiss some reports')
     } finally {
       setProcessingBatch(false)
     }

@@ -59,98 +59,216 @@ export default function MobileNav() {
         <div className="absolute inset-0 aurora-bg animate-aurora-flow opacity-10 pointer-events-none"></div>
       </nav>
 
-      {/* Bottom Tab Navigation */}
+      {/* Bottom Tab Navigation - Horizontally Scrollable */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-md border-t border-white/10 pb-safe">
-        <div className="flex items-center justify-around px-2 py-2">
-          {/* Home */}
-          <button
-            onClick={() => router.push('/dashboard')}
-            className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-150 ${
-              pathname === '/dashboard' || pathname === '/'
-                ? 'text-pengu-green'
-                : 'text-gray-400 hover:text-white'
-            }`}
-            aria-label="Home"
-          >
-            <img
-              src="https://gmgnrepeat.com/icons/penguinhome1.png"
-              alt=""
-              aria-hidden="true"
-              className="w-6 h-6"
-            />
-            <span className="text-xs font-medium">Home</span>
-          </button>
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex items-center px-2 py-2 min-w-max gap-1">
+            {/* Home */}
+            <button
+              onClick={() => router.push('/dashboard')}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-200 flex-shrink-0 ${
+                pathname === '/dashboard' || pathname === '/'
+                  ? 'text-pengu-green bg-pengu-green/10 scale-105 border-b-2 border-pengu-green'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+              aria-label="Home"
+            >
+              <img
+                src="https://gmgnrepeat.com/icons/penguinhome1.png"
+                alt=""
+                aria-hidden="true"
+                className={`w-6 h-6 transition-transform duration-200 ${
+                  pathname === '/dashboard' || pathname === '/' ? 'scale-110' : ''
+                }`}
+              />
+              <span className="text-xs font-medium whitespace-nowrap">Home</span>
+            </button>
 
-          {/* Feed */}
-          <button
-            onClick={() => router.push('/feed')}
-            className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-150 ${
-              pathname === '/feed'
-                ? 'text-pengu-green'
-                : 'text-gray-400 hover:text-white'
-            }`}
-            aria-label="Feed"
-          >
-            <img
-              src="https://gmgnrepeat.com/icons/penguinfeed1.png"
-              alt=""
-              aria-hidden="true"
-              className="w-6 h-6"
-            />
-            <span className="text-xs font-medium">Feed</span>
-          </button>
+            {/* Feed */}
+            <button
+              onClick={() => router.push('/feed')}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-200 flex-shrink-0 ${
+                pathname === '/feed'
+                  ? 'text-pengu-green bg-pengu-green/10 scale-105 border-b-2 border-pengu-green'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+              aria-label="Feed"
+            >
+              <img
+                src="https://gmgnrepeat.com/icons/penguinfeed1.png"
+                alt=""
+                aria-hidden="true"
+                className={`w-6 h-6 transition-transform duration-200 ${
+                  pathname === '/feed' ? 'scale-110' : ''
+                }`}
+              />
+              <span className="text-xs font-medium whitespace-nowrap">Feed</span>
+            </button>
 
-          {/* Communities */}
-          <button
-            onClick={() => router.push('/communities')}
-            className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-150 ${
-              pathname?.startsWith('/communities')
-                ? 'text-pengu-green'
-                : 'text-gray-400 hover:text-white'
-            }`}
-            aria-label="Communities"
-          >
-            <img
-              src="https://gmgnrepeat.com/icons/penguincommunity1.png"
-              alt=""
-              aria-hidden="true"
-              className="w-6 h-6"
-            />
-            <span className="text-xs font-medium">Communities</span>
-          </button>
+            {/* Communities */}
+            <button
+              onClick={() => router.push('/communities')}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-200 flex-shrink-0 ${
+                pathname?.startsWith('/communities')
+                  ? 'text-pengu-green bg-pengu-green/10 scale-105 border-b-2 border-pengu-green'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+              aria-label="Communities"
+            >
+              <img
+                src="https://gmgnrepeat.com/icons/penguincommunity1.png"
+                alt=""
+                aria-hidden="true"
+                className={`w-6 h-6 transition-transform duration-200 ${
+                  pathname?.startsWith('/communities') ? 'scale-110' : ''
+                }`}
+              />
+              <span className="text-xs font-medium whitespace-nowrap">Communities</span>
+            </button>
 
-          {/* Messages */}
-          <button
-            onClick={() => router.push('/messages')}
-            className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-150 relative ${
-              pathname?.startsWith('/messages')
-                ? 'text-pengu-green'
-                : 'text-gray-400 hover:text-white'
-            }`}
-            aria-label="Messages"
-          >
-            <span className="text-xl">💬</span>
-            <span className="text-xs font-medium">Messages</span>
-          </button>
+            {/* Discover */}
+            <button
+              onClick={() => router.push('/discover')}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-200 flex-shrink-0 ${
+                pathname?.startsWith('/discover')
+                  ? 'text-pengu-green bg-pengu-green/10 scale-105 border-b-2 border-pengu-green'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+              aria-label="Discover"
+            >
+              <img
+                src="https://gmgnrepeat.com/icons/penguindiscover1.png"
+                alt=""
+                aria-hidden="true"
+                className={`w-6 h-6 transition-transform duration-200 ${
+                  pathname?.startsWith('/discover') ? 'scale-110' : ''
+                }`}
+              />
+              <span className="text-xs font-medium whitespace-nowrap">Discover</span>
+            </button>
 
-          {/* Profile */}
-          <button
-            onClick={() => router.push('/profile')}
-            className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-150 ${
-              pathname === '/profile'
-                ? 'text-pengu-green'
-                : 'text-gray-400 hover:text-white'
-            }`}
-            aria-label="Profile"
-          >
-            <img
-              src="https://gmgnrepeat.com/icons/penguinsilhouette1.png"
-              alt=""
-              aria-hidden="true"
-              className="w-6 h-6"
-            />
-            <span className="text-xs font-medium">Profile</span>
-          </button>
+            {/* Friends */}
+            <button
+              onClick={() => router.push('/friends')}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-200 flex-shrink-0 ${
+                pathname?.startsWith('/friends')
+                  ? 'text-pengu-green bg-pengu-green/10 scale-105 border-b-2 border-pengu-green'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+              aria-label="Friends"
+            >
+              <img
+                src="https://gmgnrepeat.com/icons/penguinfriends1.png"
+                alt=""
+                aria-hidden="true"
+                className={`w-6 h-6 transition-transform duration-200 ${
+                  pathname?.startsWith('/friends') ? 'scale-110' : ''
+                }`}
+              />
+              <span className="text-xs font-medium whitespace-nowrap">Friends</span>
+            </button>
+
+            {/* Messages */}
+            <button
+              onClick={() => router.push('/messages')}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-200 flex-shrink-0 relative ${
+                pathname?.startsWith('/messages')
+                  ? 'text-pengu-green bg-pengu-green/10 scale-105 border-b-2 border-pengu-green'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+              aria-label="Messages"
+            >
+              <span className={`text-xl transition-transform duration-200 ${
+                pathname?.startsWith('/messages') ? 'scale-110' : ''
+              }`}>💬</span>
+              <span className="text-xs font-medium whitespace-nowrap">Messages</span>
+            </button>
+
+            {/* Bookmarks */}
+            <button
+              onClick={() => router.push('/bookmarks')}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-200 flex-shrink-0 ${
+                pathname?.startsWith('/bookmarks')
+                  ? 'text-pengu-green bg-pengu-green/10 scale-105 border-b-2 border-pengu-green'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+              aria-label="Bookmarks"
+            >
+              <span className={`text-xl transition-transform duration-200 ${
+                pathname?.startsWith('/bookmarks') ? 'scale-110' : ''
+              }`}>🔖</span>
+              <span className="text-xs font-medium whitespace-nowrap">Bookmarks</span>
+            </button>
+
+            {/* Achievements */}
+            <button
+              onClick={() => router.push('/achievements')}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-200 flex-shrink-0 ${
+                pathname?.startsWith('/achievements')
+                  ? 'text-pengu-green bg-pengu-green/10 scale-105 border-b-2 border-pengu-green'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+              aria-label="Achievements"
+            >
+              <span className={`text-xl transition-transform duration-200 ${
+                pathname?.startsWith('/achievements') ? 'scale-110' : ''
+              }`}>🏆</span>
+              <span className="text-xs font-medium whitespace-nowrap">Achievements</span>
+            </button>
+
+            {/* Levels */}
+            <button
+              onClick={() => router.push('/levels')}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-200 flex-shrink-0 ${
+                pathname?.startsWith('/levels')
+                  ? 'text-pengu-green bg-pengu-green/10 scale-105 border-b-2 border-pengu-green'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+              aria-label="Levels"
+            >
+              <span className={`text-xl transition-transform duration-200 ${
+                pathname?.startsWith('/levels') ? 'scale-110' : ''
+              }`}>⭐</span>
+              <span className="text-xs font-medium whitespace-nowrap">Levels</span>
+            </button>
+
+            {/* Settings */}
+            <button
+              onClick={() => router.push('/settings')}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-200 flex-shrink-0 ${
+                pathname?.startsWith('/settings')
+                  ? 'text-pengu-green bg-pengu-green/10 scale-105 border-b-2 border-pengu-green'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+              aria-label="Settings"
+            >
+              <span className={`text-xl transition-transform duration-200 ${
+                pathname?.startsWith('/settings') ? 'scale-110' : ''
+              }`}>⚙️</span>
+              <span className="text-xs font-medium whitespace-nowrap">Settings</span>
+            </button>
+
+            {/* Profile */}
+            <button
+              onClick={() => router.push('/profile')}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-200 flex-shrink-0 ${
+                pathname === '/profile'
+                  ? 'text-pengu-green bg-pengu-green/10 scale-105 border-b-2 border-pengu-green'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+              aria-label="Profile"
+            >
+              <img
+                src="https://gmgnrepeat.com/icons/penguinsilhouette1.png"
+                alt=""
+                aria-hidden="true"
+                className={`w-6 h-6 transition-transform duration-200 ${
+                  pathname === '/profile' ? 'scale-110' : ''
+                }`}
+              />
+              <span className="text-xs font-medium whitespace-nowrap">Profile</span>
+            </button>
+          </div>
         </div>
       </div>
     </>

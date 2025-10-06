@@ -10,6 +10,7 @@ import { detectMediaType, getYouTubeEmbedUrl, isYouTubeUrl, getGiphyEmbedUrl, is
 import { getEffectiveAvatar, getAvatarFallback } from '@/lib/avatar-utils'
 import PostInteractionsModal from '@/components/PostInteractionsModal'
 import PostEditHistoryModal from '@/components/PostEditHistoryModal'
+import { useToast } from '@/components/ui/Toast'
 
 interface PostCardProps {
   post: Post
@@ -180,6 +181,7 @@ function renderContentWithEmbeds(content: string): JSX.Element {
 
 export default function PostCard({ post, currentUserId, onPostUpdate, className = '' }: PostCardProps) {
   const { data: client } = useAbstractClient()
+  const { success, error, info } = useToast()
   const [isShared, setIsShared] = useState(
     currentUserId ? post.shares?.some(share => share.userId === currentUserId) : false
   )
@@ -381,7 +383,7 @@ via @PeBloq`
     const postUrl = `${window.location.origin}/posts/${post.id}`
     try {
       await navigator.clipboard.writeText(postUrl)
-      alert('Link copied to clipboard!')
+      success('Link copied to clipboard!')
     } catch (error) {
       console.error('Failed to copy link:', error)
       // Fallback for older browsers
@@ -391,7 +393,7 @@ via @PeBloq`
       textArea.select()
       document.execCommand('copy')
       document.body.removeChild(textArea)
-      alert('Link copied to clipboard!')
+      success('Link copied to clipboard!')
     }
     setShowShareMenu(false)
   }
@@ -710,7 +712,7 @@ via @PeBloq`
                 const reasons = ['SPAM', 'HARASSMENT', 'INAPPROPRIATE_CONTENT', 'COPYRIGHT', 'IMPERSONATION', 'VIOLENCE', 'HATE_SPEECH', 'SELF_HARM', 'FALSE_INFORMATION', 'OTHER']
                 const selectedReason = reasons[parseInt(reason) - 1]
                 if (!selectedReason) {
-                  alert('Invalid selection')
+                  error('Invalid selection')
                   return
                 }
 
@@ -732,14 +734,14 @@ via @PeBloq`
                   })
 
                   if (response.ok) {
-                    alert('Report submitted successfully. Our team will review it.')
+                    success('Report submitted successfully. Our team will review it.')
                   } else {
                     const data = await response.json()
-                    alert(data.error || 'Failed to submit report')
+                    error(data.error || 'Failed to submit report')
                   }
-                } catch (error) {
-                  console.error('Failed to submit report:', error)
-                  alert('Failed to submit report')
+                } catch (err) {
+                  console.error('Failed to submit report:', err)
+                  error('Failed to submit report')
                 }
               }}
               className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-red-500/20 hover:text-red-300 transition-colors"

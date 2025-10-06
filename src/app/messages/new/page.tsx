@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useToast } from '@/components/ui/Toast'
 import { useSearchParams, useRouter } from 'next/navigation'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 
 export default function NewMessagePage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
+  const { addToast } = useToast()
   const searchParams = useSearchParams()
   const router = useRouter()
   const targetUserId = searchParams?.get('userId')
@@ -41,7 +43,7 @@ export default function NewMessagePage() {
           router.push(`/messages/${conversationId}`)
         } else {
           console.error('No conversation ID in response:', result)
-          alert('Failed to start conversation - no ID returned')
+          addToast('Failed to start conversation - no ID returned', 'error')
           router.push('/messages')
         }
       } else if (response.status === 409 && result.conversationId) {
@@ -49,12 +51,12 @@ export default function NewMessagePage() {
         router.push(`/messages/${result.conversationId}`)
       } else {
         console.error('Failed to create conversation:', result.error)
-        alert('Failed to start conversation')
+        addToast('Failed to start conversation', 'error')
         router.push('/messages')
       }
     } catch (error) {
       console.error('Error creating conversation:', error)
-      alert('Failed to start conversation')
+      addToast('Failed to start conversation', 'error')
       router.push('/messages')
     }
   }

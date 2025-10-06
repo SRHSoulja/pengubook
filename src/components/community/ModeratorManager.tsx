@@ -8,6 +8,7 @@ import {
   PERMISSION_DESCRIPTIONS,
   type ModPermission
 } from '@/lib/mod-permissions'
+import { useToast } from '@/components/ui/Toast'
 
 interface Moderator {
   id: string
@@ -32,6 +33,7 @@ interface ModeratorManagerProps {
 
 export default function ModeratorManager({ communityId, creatorId, isCreator }: ModeratorManagerProps) {
   const { user } = useAuth()
+  const { addToast } = useToast()
   const [moderators, setModerators] = useState<Moderator[]>([])
   const [members, setMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -101,11 +103,11 @@ export default function ModeratorManager({ communityId, creatorId, isCreator }: 
         setCustomPermissions(new Set())
       } else {
         const error = await response.json()
-        alert(error.error || 'Failed to add moderator')
+        addToast(error.error || 'Failed to add moderator', 'error')
       }
     } catch (error) {
       console.error('Error adding moderator:', error)
-      alert('Failed to add moderator')
+      addToast('Failed to add moderator', 'error')
     }
   }
 
@@ -128,11 +130,11 @@ export default function ModeratorManager({ communityId, creatorId, isCreator }: 
         await fetchMembers()
       } else {
         const error = await response.json()
-        alert(error.error || 'Failed to remove moderator')
+        addToast(error.error || 'Failed to remove moderator', 'error')
       }
     } catch (error) {
       console.error('Error removing moderator:', error)
-      alert('Failed to remove moderator')
+      addToast('Failed to remove moderator', 'error')
     }
   }
 

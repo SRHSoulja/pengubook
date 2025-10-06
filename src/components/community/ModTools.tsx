@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import { MOD_PERMISSIONS, canModerate } from '@/lib/mod-permissions'
+import { useToast } from '@/components/ui/Toast'
 
 interface Member {
   id: string
@@ -27,6 +28,7 @@ interface ModToolsProps {
 
 export default function ModTools({ communityId, creatorId }: ModToolsProps) {
   const { user } = useAuth()
+  const { addToast } = useToast()
   const [activeTab, setActiveTab] = useState<'members' | 'reports' | 'logs'>('members')
   const [members, setMembers] = useState<Member[]>([])
   const [moderators, setModerators] = useState<any[]>([])
@@ -87,14 +89,14 @@ export default function ModTools({ communityId, creatorId }: ModToolsProps) {
       if (response.ok) {
         await fetchData()
         setSelectedMember(null)
-        alert(`Member ${action} successfully`)
+        addToast(`Member ${action} successfully`, 'success')
       } else {
         const error = await response.json()
-        alert(error.error || `Failed to ${action} member`)
+        addToast(error.error || `Failed to ${action} member`, 'error')
       }
     } catch (error) {
       console.error(`Error ${action} member:`, error)
-      alert(`Failed to ${action} member`)
+      addToast(`Failed to ${action} member`, 'error')
     }
   }
 
@@ -118,14 +120,14 @@ export default function ModTools({ communityId, creatorId }: ModToolsProps) {
         await fetchData()
         setSelectedMember(null)
         setCustomTitleInput('')
-        alert('Member title updated successfully')
+        addToast('Member title updated successfully', 'success')
       } else {
         const error = await response.json()
-        alert(error.error || 'Failed to update member title')
+        addToast(error.error || 'Failed to update member title', 'error')
       }
     } catch (error) {
       console.error('Error updating member title:', error)
-      alert('Failed to update member title')
+      addToast('Failed to update member title', 'error')
     }
   }
 

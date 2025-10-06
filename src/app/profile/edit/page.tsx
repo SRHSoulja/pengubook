@@ -8,6 +8,7 @@ import Navbar from '@/components/Navbar'
 import BannerUploader from '@/components/BannerUploader'
 import ProfileCompletionWidget from '@/components/ProfileCompletionWidget'
 import Link from 'next/link'
+import { useToast } from '@/components/ui/Toast'
 
 // NSFW categories users can opt-in to (FLAG/ALLOW only, excludes REJECT categories)
 const OPTIONAL_NSFW_CATEGORIES = [
@@ -27,12 +28,12 @@ const OPTIONAL_NSFW_CATEGORIES = [
 
 export default function ProfileEditPage() {
   const { user, loading: authLoading, isAuthenticated, refetchUser } = useAuth()
+  const { success, error } = useToast()
   const router = useRouter()
   const [editing, setEditing] = useState(true)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
     displayName: '',
-    username: '',
     bio: '',
     interests: '',
     avatarSource: 'default',
@@ -54,7 +55,6 @@ export default function ProfileEditPage() {
 
       setFormData({
         displayName: user.displayName || '',
-        username: user.username || '',
         bio: user.bio || '',
         interests: user.profile?.interests
           ? (Array.isArray(JSON.parse(user.profile.interests))
@@ -83,7 +83,7 @@ export default function ProfileEditPage() {
         body: JSON.stringify({
           walletAddress: user.walletAddress,
           displayName: formData.displayName,
-          username: formData.username,
+          // username is ALWAYS the wallet address - never sent in update
           bio: formData.bio,
           interests: formData.interests.split(',').map(i => i.trim()).filter(Boolean),
           avatarSource: formData.avatarSource,
@@ -100,15 +100,16 @@ export default function ProfileEditPage() {
         const data = await response.json()
         console.log('Profile updated successfully:', data)
         await refetchUser()
+        success('Profile updated successfully!')
         router.push(`/profile/${user.id}`)
       } else {
         const errorData = await response.json()
         console.error('Failed to update profile:', errorData)
-        alert('Failed to update profile: ' + (errorData.error || 'Unknown error'))
+        error('Failed to update profile: ' + (errorData.error || 'Unknown error'))
       }
-    } catch (error) {
-      console.error('Failed to update profile:', error)
-      alert('Failed to update profile. Please try again.')
+    } catch (err) {
+      console.error('Failed to update profile:', err)
+      error('Failed to update profile. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -168,100 +169,120 @@ export default function ProfileEditPage() {
                 onBannerChange={(url) => setFormData({...formData, bannerImage: url})}
               />
 
+              {/* Web3 Username (Read-Only) */}
               <div>
                 <label className="block text-sm font-medium text-white mb-1">
-                  Display Name
+                  Username (Web3 Identity)
                 </label>
-                <input
-                  type="text"
-                  value={formData.displayName}
-                  onChange={(e) => setFormData({...formData, displayName: e.target.value})}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white/90 text-gray-900"
-                  placeholder="Your display name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-white mb-3">
-                  Username
-                </label>
-                {(user as any).discordName || (user as any).twitterHandle ? (
-                  <div className="space-y-3">
-                    <p className="text-sm text-gray-300 mb-3">
-                      Choose from your linked social accounts:
-                    </p>
-
-                    {(user as any).discordName && (
-                      <div
-                        onClick={() => setFormData({...formData, username: (user as any).discordName})}
-                        className={`p-4 border rounded-xl cursor-pointer transition-all ${
-                          formData.username === (user as any).discordName
-                            ? 'border-[#5865F2] bg-[#5865F2]/10'
-                            : 'border-gray-300 bg-white/5'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="text-2xl">💬</div>
-                            <div>
-                              <h4 className="font-medium text-white">Discord Username</h4>
-                              <p className="text-sm text-gray-300">@{(user as any).discordName}</p>
-                            </div>
-                          </div>
-                          <div className={`w-4 h-4 rounded-full border-2 ${
-                            formData.username === (user as any).discordName ? 'bg-[#5865F2] border-[#5865F2]' : 'border-gray-400'
-                          }`} />
-                        </div>
-                      </div>
-                    )}
-
-                    {(user as any).twitterHandle && (
-                      <div
-                        onClick={() => setFormData({...formData, username: (user as any).twitterHandle.replace('@', '')})}
-                        className={`p-4 border rounded-xl cursor-pointer transition-all ${
-                          formData.username === (user as any).twitterHandle.replace('@', '')
-                            ? 'border-black bg-black/10'
-                            : 'border-gray-300 bg-white/5'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="text-2xl">𝕏</div>
-                            <div>
-                              <h4 className="font-medium text-white">X (Twitter) Username</h4>
-                              <p className="text-sm text-gray-300">{(user as any).twitterHandle}</p>
-                            </div>
-                          </div>
-                          <div className={`w-4 h-4 rounded-full border-2 ${
-                            formData.username === (user as any).twitterHandle.replace('@', '') ? 'bg-black border-black' : 'border-gray-400'
-                          }`} />
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                      <p className="text-blue-300 text-sm">
-                        <span className="font-medium">Note:</span> For security and authenticity, usernames must match your linked social accounts.
-                      </p>
+                <div className="p-4 bg-pengu-green/10 border border-pengu-green/30 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🔐</span>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-300 mb-1">Your Web3 username is your wallet address:</p>
+                      <p className="text-white font-mono text-sm break-all">{user?.walletAddress || user?.username}</p>
                     </div>
                   </div>
-                ) : (
-                  <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-                    <p className="text-amber-300 text-sm mb-3">
-                      <span className="font-medium">Link a social account to set your username</span>
-                    </p>
-                    <p className="text-amber-200 text-xs mb-3">
-                      To choose a username, please link your Discord or X (Twitter) account in Settings.
-                      Your username will match one of your linked accounts for authenticity.
-                    </p>
-                    <Link
-                      href="/settings"
-                      className="inline-block bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
-                    >
-                      Go to Settings
-                    </Link>
+                  <p className="text-xs text-pengu-green mt-2">
+                    ✓ This ensures authenticity and allows anyone to verify your identity on-chain
+                  </p>
+                </div>
+              </div>
+
+              {/* Display Name Selection */}
+              <div>
+                <label className="block text-sm font-medium text-white mb-3">
+                  Display Name
+                </label>
+                <p className="text-sm text-gray-300 mb-3">
+                  Choose how your name appears on your profile and posts:
+                </p>
+
+                <div className="space-y-3">
+                  {/* Default (Wallet Address) */}
+                  <div
+                    onClick={() => setFormData({...formData, displayName: user?.walletAddress || ''})}
+                    className={`p-4 border rounded-xl cursor-pointer transition-all ${
+                      formData.displayName === user?.walletAddress
+                        ? 'border-pengu-green bg-pengu-green/10'
+                        : 'border-gray-300 bg-white/5'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="text-2xl">🔐</div>
+                        <div>
+                          <h4 className="font-medium text-white">Wallet Address</h4>
+                          <p className="text-sm text-gray-300 font-mono">{user?.walletAddress?.slice(0, 10)}...{user?.walletAddress?.slice(-8)}</p>
+                        </div>
+                      </div>
+                      <div className={`w-4 h-4 rounded-full border-2 ${
+                        formData.displayName === user?.walletAddress ? 'bg-pengu-green border-pengu-green' : 'border-gray-400'
+                      }`} />
+                    </div>
                   </div>
-                )}
+
+                  {/* Discord Username */}
+                  {(user as any).discordName && (
+                    <div
+                      onClick={() => setFormData({...formData, displayName: (user as any).discordName})}
+                      className={`p-4 border rounded-xl cursor-pointer transition-all ${
+                        formData.displayName === (user as any).discordName
+                          ? 'border-[#5865F2] bg-[#5865F2]/10'
+                          : 'border-gray-300 bg-white/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">💬</div>
+                          <div>
+                            <h4 className="font-medium text-white">Discord Username</h4>
+                            <p className="text-sm text-gray-300">@{(user as any).discordName}</p>
+                          </div>
+                        </div>
+                        <div className={`w-4 h-4 rounded-full border-2 ${
+                          formData.displayName === (user as any).discordName ? 'bg-[#5865F2] border-[#5865F2]' : 'border-gray-400'
+                        }`} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Twitter Handle */}
+                  {(user as any).twitterHandle && (
+                    <div
+                      onClick={() => setFormData({...formData, displayName: (user as any).twitterHandle})}
+                      className={`p-4 border rounded-xl cursor-pointer transition-all ${
+                        formData.displayName === (user as any).twitterHandle
+                          ? 'border-black bg-black/10'
+                          : 'border-gray-300 bg-white/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">𝕏</div>
+                          <div>
+                            <h4 className="font-medium text-white">X (Twitter) Handle</h4>
+                            <p className="text-sm text-gray-300">{(user as any).twitterHandle}</p>
+                          </div>
+                        </div>
+                        <div className={`w-4 h-4 rounded-full border-2 ${
+                          formData.displayName === (user as any).twitterHandle ? 'bg-black border-black' : 'border-gray-400'
+                        }`} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Info Box */}
+                <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                  <p className="text-blue-300 text-sm">
+                    <span className="font-medium">Note:</span> Display names can only be your wallet address or linked social account usernames. This ensures authenticity and prevents impersonation.
+                  </p>
+                  {!(user as any).discordName && !(user as any).twitterHandle && (
+                    <p className="text-blue-200 text-xs mt-2">
+                      💡 <Link href="/settings" className="underline hover:text-blue-100">Link Discord or Twitter</Link> to use your social username as your display name.
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div>

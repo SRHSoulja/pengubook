@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import Link from 'next/link'
+import { useToast } from '@/components/ui/Toast'
 
 interface UserActionsProps {
   targetUserId: string
@@ -30,6 +31,7 @@ export default function UserActions({
   compact = false
 }: UserActionsProps) {
   const { user } = useAuth()
+  const { success, error } = useToast()
   const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>({ status: 'none' })
   const [isBlocked, setIsBlocked] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -102,13 +104,14 @@ export default function UserActions({
       if (response.ok) {
         const data = await response.json()
         setFriendshipStatus({ status: 'pending_sent', friendshipId: data.data.id })
+        success('Friend request sent!')
       } else {
-        const error = await response.json()
-        alert(error.error || 'Failed to send friend request')
+        const err = await response.json()
+        error(err.error || 'Failed to send friend request')
       }
-    } catch (error) {
-      console.error('Error sending friend request:', error)
-      alert('Failed to send friend request')
+    } catch (err) {
+      console.error('Error sending friend request:', err)
+      error('Failed to send friend request')
     }
   }
 
@@ -127,13 +130,14 @@ export default function UserActions({
 
       if (response.ok) {
         setFriendshipStatus({ status: 'friends', friendshipId: friendshipStatus.friendshipId })
+        success('Friend request accepted!')
       } else {
-        const error = await response.json()
-        alert(error.error || 'Failed to accept friend request')
+        const err = await response.json()
+        error(err.error || 'Failed to accept friend request')
       }
-    } catch (error) {
-      console.error('Error accepting friend request:', error)
-      alert('Failed to accept friend request')
+    } catch (err) {
+      console.error('Error accepting friend request:', err)
+      error('Failed to accept friend request')
     }
   }
 
@@ -154,13 +158,14 @@ export default function UserActions({
 
       if (response.ok) {
         setFriendshipStatus({ status: 'none' })
+        success(friendshipStatus.status === 'friends' ? 'Friend removed' : 'Request cancelled')
       } else {
-        const error = await response.json()
-        alert(error.error || `Failed to ${action}`)
+        const err = await response.json()
+        error(err.error || `Failed to ${action}`)
       }
-    } catch (error) {
-      console.error(`Error ${action}:`, error)
-      alert(`Failed to ${action}`)
+    } catch (err) {
+      console.error(`Error ${action}:`, err)
+      error(`Failed to ${action}`)
     }
   }
 
@@ -181,13 +186,14 @@ export default function UserActions({
       if (response.ok) {
         setIsBlocked(true)
         setFriendshipStatus({ status: 'none' }) // Blocking removes friendship
+        success('User blocked')
       } else {
-        const error = await response.json()
-        alert(error.error || 'Failed to block user')
+        const err = await response.json()
+        error(err.error || 'Failed to block user')
       }
-    } catch (error) {
-      console.error('Error blocking user:', error)
-      alert('Failed to block user')
+    } catch (err) {
+      console.error('Error blocking user:', err)
+      error('Failed to block user')
     }
   }
 
@@ -205,13 +211,14 @@ export default function UserActions({
 
       if (response.ok) {
         setIsBlocked(false)
+        success('User unblocked')
       } else {
-        const error = await response.json()
-        alert(error.error || 'Failed to unblock user')
+        const err = await response.json()
+        error(err.error || 'Failed to unblock user')
       }
-    } catch (error) {
-      console.error('Error unblocking user:', error)
-      alert('Failed to unblock user')
+    } catch (err) {
+      console.error('Error unblocking user:', err)
+      error('Failed to unblock user')
     }
   }
 

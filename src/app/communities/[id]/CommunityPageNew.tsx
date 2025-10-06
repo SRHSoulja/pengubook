@@ -9,6 +9,7 @@ import CommunityHeader from '@/components/community/CommunityHeader'
 import TokenGateStatus from '@/components/community/TokenGateStatus'
 import CommunityMembersList from '@/components/community/CommunityMembersList'
 import CommunityRules from '@/components/community/CommunityRules'
+import { useToast } from '@/components/ui/Toast'
 
 interface CommunityPageProps {
   params: { id: string }
@@ -70,6 +71,7 @@ interface TokenAccessData {
 
 export default function CommunityPage({ params }: CommunityPageProps) {
   const { user, isAuthenticated } = useAuth()
+  const { addToast } = useToast()
   const [community, setCommunity] = useState<Community | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -157,11 +159,11 @@ export default function CommunityPage({ params }: CommunityPageProps) {
       if (response.ok) {
         await fetchCommunity() // Refresh community data
       } else {
-        alert(data.error || 'Failed to join community')
+        addToast(data.error || 'Failed to join community', 'error')
       }
     } catch (error) {
       console.error('Error joining community:', error)
-      alert('Failed to join community')
+      addToast('Failed to join community', 'error')
     } finally {
       setJoining(false)
     }

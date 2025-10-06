@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useToast } from '@/components/ui/Toast'
 
 interface ModerationSetting {
   id: string
@@ -18,6 +19,7 @@ interface ModerationSetting {
 
 export default function ModerationSettingsManager() {
   const { user } = useAuth()
+  const { addToast } = useToast()
   const [settings, setSettings] = useState<ModerationSetting[]>([])
   const [loading, setLoading] = useState(true)
   const [seeding, setSeeding] = useState(false)
@@ -59,14 +61,14 @@ export default function ModerationSettingsManager() {
       })
       const data = await response.json()
       if (data.success) {
-        alert(`✅ ${data.message}`)
+        addToast(data.message, 'success')
         fetchSettings()
       } else {
-        alert(`❌ Error: ${data.error}`)
+        addToast(`Error: ${data.error}`, 'error')
       }
     } catch (error) {
       console.error('Error seeding settings:', error)
-      alert('❌ Failed to seed settings')
+      addToast('Failed to seed settings', 'error')
     } finally {
       setSeeding(false)
     }
@@ -95,15 +97,15 @@ export default function ModerationSettingsManager() {
       })
       const data = await response.json()
       if (data.success) {
-        alert('✅ Setting updated')
+        addToast('Setting updated', 'success')
         fetchSettings()
         cancelEdit()
       } else {
-        alert(`❌ Error: ${data.error}`)
+        addToast(`Error: ${data.error}`, 'error')
       }
     } catch (error) {
       console.error('Error saving setting:', error)
-      alert('❌ Failed to save setting')
+      addToast('Failed to save setting', 'error')
     }
   }
 

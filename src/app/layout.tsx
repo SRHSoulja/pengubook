@@ -12,6 +12,7 @@ import StreakCheckerWrapper from '@/components/StreakCheckerWrapper'
 import ThemeWrapper from '@/components/ThemeWrapper'
 import Footer from '@/components/Footer'
 import CookieConsent from '@/components/CookieConsent'
+import { ToastProvider } from '@/components/ui/Toast'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -70,25 +71,27 @@ export default function RootLayout({
       <body className={inter.className}>
         <ErrorBoundary>
           <ClientErrorHandler>
-            <SessionProvider>
-              <AbstractProvider>
-                <AuthProvider>
-                  <ThemeProvider>
-                    <ThemeWrapper>
-                      <div className="flex flex-col min-h-screen">
-                        <StreakCheckerWrapper />
-                        <main className="flex-1">
-                          {children}
-                        </main>
-                        <Footer />
-                        <MobileBottomNav />
-                        <CookieConsent />
-                      </div>
-                    </ThemeWrapper>
-                  </ThemeProvider>
-                </AuthProvider>
-              </AbstractProvider>
-            </SessionProvider>
+            <ToastProvider>
+              <SessionProvider>
+                <AbstractProvider>
+                  <AuthProvider>
+                    <ThemeProvider>
+                      <ThemeWrapper>
+                        <div className="flex flex-col min-h-screen">
+                          <StreakCheckerWrapper />
+                          <main className="flex-1">
+                            {children}
+                          </main>
+                          <Footer />
+                          <MobileBottomNav />
+                          <CookieConsent />
+                        </div>
+                      </ThemeWrapper>
+                    </ThemeProvider>
+                  </AuthProvider>
+                </AbstractProvider>
+              </SessionProvider>
+            </ToastProvider>
           </ClientErrorHandler>
         </ErrorBoundary>
         <SpeedInsights />

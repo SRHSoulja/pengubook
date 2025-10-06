@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/providers/AuthProvider'
 import UserSearch from '@/components/UserSearch'
 import ThemeCustomizer from '@/components/ThemeCustomizer'
+import NotificationCenter from '@/components/NotificationCenter'
 import { performLogout } from '@/lib/utils/logout'
 
 export default function DesktopNav() {
@@ -200,6 +201,11 @@ export default function DesktopNav() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Notification Center */}
+          <div className="flex-shrink-0">
+            <NotificationCenter />
           </div>
 
           {/* Search */}

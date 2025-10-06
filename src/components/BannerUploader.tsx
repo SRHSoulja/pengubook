@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
+import { useToast } from '@/components/ui/Toast'
 
 interface BannerUploaderProps {
   currentBanner?: string | null
@@ -10,6 +11,7 @@ interface BannerUploaderProps {
 }
 
 export default function BannerUploader({ currentBanner, onBannerChange }: BannerUploaderProps) {
+  const { addToast } = useToast()
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(currentBanner || null)
   const [showCropper, setShowCropper] = useState(false)
@@ -35,13 +37,13 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Only images are allowed for banners')
+      addToast('Only images are allowed for banners', 'error')
       return
     }
 
     // Validate file size (10MB)
     if (file.size > 10 * 1024 * 1024) {
-      alert('Image must be less than 10MB')
+      addToast('Image must be less than 10MB', 'error')
       return
     }
 
@@ -133,7 +135,7 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
       console.log('✅ Banner uploaded:', result.url)
     } catch (error) {
       console.error('Upload error:', error)
-      alert('Failed to upload banner image')
+      addToast('Failed to upload banner image', 'error')
       setPreview(currentBanner || null)
     } finally {
       setUploading(false)

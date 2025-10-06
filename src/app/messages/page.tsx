@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import { useTheme } from '@/providers/ThemeProvider'
+import { useToast } from '@/components/ui/Toast'
 import Navbar from '@/components/Navbar'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 import { getEffectiveAvatar, getAvatarFallback } from '@/lib/avatar-utils'
@@ -47,6 +48,7 @@ interface Conversation {
 export default function MessagesPage() {
   const { user, isAuthenticated, loading: authLoading, sessionToken } = useAuth()
   const { currentTheme } = useTheme()
+  const { addToast } = useToast()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -136,11 +138,11 @@ export default function MessagesPage() {
         // Remove from local state
         setConversations(conversations.filter(c => c.id !== conversationId))
       } else {
-        alert('Failed to delete conversation: ' + (result.error || 'Unknown error'))
+        addToast('Failed to delete conversation: ' + (result.error || 'Unknown error'), 'error')
       }
     } catch (error) {
       console.error('Error deleting conversation:', error)
-      alert('Failed to delete conversation')
+      addToast('Failed to delete conversation', 'error')
     }
   }
 

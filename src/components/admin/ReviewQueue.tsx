@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useToast } from '@/components/ui/Toast'
 
 interface QueueItem {
   id: string
@@ -21,6 +22,7 @@ interface QueueItem {
 }
 
 export default function ReviewQueue() {
+  const { addToast } = useToast()
   const [items, setItems] = useState<QueueItem[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -74,14 +76,14 @@ export default function ReviewQueue() {
 
       if (res.ok) {
         setItems(prev => prev.filter(p => p.id !== id))
-        alert('✅ Post approved')
+        addToast('Post approved', 'success')
       } else {
         const error = await res.json()
-        alert(`❌ Error: ${error.error}`)
+        addToast(`Error: ${error.error}`, 'error')
       }
     } catch (error) {
       console.error('Error approving post:', error)
-      alert('❌ Failed to approve post')
+      addToast('Failed to approve post', 'error')
     }
   }
 
@@ -99,14 +101,14 @@ export default function ReviewQueue() {
 
       if (res.ok) {
         setItems(prev => prev.filter(p => p.id !== id))
-        alert('✅ Post rejected and hidden from feed')
+        addToast('Post rejected and hidden from feed', 'success')
       } else {
         const error = await res.json()
-        alert(`❌ Error: ${error.error}`)
+        addToast(`Error: ${error.error}`, 'error')
       }
     } catch (error) {
       console.error('Error rejecting post:', error)
-      alert('❌ Failed to reject post')
+      addToast('Failed to reject post', 'error')
     }
   }
 

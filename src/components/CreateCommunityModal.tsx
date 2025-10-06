@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import TokenGateConfig from './TokenGateConfig'
+import { useToast } from '@/components/ui/Toast'
 
 interface CreateCommunityModalProps {
   isOpen: boolean
@@ -12,6 +13,7 @@ interface CreateCommunityModalProps {
 
 export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: CreateCommunityModalProps) {
   const { user } = useAuth()
+  const { success, error } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -69,6 +71,7 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
       const data = await response.json()
 
       if (response.ok) {
+        success('Community created successfully!')
         onSuccess()
         onClose()
         setFormData({
@@ -90,11 +93,11 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
           tokenDecimals: 18
         })
       } else {
-        alert(data.error || 'Failed to create community')
+        error(data.error || 'Failed to create community')
       }
-    } catch (error) {
-      console.error('Error creating community:', error)
-      alert('Failed to create community')
+    } catch (err) {
+      console.error('Error creating community:', err)
+      error('Failed to create community')
     } finally {
       setLoading(false)
     }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useToast } from '@/components/ui/Toast'
 
 interface PrivacySettings {
   allowDirectMessages: boolean
@@ -37,6 +38,7 @@ interface BlockedUser {
 
 export default function PrivacySettings() {
   const { user } = useAuth()
+  const { addToast } = useToast()
   const [settings, setSettings] = useState<PrivacySettings>({
     allowDirectMessages: true,
     dmPrivacyLevel: 'ALL',
@@ -141,7 +143,7 @@ export default function PrivacySettings() {
       }
     } catch (error) {
       console.error('Error updating privacy settings:', error)
-      alert('Failed to update privacy settings')
+      addToast('Failed to update privacy settings', 'error')
     } finally {
       setSaving(false)
     }
@@ -163,7 +165,7 @@ export default function PrivacySettings() {
       }
     } catch (error) {
       console.error('Error unblocking user:', error)
-      alert('Failed to unblock user')
+      addToast('Failed to unblock user', 'error')
     }
   }
 
@@ -187,7 +189,7 @@ export default function PrivacySettings() {
       }
     } catch (error) {
       console.error('Error updating featured community:', error)
-      alert('Failed to update featured community')
+      addToast('Failed to update featured community', 'error')
     } finally {
       setSaving(false)
     }

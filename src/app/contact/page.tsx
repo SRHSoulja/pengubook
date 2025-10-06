@@ -2,11 +2,13 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useToast } from '@/components/ui/Toast'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
 
 export default function ContactPage() {
   const { user } = useAuth()
+  const { addToast } = useToast()
   const [formData, setFormData] = useState({
     name: user?.displayName || '',
     email: '',
@@ -44,11 +46,11 @@ export default function ContactPage() {
           type: 'bug'
         })
       } else {
-        alert('Failed to send message. Please try again.')
+        addToast('Failed to send message. Please try again.', 'error')
       }
     } catch (error) {
       console.error('Contact form error:', error)
-      alert('Failed to send message. Please try again.')
+      addToast('Failed to send message. Please try again.', 'error')
     } finally {
       setSubmitting(false)
     }

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { GiphyService } from '@/lib/giphy'
+import { useToast } from '@/components/ui/Toast'
 
 interface RichContentEditorProps {
   value: string
@@ -32,6 +33,7 @@ export default function RichContentEditor({
   allowGifs = true,
   allowEmbeds = true
 }: RichContentEditorProps) {
+  const { addToast } = useToast()
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [gifSearchQuery, setGifSearchQuery] = useState('')
@@ -58,13 +60,13 @@ export default function RichContentEditor({
 
       // Validate file type
       if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-        alert('Only images and videos are supported')
+        addToast('Only images and videos are supported', 'error')
         continue
       }
 
       // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
-        alert('File size must be less than 10MB')
+        addToast('File size must be less than 10MB', 'error')
         continue
       }
 
@@ -235,7 +237,7 @@ export default function RichContentEditor({
     try {
       new URL(embedUrl)
     } catch {
-      alert('Please enter a valid URL')
+      addToast('Please enter a valid URL', 'error')
       return
     }
 

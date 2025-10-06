@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useToast } from '@/components/ui/Toast'
 import Navbar from '@/components/Navbar'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 import EditCommunityModal from '@/components/EditCommunityModal'
@@ -55,6 +56,7 @@ interface Community {
 
 export default function CommunityClient({ params }: CommunityPageProps) {
   const { user, isAuthenticated } = useAuth()
+  const { addToast } = useToast()
   const [community, setCommunity] = useState<Community | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -150,13 +152,13 @@ export default function CommunityClient({ params }: CommunityPageProps) {
       if (response.ok) {
         // Refresh community data
         fetchCommunity()
-        alert(data.message)
+        addToast(data.message, 'success')
       } else {
-        alert(data.error || 'Failed to join community')
+        addToast(data.error || 'Failed to join community', 'error')
       }
     } catch (error) {
       console.error('Error joining community:', error)
-      alert('Failed to join community')
+      addToast('Failed to join community', 'error')
     }
   }
 

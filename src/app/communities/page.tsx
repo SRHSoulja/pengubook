@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import { useTheme } from '@/providers/ThemeProvider'
+import { useToast } from '@/components/ui/Toast'
 import Navbar from '@/components/Navbar'
 import CreateCommunityModal from '@/components/CreateCommunityModal'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
@@ -27,6 +28,7 @@ interface Community {
 export default function CommunitiesPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const { currentTheme } = useTheme()
+  const { addToast } = useToast()
   const [communities, setCommunities] = useState<Community[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
@@ -95,13 +97,13 @@ export default function CommunitiesPage() {
             : community
         ))
         // Show success message or redirect to community
-        alert(data.message)
+        addToast(data.message, 'success')
       } else {
-        alert(data.error || 'Failed to join community')
+        addToast(data.error || 'Failed to join community', 'error')
       }
     } catch (error) {
       console.error('Error joining community:', error)
-      alert('Failed to join community')
+      addToast('Failed to join community', 'error')
     }
   }
 

@@ -76,6 +76,47 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user) {
+      // SECURITY: Check if this social account is already linked to another user (prevent duplicates)
+      if (token.provider === 'discord' && token.providerAccountId) {
+        const existingDiscordUser = await prisma.user.findFirst({
+          where: { discordId: String(token.providerAccountId) }
+        })
+        if (existingDiscordUser) {
+          console.error('[OAuth Register] Discord account already linked to another user:', {
+            discordId: String(token.providerAccountId).slice(0, 10) + '...',
+            existingUserId: existingDiscordUser.id.slice(0, 10) + '...',
+            existingWallet: existingDiscordUser.walletAddress?.slice(0, 10) + '...'
+          })
+          return NextResponse.json(
+            {
+              error: 'This Discord account is already linked to another wallet address. Please use a different Discord account or unlink it from the other wallet first.',
+              code: 'DUPLICATE_SOCIAL_ACCOUNT'
+            },
+            { status: 409 }
+          )
+        }
+      }
+
+      if (token.provider === 'twitter' && token.providerAccountId) {
+        const existingTwitterUser = await prisma.user.findFirst({
+          where: { twitterId: String(token.providerAccountId) }
+        })
+        if (existingTwitterUser) {
+          console.error('[OAuth Register] Twitter account already linked to another user:', {
+            twitterId: String(token.providerAccountId).slice(0, 10) + '...',
+            existingUserId: existingTwitterUser.id.slice(0, 10) + '...',
+            existingWallet: existingTwitterUser.walletAddress?.slice(0, 10) + '...'
+          })
+          return NextResponse.json(
+            {
+              error: 'This Twitter/X account is already linked to another wallet address. Please use a different Twitter/X account or unlink it from the other wallet first.',
+              code: 'DUPLICATE_SOCIAL_ACCOUNT'
+            },
+            { status: 409 }
+          )
+        }
+      }
+
       // Create new user from OAuth data
       const username = String(token.actualUsername || token.name || `user_${token.sub.slice(-6)}`)
       const displayName = String(token.name || `User ${token.sub.slice(-4)}`)

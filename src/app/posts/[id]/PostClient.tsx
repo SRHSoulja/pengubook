@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import ReportButton from '@/components/ReportButton'
+import { useToast } from '@/components/ui/Toast'
 
 // Helper function to render text with clickable hashtags
 function renderTextWithHashtags(text: string): JSX.Element[] {
@@ -126,6 +127,7 @@ interface Post {
 export default function PostClient({ params }: { params: { id: string } }) {
   const { user, isAuthenticated } = useAuth()
   const { currentTheme } = useTheme()
+  const { success, error: showError, info } = useToast()
   const router = useRouter()
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
@@ -135,6 +137,7 @@ export default function PostClient({ params }: { params: { id: string } }) {
   const [showEditHistory, setShowEditHistory] = useState(false)
   const [editHistory, setEditHistory] = useState<any[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
+  const [hasEditHistory, setHasEditHistory] = useState(false)
   const [reactionEmojis, setReactionEmojis] = useState<{ [key: string]: string }>(defaultReactionEmojis)
   const [reactions, setReactions] = useState<{ counts: { [key: string]: number }, userReactions: Set<string> }>({ counts: {}, userReactions: new Set() })
   const [reactingTo, setReactingTo] = useState(false)
@@ -163,13 +166,32 @@ export default function PostClient({ params }: { params: { id: string } }) {
     fetchPost()
   }, [params.id])
 
-  // Load reactions for this post
+  // Load reactions for this post and check for edit history
   useEffect(() => {
     if (post) {
       fetchReactions()
       checkBookmarkStatus()
+      // Check if post has been edited
+      if (post.createdAt !== post.updatedAt) {
+        checkEditHistory()
+      }
     }
   }, [post?.id])
+
+  const checkEditHistory = async () => {
+    if (!post) return
+
+    try {
+      const response = await fetch(`/api/posts/${params.id}/edits`)
+      const data = await response.json()
+
+      if (response.ok && data.edits && data.edits.length > 0) {
+        setHasEditHistory(true)
+      }
+    } catch (error) {
+      console.error('Failed to check edit history:', error)
+    }
+  }
 
   const checkBookmarkStatus = async () => {
     if (!user) return
@@ -196,7 +218,7 @@ export default function PostClient({ params }: { params: { id: string } }) {
 
   const toggleBookmark = async () => {
     if (!user) {
-      alert('Please sign in to bookmark posts')
+      info('Please sign in to bookmark posts')
       return
     }
 
@@ -218,11 +240,11 @@ export default function PostClient({ params }: { params: { id: string } }) {
       if (data.success) {
         setIsBookmarked(data.isBookmarked)
       } else {
-        alert(data.error || 'Failed to toggle bookmark')
+        showError(data.error || 'Failed to toggle bookmark')
       }
     } catch (error) {
       console.error('Failed to toggle bookmark:', error)
-      alert('Failed to toggle bookmark')
+      showError('Failed to toggle bookmark')
     }
   }
 
@@ -250,15 +272,15 @@ export default function PostClient({ params }: { params: { id: string } }) {
 
       const data = await response.json()
       if (data.success) {
-        alert('Report submitted successfully. Our team will review it.')
+        success('Report submitted successfully. Our team will review it.')
         setShowReportModal(false)
         setReportReason('')
       } else {
-        alert(data.error || 'Failed to submit report')
+        showError(data.error || 'Failed to submit report')
       }
     } catch (error) {
       console.error('Failed to submit report:', error)
-      alert('Failed to submit report')
+      showError('Failed to submit report')
     } finally {
       setSubmittingReport(false)
     }
@@ -308,11 +330,11 @@ export default function PostClient({ params }: { params: { id: string } }) {
         setEditHistory(data.edits || [])
         setShowEditHistory(true)
       } else {
-        alert(data.error || 'Failed to load edit history')
+        showError(data.error || 'Failed to load edit history')
       }
     } catch (error) {
       console.error('Failed to fetch edit history:', error)
-      alert('Failed to load edit history')
+      showError('Failed to load edit history')
     } finally {
       setLoadingHistory(false)
     }
@@ -344,7 +366,7 @@ export default function PostClient({ params }: { params: { id: string } }) {
 
   const handleReaction = async (reactionType: string) => {
     if (!user) {
-      alert('Please sign in to react to posts')
+      info('Please sign in to react to posts')
       return
     }
 
@@ -387,11 +409,11 @@ export default function PostClient({ params }: { params: { id: string } }) {
           userReactions: newUserReactions
         })
       } else {
-        alert(data.error || 'Failed to react')
+        showError(data.error || 'Failed to react')
       }
     } catch (error) {
       console.error('Failed to react:', error)
-      alert('Failed to react')
+      showError('Failed to react')
     } finally {
       setReactingTo(false)
     }
@@ -426,11 +448,11 @@ export default function PostClient({ params }: { params: { id: string } }) {
         setNewComment('')
         fetchPost() // Refresh post to show new comment
       } else {
-        alert(data.error || 'Failed to post comment')
+        showError(data.error || 'Failed to post comment')
       }
     } catch (error) {
       console.error('Failed to submit comment:', error)
-      alert('Failed to post comment')
+      showError('Failed to post comment')
     } finally {
       setSubmittingComment(false)
     }
@@ -484,63 +506,51 @@ export default function PostClient({ params }: { params: { id: string } }) {
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
       <Navbar />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-24 sm:pb-8">
         <div className="max-w-4xl mx-auto">
           {/* Back Button */}
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors"
+            className="flex items-center gap-2 text-white/70 hover:text-white mb-4 sm:mb-6 transition-colors text-sm sm:text-base"
           >
             <span>←</span>
             <span>Back</span>
           </button>
 
           {/* Post */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 mb-8">
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl sm:rounded-2xl border border-white/20 p-3 sm:p-6 mb-4 sm:mb-8">
             {/* Post Header */}
-            <div className="flex items-center gap-3 mb-4">
-              <Link href={`/profile/${post.author.walletAddress || post.author.id}`} className="flex items-center gap-3 hover:opacity-80">
-                <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold">
+            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+              <Link href={`/profile/${post.author.walletAddress || post.author.id}`} className="flex items-center gap-2 sm:gap-3 hover:opacity-80 min-w-0 flex-1">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-sm sm:text-base">
                   {post.author.avatar ? (
                     <img
                       src={post.author.avatar}
                       alt={post.author.displayName}
-                      className="w-full h-full rounded-xl object-cover"
+                      className="w-full h-full rounded-lg sm:rounded-xl object-cover"
                     />
                   ) : (
                     post.author.displayName.charAt(0)
                   )}
                 </div>
 
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-white">{post.author.displayName}</h3>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                    <h3 className="font-semibold text-white text-sm sm:text-base truncate">{post.author.displayName}</h3>
                     {post.author.isAdmin && (
-                      <span className="text-blue-400 text-sm">✓</span>
+                      <span className="text-blue-400 text-xs sm:text-sm flex-shrink-0">✓</span>
                     )}
-                    <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-xs">
-                      Level {post.author.level}
+                    <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-[10px] sm:text-xs flex-shrink-0">
+                      Lvl {post.author.level}
                     </span>
                     {post.isPromoted && (
-                      <span className="text-yellow-400 text-sm">📌</span>
+                      <span className="text-yellow-400 text-xs sm:text-sm flex-shrink-0">📌</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-300">
-                    <span>@{post.author.username}</span>
-                    <span>•</span>
-                    <span>{formatTimeAgo(post.createdAt)}</span>
-                    {post.createdAt !== post.updatedAt && (
-                      <>
-                        <span>•</span>
-                        <button
-                          onClick={fetchEditHistory}
-                          disabled={loadingHistory}
-                          className="text-yellow-400 hover:text-yellow-300 underline transition-colors"
-                        >
-                          {loadingHistory ? 'Loading...' : `Edited ${formatTimeAgo(post.updatedAt)}`}
-                        </button>
-                      </>
-                    )}
+                  <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-300">
+                    <span className="truncate">@{post.author.username}</span>
+                    <span className="flex-shrink-0">•</span>
+                    <span className="flex-shrink-0">{formatTimeAgo(post.createdAt)}</span>
                   </div>
                 </div>
               </Link>
@@ -554,10 +564,20 @@ export default function PostClient({ params }: { params: { id: string } }) {
             </div>
 
             {/* Post Content */}
-            <div className="mb-6">
-              <p className="text-gray-200 whitespace-pre-wrap leading-relaxed text-lg">
+            <div className="mb-4 sm:mb-6">
+              <p className="text-gray-200 whitespace-pre-wrap leading-relaxed text-sm sm:text-base md:text-lg">
                 {renderTextWithHashtags(post.content)}
               </p>
+              {/* Edit History Link - Only shown if post has actual edit history */}
+              {hasEditHistory && (
+                <button
+                  onClick={fetchEditHistory}
+                  disabled={loadingHistory}
+                  className="mt-2 text-yellow-400 hover:text-yellow-300 underline text-xs sm:text-sm transition-colors"
+                >
+                  {loadingHistory ? 'Loading...' : `View edit history (edited ${formatTimeAgo(post.updatedAt)})`}
+                </button>
+              )}
             </div>
 
             {/* Post Images */}
@@ -581,8 +601,8 @@ export default function PostClient({ params }: { params: { id: string } }) {
             )}
 
             {/* Emoji Reactions */}
-            <div className="mb-4 pb-4 border-b border-white/10">
-              <div className="flex items-center flex-wrap gap-2">
+            <div className="mb-3 sm:mb-4 pb-3 sm:pb-4 border-b border-white/10">
+              <div className="flex items-center flex-wrap gap-1.5 sm:gap-2">
                 {['HAPPY', 'LAUGH', 'LOVE', 'SHOCK', 'CRY', 'ANGER', 'THUMBS_UP', 'THUMBS_DOWN'].map((reactionType) => {
                   const count = reactions.counts[reactionType] || 0
                   const userReacted = reactions.userReactions.has(reactionType)
@@ -592,18 +612,18 @@ export default function PostClient({ params }: { params: { id: string } }) {
                       key={reactionType}
                       onClick={() => handleReaction(reactionType)}
                       disabled={reactingTo}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all hover:scale-105 ${
+                      className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all active:scale-95 sm:hover:scale-105 touch-target ${
                         userReacted
                           ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
                           : 'bg-white/10 text-gray-300 hover:bg-white/20 border border-transparent'
                       }`}
                     >
                       {reactionEmojis[reactionType]?.startsWith('http') ? (
-                        <img src={reactionEmojis[reactionType]} alt={reactionType} className="w-6 h-6 object-contain" />
+                        <img src={reactionEmojis[reactionType]} alt={reactionType} className="w-5 h-5 sm:w-6 sm:h-6 object-contain" />
                       ) : (
-                        <span className="text-lg">{reactionEmojis[reactionType] || defaultReactionEmojis[reactionType]}</span>
+                        <span className="text-base sm:text-lg">{reactionEmojis[reactionType] || defaultReactionEmojis[reactionType]}</span>
                       )}
-                      {count > 0 && <span className="text-sm font-mono">{count}</span>}
+                      {count > 0 && <span className="text-xs sm:text-sm font-mono">{count}</span>}
                     </button>
                   )
                 })}
@@ -611,39 +631,39 @@ export default function PostClient({ params }: { params: { id: string } }) {
             </div>
 
             {/* Post Stats */}
-            <div className="flex items-center gap-6 pt-4 border-t border-white/10 text-gray-300">
-              <div className="flex items-center gap-2">
-                <span>💬</span>
-                <span>{post.stats.comments} comments</span>
+            <div className="flex items-center gap-3 sm:gap-6 pt-3 sm:pt-4 border-t border-white/10 text-gray-300 text-xs sm:text-sm flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-base sm:text-lg">💬</span>
+                <span className="whitespace-nowrap">{post.stats.comments}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span>🔄</span>
-                <span>{post.stats.shares} shares</span>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-base sm:text-lg">🔄</span>
+                <span className="whitespace-nowrap">{post.stats.shares}</span>
               </div>
               <div className="flex-1"></div>
               {isAuthenticated && user && (
                 <>
                   <button
                     onClick={toggleBookmark}
-                    className="flex items-center gap-2 text-gray-300 hover:text-cyan-400 transition-colors"
+                    className="flex items-center gap-1 sm:gap-2 text-gray-300 hover:text-cyan-400 transition-colors touch-target"
                     title={isBookmarked ? 'Remove bookmark' : 'Bookmark post'}
                   >
-                    <span className="text-lg">🔖</span>
-                    <span className="text-sm">{isBookmarked ? 'Saved' : 'Save'}</span>
+                    <span className="text-base sm:text-lg">🔖</span>
+                    <span className="text-xs sm:text-sm hidden sm:inline">{isBookmarked ? 'Saved' : 'Save'}</span>
                   </button>
                   {post.author.id !== user.id && (
                     <button
                       onClick={() => setShowReportModal(true)}
-                      className="flex items-center gap-2 text-gray-300 hover:text-red-400 transition-colors"
+                      className="flex items-center gap-1 sm:gap-2 text-gray-300 hover:text-red-400 transition-colors touch-target"
                       title="Report post"
                     >
-                      <span className="text-lg">⚠️</span>
-                      <span className="text-sm">Report</span>
+                      <span className="text-base sm:text-lg">⚠️</span>
+                      <span className="text-xs sm:text-sm hidden sm:inline">Report</span>
                     </button>
                   )}
                 </>
               )}
-              <span className="text-xs capitalize">
+              <span className="text-[10px] sm:text-xs capitalize whitespace-nowrap">
                 {post.visibility.toLowerCase().replace('_', ' ')}
               </span>
             </div>
@@ -720,14 +740,14 @@ export default function PostClient({ params }: { params: { id: string } }) {
           )}
 
           {/* Comments Section */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
-            <h2 className="text-xl font-bold text-white mb-6">Comments ({post.stats.comments})</h2>
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl sm:rounded-2xl border border-white/20 p-3 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Comments ({post.stats.comments})</h2>
 
             {/* Add Comment */}
             {isAuthenticated && user && (
-              <div className="mb-6 p-4 bg-white/5 rounded-xl">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+              <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-white/5 rounded-lg sm:rounded-xl">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-xs sm:text-sm">
                     {user.avatar ? (
                       <img
                         src={user.avatar}
@@ -738,19 +758,19 @@ export default function PostClient({ params }: { params: { id: string } }) {
                       user.displayName?.charAt(0) || 'P'
                     )}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <textarea
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Share your thoughts..."
                       rows={3}
-                      className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-300 focus:outline-none focus:border-cyan-400 resize-none"
+                      className="w-full px-2.5 sm:px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm sm:text-base placeholder-gray-300 focus:outline-none focus:border-cyan-400 resize-none"
                     />
                     <div className="flex justify-end mt-2">
                       <button
                         onClick={submitComment}
                         disabled={!newComment.trim() || submittingComment}
-                        className="bg-cyan-500 hover:bg-cyan-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors"
+                        className="bg-cyan-500 hover:bg-cyan-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base transition-colors touch-target"
                       >
                         {submittingComment ? 'Posting...' : 'Comment'}
                       </button>
@@ -761,17 +781,17 @@ export default function PostClient({ params }: { params: { id: string } }) {
             )}
 
             {/* Comments List */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {post.comments.length === 0 ? (
-                <div className="text-center text-gray-300 py-8">
-                  <div className="text-3xl mb-2">💭</div>
-                  <p>No comments yet. Be the first to share your thoughts!</p>
+                <div className="text-center text-gray-300 py-6 sm:py-8">
+                  <div className="text-2xl sm:text-3xl mb-2">💭</div>
+                  <p className="text-sm sm:text-base">No comments yet. Be the first to share your thoughts!</p>
                 </div>
               ) : (
                 post.comments.map((comment) => (
-                  <div key={comment.id} className="bg-white/5 rounded-xl p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                  <div key={comment.id} className="bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-xs sm:text-sm">
                         {comment.author.avatar ? (
                           <img
                             src={comment.author.avatar}
@@ -782,25 +802,25 @@ export default function PostClient({ params }: { params: { id: string } }) {
                           comment.author.displayName.charAt(0)
                         )}
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold text-white">{comment.author.displayName}</span>
-                          <span className="text-gray-300 text-sm">@{comment.author.username}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1 sm:gap-2 mb-1 flex-wrap">
+                          <span className="font-semibold text-white text-sm sm:text-base">{comment.author.displayName}</span>
+                          <span className="text-gray-300 text-xs sm:text-sm truncate">@{comment.author.username}</span>
                           {comment.author.isAdmin && (
-                            <span className="text-blue-400 text-sm">✓</span>
+                            <span className="text-blue-400 text-xs sm:text-sm flex-shrink-0">✓</span>
                           )}
-                          <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-xs">
-                            Level {comment.author.level}
+                          <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-[10px] sm:text-xs flex-shrink-0">
+                            Lvl {comment.author.level}
                           </span>
-                          <span className="text-gray-300 text-sm">•</span>
-                          <span className="text-gray-300 text-sm">{formatTimeAgo(comment.createdAt)}</span>
+                          <span className="text-gray-300 text-xs sm:text-sm flex-shrink-0">•</span>
+                          <span className="text-gray-300 text-xs sm:text-sm flex-shrink-0">{formatTimeAgo(comment.createdAt)}</span>
                         </div>
-                        <p className="text-gray-200 whitespace-pre-wrap">{comment.content}</p>
-                        <div className="flex items-center gap-4 mt-2">
-                          <button className="text-gray-300 hover:text-red-300 text-sm transition-colors">
+                        <p className="text-gray-200 whitespace-pre-wrap text-sm sm:text-base leading-relaxed mb-2">{comment.content}</p>
+                        <div className="flex items-center gap-3 sm:gap-4 mt-2">
+                          <button className="text-gray-300 hover:text-red-300 text-xs sm:text-sm transition-colors touch-target">
                             ❤️ 0
                           </button>
-                          <button className="text-gray-300 hover:text-white text-sm transition-colors">
+                          <button className="text-gray-300 hover:text-white text-xs sm:text-sm transition-colors touch-target">
                             Reply
                           </button>
                           {comment.author.id !== user?.id && (

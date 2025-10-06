@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useToast } from '@/components/ui/Toast'
 import Navbar from '@/components/Navbar'
 import PenguinLoadingScreen from '@/components/PenguinLoadingScreen'
 import Link from 'next/link'
@@ -21,6 +22,7 @@ interface User {
 
 export default function NewGroupPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
+  const { addToast } = useToast()
   const router = useRouter()
   const [step, setStep] = useState<'info' | 'members'>('info')
   const [loading, setLoading] = useState(false)
@@ -83,11 +85,11 @@ export default function NewGroupPage() {
   const createGroup = async () => {
     if (!user?.walletAddress) return
     if (selectedUsers.length < 2) {
-      alert('Please select at least 2 other members for the group')
+      addToast('Please select at least 2 other members for the group', 'warning')
       return
     }
     if (!groupInfo.name.trim()) {
-      alert('Please enter a group name')
+      addToast('Please enter a group name', 'warning')
       return
     }
 
@@ -112,11 +114,11 @@ export default function NewGroupPage() {
       if (data.success) {
         router.push(`/messages/${data.conversation.id}`)
       } else {
-        alert(data.error || 'Failed to create group')
+        addToast(data.error || 'Failed to create group', 'error')
       }
     } catch (error) {
       console.error('Error creating group:', error)
-      alert('Failed to create group')
+      addToast('Failed to create group', 'error')
     } finally {
       setLoading(false)
     }

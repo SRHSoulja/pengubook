@@ -11,6 +11,7 @@ import Navbar from '@/components/Navbar'
 import SocialFeed from '@/components/SocialFeed'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/components/ui/Toast'
 
 interface ProfilePageProps {
   params: { id: string }
@@ -116,6 +117,7 @@ interface PostEdit {
 
 export default function ProfileClient({ params }: ProfilePageProps) {
   const { user: currentUser, isAuthenticated } = useAuth()
+  const { error: showError } = useToast()
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [tips, setTips] = useState<Tip[]>([])
@@ -247,11 +249,11 @@ export default function ProfileClient({ params }: ProfilePageProps) {
       } else {
         const errorData = await response.json()
         console.error('Failed to update post:', errorData.error)
-        alert('Failed to update post: ' + errorData.error)
+        showError('Failed to update post: ' + errorData.error)
       }
-    } catch (error) {
-      console.error('Error updating post:', error)
-      alert('Error updating post')
+    } catch (err) {
+      console.error('Error updating post:', err)
+      showError('Error updating post')
     }
   }
 
@@ -269,11 +271,11 @@ export default function ProfileClient({ params }: ProfilePageProps) {
         setPosts(prev => prev.filter(post => post.id !== postId))
       } else {
         const errorData = await response.json()
-        alert('Failed to delete post: ' + errorData.error)
+        showError('Failed to delete post: ' + errorData.error)
       }
-    } catch (error) {
-      console.error('Error deleting post:', error)
-      alert('Error deleting post')
+    } catch (err) {
+      console.error('Error deleting post:', err)
+      showError('Error deleting post')
     } finally {
       setDeleting(null)
     }
