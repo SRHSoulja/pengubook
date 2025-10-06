@@ -8,6 +8,7 @@ import { useAuth } from '@/providers/AuthProvider'
 import TipButton from '@/components/TipButton'
 import { SkeletonPostGrid } from '@/components/skeletons/SkeletonPostCard'
 import { useToast } from '@/components/ui/Toast'
+import BookmarkButton from '@/components/BookmarkButton'
 
 // Function to extract URLs from content
 function extractUrlsFromContent(content: string): string[] {
@@ -323,6 +324,7 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
           commentsCount: post.stats?.comments || 0,
           sharesCount: post.stats?.shares || 0,
           isLiked: false, // TODO: Implement user-specific like status
+          isBookmarked: post.isBookmarked || false,
           isShared: userId ? (post.shares || []).some((share: any) => share.userId === userId) : false,
           isNSFW: post.isNSFW || false,
           contentWarnings: post.contentWarnings ? JSON.parse(post.contentWarnings) : [],
@@ -979,42 +981,17 @@ via @PeBloq`
             </div>
 
             {/* Bookmark button */}
-            <button
-              onClick={async () => {
-                if (!userId) return
-                try {
-                  const headers: Record<string, string> = {
-                    'Content-Type': 'application/json'
-                  }
-                  if (userId) headers['x-user-id'] = userId
-
-                  const response = await fetch('/api/bookmarks', {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify({ postId: post.id })
-                  })
-
-                  if (response.ok) {
-                    const data = await response.json()
-                    setPosts(prev => prev.map(p =>
-                      p.id === post.id
-                        ? { ...p, isBookmarked: data.isBookmarked }
-                        : p
-                    ))
-                  }
-                } catch (error) {
-                  console.error('Failed to toggle bookmark:', error)
-                }
+            <BookmarkButton
+              postId={post.id}
+              isBookmarked={post.isBookmarked || false}
+              onToggle={(bookmarked) => {
+                setPosts(prev => prev.map(p =>
+                  p.id === post.id ? { ...p, isBookmarked: bookmarked } : p
+                ))
               }}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                post.isBookmarked
-                  ? 'bg-yellow-500/20 text-yellow-300'
-                  : 'bg-white/10 text-gray-300 hover:bg-white/20'
-              }`}
-              title={post.isBookmarked ? 'Remove bookmark' : 'Bookmark post'}
-            >
-              <span>🔖</span>
-            </button>
+              size="md"
+              showLabel={false}
+            />
 
             {/* Pin button - only show for own posts */}
             {post.author.id === userId && (

@@ -15,11 +15,12 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const authorId = searchParams.get('authorId')
+    const userId = searchParams.get('userId')
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50)
     const offset = parseInt(searchParams.get('offset') || '0')
     const visibility = searchParams.get('visibility') || 'PUBLIC'
 
-    
+
 
     const where: any = {
       visibility: visibility
@@ -62,6 +63,14 @@ export async function GET(request: NextRequest) {
             id: true
           }
         },
+        bookmarks: userId ? {
+          where: {
+            userId: userId
+          },
+          select: {
+            id: true
+          }
+        } : false,
         _count: {
           select: {
             likes: true,
@@ -91,6 +100,7 @@ export async function GET(request: NextRequest) {
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
       author: post.author,
+      isBookmarked: userId && post.bookmarks ? post.bookmarks.length > 0 : false,
       stats: {
         likes: post._count.likes,
         comments: post._count.comments,
