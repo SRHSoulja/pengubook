@@ -280,7 +280,10 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
   }, [showShareMenu])
 
   const handleReaction = async (reactionType: string) => {
-    if (!client?.account?.address || isInteracting) return
+    if (!client?.account?.address || isInteracting) {
+      console.log('Cannot react:', { hasClient: !!client, hasAddress: !!client?.account?.address, isInteracting })
+      return
+    }
 
     setIsInteracting(reactionType)
 
@@ -571,8 +574,8 @@ via @PeBloq`
       </div>
 
       {/* Enhanced action buttons */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3">
           {/* Comment button */}
           <button
             onClick={() => setShowComments(!showComments)}
