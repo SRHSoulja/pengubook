@@ -813,12 +813,52 @@ via @PeBloq`
                       <span className="font-medium text-white text-sm">{(comment.user || comment.author)?.displayName}</span>
                       <span className="text-xs text-gray-300">{formatDate(comment.createdAt)}</span>
                     </div>
-                    {(comment.user || comment.author)?.id !== currentUserId && (
-                      <ReportButton
-                        commentId={comment.id}
-                        targetName={`Comment by ${(comment.user || comment.author)?.displayName}`}
-                        size="sm"
-                      />
+                    {currentUser?.id && (comment.user || comment.author)?.id !== currentUser.id && (
+                      <button
+                        onClick={async () => {
+                          const reason = prompt('Select a reason for reporting:\n\n1. SPAM\n2. HARASSMENT\n3. INAPPROPRIATE_CONTENT\n4. COPYRIGHT\n5. IMPERSONATION\n6. VIOLENCE\n7. HATE_SPEECH\n8. SELF_HARM\n9. FALSE_INFORMATION\n10. OTHER\n\nEnter the number (1-10):')
+                          if (!reason) return
+
+                          const reasons = ['SPAM', 'HARASSMENT', 'INAPPROPRIATE_CONTENT', 'COPYRIGHT', 'IMPERSONATION', 'VIOLENCE', 'HATE_SPEECH', 'SELF_HARM', 'FALSE_INFORMATION', 'OTHER']
+                          const selectedReason = reasons[parseInt(reason) - 1]
+                          if (!selectedReason) {
+                            alert('Invalid selection')
+                            return
+                          }
+
+                          const description = prompt('Additional details (optional):')
+
+                          try {
+                            const response = await fetch('/api/reports', {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'x-user-id': currentUser.id
+                              },
+                              body: JSON.stringify({
+                                commentId: comment.id,
+                                targetId: (comment.user || comment.author)?.id,
+                                reason: selectedReason,
+                                description
+                              })
+                            })
+
+                            if (response.ok) {
+                              alert('Report submitted successfully. Our team will review it.')
+                            } else {
+                              const data = await response.json()
+                              alert(data.error || 'Failed to submit report')
+                            }
+                          } catch (error) {
+                            console.error('Failed to submit report:', error)
+                            alert('Failed to submit report')
+                          }
+                        }}
+                        className="text-xs text-gray-400 hover:text-red-300 transition-colors"
+                        title="Report comment"
+                      >
+                        ⚠️
+                      </button>
                     )}
                   </div>
                   <FilteredContent
