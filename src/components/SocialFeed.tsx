@@ -1095,7 +1095,7 @@ via @PeBloq`
 
             <div className="flex-1"></div>
 
-            <span className="text-xs text-gray-300 capitalize">
+            <span className="hidden md:inline text-xs text-gray-300 capitalize">
               {post.visibility.toLowerCase().replace('_', ' ')}
             </span>
           </div>
