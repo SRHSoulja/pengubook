@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
+import { useTheme } from '@/providers/ThemeProvider'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -124,6 +125,7 @@ interface Post {
 
 export default function PostClient({ params }: { params: { id: string } }) {
   const { user, isAuthenticated } = useAuth()
+  const { currentTheme } = useTheme()
   const router = useRouter()
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
@@ -436,7 +438,7 @@ export default function PostClient({ params }: { params: { id: string } }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+      <div className="min-h-screen" style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }}>
         <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
@@ -462,7 +464,7 @@ export default function PostClient({ params }: { params: { id: string } }) {
 
   if (error || !post) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+      <div className="min-h-screen" style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }}>
         <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto text-center text-white">
