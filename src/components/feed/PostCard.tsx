@@ -17,6 +17,18 @@ interface PostCardProps {
   className?: string
 }
 
+// Default reaction emojis
+const defaultReactionEmojis: { [key: string]: string } = {
+  HAPPY: '😀',
+  LAUGH: '😂',
+  LOVE: '😍',
+  SHOCK: '😮',
+  CRY: '😢',
+  ANGER: '😡',
+  THUMBS_UP: '👍',
+  THUMBS_DOWN: '👎'
+}
+
 function extractUrlsFromContent(content: string): string[] {
   const urlRegex = /(https?:\/\/[^\s]+)/g
   const matches = content.match(urlRegex)
@@ -186,6 +198,7 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
   const [showInteractionsModal, setShowInteractionsModal] = useState(false)
   const [interactionsTab, setInteractionsTab] = useState<'likes' | 'shares'>('likes')
   const [showEditHistoryModal, setShowEditHistoryModal] = useState(false)
+  const [reactionEmojis, setReactionEmojis] = useState<{ [key: string]: string }>(defaultReactionEmojis)
   const shareMenuRef = useRef<HTMLDivElement>(null)
 
   const formatDate = (date: Date | string) => {
@@ -218,19 +231,22 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
     }
   }
 
-  const getReactionEmoji = (reactionType: string) => {
-    switch (reactionType) {
-      case 'HAPPY': return '😀'
-      case 'LAUGH': return '😂'
-      case 'LOVE': return '😍'
-      case 'SHOCK': return '😮'
-      case 'CRY': return '😢'
-      case 'ANGER': return '😡'
-      case 'THUMBS_UP': return '👍'
-      case 'THUMBS_DOWN': return '👎'
-      default: return '😀'
+  // Load custom reaction emojis
+  useEffect(() => {
+    const loadReactionEmojis = async () => {
+      try {
+        const response = await fetch('/api/admin/reaction-emojis')
+        const data = await response.json()
+        if (data.success && data.config) {
+          setReactionEmojis(data.config)
+        }
+      } catch (error) {
+        console.error('Failed to load reaction emojis:', error)
+        // Use defaults on error
+      }
     }
-  }
+    loadReactionEmojis()
+  }, [])
 
   // Load initial reactions and current user
   useEffect(() => {
@@ -558,26 +574,33 @@ via @PeBloq`
         </button>
       </div>
 
-      {/* Enhanced reaction buttons - Pengu brand colors */}
+      {/* Emoji Reactions */}
       <div className="mb-4 pb-4 border-b border-white/10">
         <div className="flex items-center flex-wrap gap-2">
-          {['HAPPY', 'LAUGH', 'LOVE', 'SHOCK', 'CRY', 'ANGER', 'THUMBS_UP', 'THUMBS_DOWN'].map((reactionType) => (
-            <button
-              key={reactionType}
-              onClick={() => handleReaction(reactionType)}
-              disabled={isInteracting === reactionType}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all hover:scale-105 ${
-                userReactions.has(reactionType)
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                  : 'bg-white/10 text-gray-300 hover:bg-white/20 border border-transparent'
-              }`}
-            >
-              <span className="text-lg">{getReactionEmoji(reactionType)}</span>
-              {(reactionCounts[reactionType] || 0) > 0 && (
-                <span className="text-sm font-mono">{reactionCounts[reactionType]}</span>
-              )}
-            </button>
-          ))}
+          {['HAPPY', 'LAUGH', 'LOVE', 'SHOCK', 'CRY', 'ANGER', 'THUMBS_UP', 'THUMBS_DOWN'].map((reactionType) => {
+            const count = reactionCounts[reactionType] || 0
+            const userReacted = userReactions.has(reactionType)
+
+            return (
+              <button
+                key={reactionType}
+                onClick={() => handleReaction(reactionType)}
+                disabled={isInteracting === reactionType}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all hover:scale-105 ${
+                  userReacted
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                    : 'bg-white/10 text-gray-300 hover:bg-white/20 border border-transparent'
+                }`}
+              >
+                {reactionEmojis[reactionType]?.startsWith('http') ? (
+                  <img src={reactionEmojis[reactionType]} alt={reactionType} className="w-6 h-6 object-contain" />
+                ) : (
+                  <span className="text-lg">{reactionEmojis[reactionType] || defaultReactionEmojis[reactionType]}</span>
+                )}
+                {count > 0 && <span className="text-sm font-mono">{count}</span>}
+              </button>
+            )
+          })}
         </div>
       </div>
 
