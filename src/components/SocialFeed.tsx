@@ -6,6 +6,7 @@ import { detectMediaType, getYouTubeEmbedUrl, isYouTubeUrl, getGiphyEmbedUrl, is
 import NSFWBlurOverlay from '@/components/NSFWBlurOverlay'
 import { useAuth } from '@/providers/AuthProvider'
 import TipButton from '@/components/TipButton'
+import { SkeletonPostGrid } from '@/components/skeletons/SkeletonPostCard'
 
 // Function to extract URLs from content
 function extractUrlsFromContent(content: string): string[] {
@@ -602,25 +603,7 @@ via @PeBloq`
   }
 
   if (loading && posts.length === 0) {
-    return (
-      <div className="space-y-6">
-        {[...Array(3)].map((_, index) => (
-          <div key={index} className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 animate-pulse">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-white/20 rounded-xl"></div>
-              <div className="flex-1">
-                <div className="h-4 bg-white/20 rounded mb-2 w-1/3"></div>
-                <div className="h-3 bg-white/20 rounded w-1/4"></div>
-              </div>
-            </div>
-            <div className="space-y-2 mb-4">
-              <div className="h-4 bg-white/20 rounded"></div>
-              <div className="h-4 bg-white/20 rounded w-5/6"></div>
-            </div>
-          </div>
-        ))}
-      </div>
-    )
+    return <SkeletonPostGrid count={3} />
   }
 
   if (posts.length === 0) {
@@ -1097,22 +1080,32 @@ via @PeBloq`
         </div>
       ))}
 
-      {/* Load More */}
-      {hasMore && !loading && (
-        <div className="text-center">
-          <button
-            onClick={() => fetchPosts(page + 1)}
-            className="bg-cyan-500 text-white px-6 py-3 rounded-xl hover:bg-cyan-600 transition-colors"
-          >
-            Load More Posts
-          </button>
-        </div>
-      )}
+      {/* Infinite Scroll Sentinel */}
+      {hasMore && (
+        <div
+          ref={(node) => {
+            if (!node || loading) return
 
-      {loading && posts.length > 0 && (
-        <div className="text-center text-white py-4">
-          <div className="text-2xl mb-2">🔄</div>
-          <p>Loading more posts...</p>
+            const observer = new IntersectionObserver(
+              (entries) => {
+                if (entries[0].isIntersecting && hasMore && !loading) {
+                  fetchPosts(page + 1)
+                }
+              },
+              { threshold: 0.5, rootMargin: '200px' }
+            )
+
+            observer.observe(node)
+            return () => observer.disconnect()
+          }}
+          className="h-20 flex items-center justify-center"
+        >
+          {loading && (
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-8 h-8 border-4 border-pengu-green border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-gray-400 text-sm">Loading more posts...</p>
+            </div>
+          )}
         </div>
       )}
 
