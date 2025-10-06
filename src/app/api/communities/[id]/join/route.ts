@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { checkTokenGateAccess } from '@/lib/blockchain/tokenGating'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,6 +36,7 @@ export async function POST(
         tokenMinAmount: true,
         tokenIds: true,
         tokenSymbol: true,
+        tokenDecimals: true,
         creatorId: true
       }
     })
@@ -97,10 +99,18 @@ export async function POST(
     }
 
     // Token gating check (if enabled)
-    if (community.isTokenGated && user.walletAddress) {
-      // Note: In a real implementation, you would verify token ownership here
-      // This is a placeholder for the token verification logic
-      console.log('[Community Join] Token gating check needed:', {
+    if (community.isTokenGated) {
+      if (!user.walletAddress) {
+        return NextResponse.json(
+          {
+            error: 'Wallet connection required',
+            details: 'This is a token-gated community. You must connect your wallet to join.'
+          },
+          { status: 403 }
+        )
+      }
+
+      console.log('[Community Join] Verifying token ownership:', {
         userId,
         communityId,
         tokenGateType: community.tokenGateType,
@@ -109,8 +119,37 @@ export async function POST(
         walletAddress: user.walletAddress
       })
 
-      // For now, we'll allow joining but log that token verification is needed
-      // TODO: Implement actual token ownership verification
+      const tokenCheck = await checkTokenGateAccess(user.walletAddress, {
+        isTokenGated: community.isTokenGated,
+        tokenGateType: community.tokenGateType,
+        tokenContractAddress: community.tokenContractAddress,
+        tokenMinAmount: community.tokenMinAmount,
+        tokenIds: community.tokenIds,
+        tokenDecimals: community.tokenDecimals
+      })
+
+      if (!tokenCheck.hasAccess) {
+        const errorMessage = tokenCheck.error || 'You do not own the required tokens to join this community'
+        const requiredTokenInfo = community.tokenSymbol
+          ? `Requires: ${community.tokenMinAmount || '1'} ${community.tokenSymbol}`
+          : 'Token requirements not met'
+
+        return NextResponse.json(
+          {
+            error: errorMessage,
+            details: requiredTokenInfo,
+            tokenCheck: tokenCheck.details
+          },
+          { status: 403 }
+        )
+      }
+
+      console.log('[Community Join] Token verification passed:', {
+        userId,
+        communityId,
+        userBalance: tokenCheck.details?.userBalance,
+        ownedTokenIds: tokenCheck.details?.ownedTokenIds
+      })
     }
 
     // Create membership
