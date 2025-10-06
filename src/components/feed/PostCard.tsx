@@ -594,7 +594,7 @@ via @PeBloq`
 
             {/* Share dropdown menu */}
             {showShareMenu && (
-              <div className="absolute bottom-full left-0 mb-2 w-64 bg-gray-900/95 backdrop-blur-lg rounded-lg border border-white/20 shadow-xl z-[9999]">
+              <div className="fixed md:absolute bottom-0 md:bottom-full left-0 right-0 md:left-0 md:right-auto mb-0 md:mb-2 w-full md:w-64 bg-gray-900/95 backdrop-blur-lg rounded-t-lg md:rounded-lg border border-white/20 shadow-xl z-[9999]">
                 <div className="p-3 space-y-2">
                   {/* Internal share */}
                   <button
