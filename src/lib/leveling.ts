@@ -261,17 +261,12 @@ export function getLevelInfo(xp: number, level: number) {
 }
 
 // Get level benefits/requirements
+// NOTE: Returns empty array by default - configure benefits via admin panel
 export function getLevelBenefits(level: number): string[] {
   const benefits: string[] = []
 
-  if (level >= 2) benefits.push('Can like posts and comments')
-  if (level >= 3) benefits.push('Can send friend requests')
-  if (level >= 4) benefits.push('Can send tips to other users')
-  if (level >= 5) benefits.push('Can create communities')
-  if (level >= 7) benefits.push('Can moderate discussions')
-  if (level >= 10) benefits.push('Can create advertisements')
-  if (level >= 15) benefits.push('Trusted community member status')
-  if (level >= 20) benefits.push('Max level - Community Elder')
+  // TODO: Load benefits from admin configuration
+  // Currently no benefits configured - all features available to all users
 
   return benefits
 }

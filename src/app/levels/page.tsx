@@ -85,7 +85,7 @@ export default function LevelsPage() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-300 text-sm">Keep leveling up to unlock benefits!</p>
+                    <p className="text-gray-300 text-sm">All features available! Level benefits coming soon.</p>
                   )}
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default function LevelsPage() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-gray-300 text-sm">No special benefits yet</p>
+                      <p className="text-gray-300 text-sm">All features available to everyone!</p>
                     )}
                   </div>
                 </div>
