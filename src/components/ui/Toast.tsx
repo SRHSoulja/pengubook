@@ -33,7 +33,7 @@ export function useToast() {
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
 
-  const toast = (message: string, type: ToastType = 'info', duration: number = 3000) => {
+  const addToast = (message: string, type: ToastType = 'info', duration: number = 3000) => {
     const id = Math.random().toString(36).substring(7)
     const newToast: Toast = { id, type, message, duration }
 
@@ -51,13 +51,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }
 
   const toast = (message: string, type: ToastType = 'info', duration?: number) => {
-    toast(message, type, duration)
+    addToast(message, type, duration)
   }
 
-  const success = (message: string, duration?: number) => toast(message, 'success', duration)
-  const error = (message: string, duration?: number) => toast(message, 'error', duration)
-  const info = (message: string, duration?: number) => toast(message, 'info', duration)
-  const warning = (message: string, duration?: number) => toast(message, 'warning', duration)
+  const success = (message: string, duration?: number) => addToast(message, 'success', duration)
+  const error = (message: string, duration?: number) => addToast(message, 'error', duration)
+  const info = (message: string, duration?: number) => addToast(message, 'info', duration)
+  const warning = (message: string, duration?: number) => addToast(message, 'warning', duration)
 
   const getToastStyles = (type: ToastType) => {
     switch (type) {
