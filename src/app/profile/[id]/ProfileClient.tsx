@@ -426,9 +426,9 @@ export default function ProfileClient({ params }: ProfilePageProps) {
             </div>
           )}
 
-          <div className={`bg-white/10 backdrop-blur-lg ${profile.profile?.bannerImage ? 'rounded-b-2xl pt-20' : 'rounded-2xl'} border border-white/20 p-8 mb-8`}>
-            <div className="flex flex-col md:flex-row items-start gap-6">
-              <div className="w-32 h-32 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center text-5xl font-bold text-white border-4 border-white/20">
+          <div className={`bg-white/10 backdrop-blur-lg ${profile.profile?.bannerImage ? 'rounded-b-2xl pt-20' : 'rounded-2xl'} border border-white/20 p-4 md:p-8 mb-6 md:mb-8`}>
+            <div className="flex flex-col md:flex-row items-start gap-4 md:gap-6">
+              <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center text-4xl md:text-5xl font-bold text-white border-4 border-white/20">
                 {profile.avatar ? (
                   <img
                     src={profile.avatar}
@@ -443,7 +443,7 @@ export default function ProfileClient({ params }: ProfilePageProps) {
 
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl font-bold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{profile.displayName}</h1>
+                  <h1 className="text-2xl md:text-3xl font-bold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{profile.displayName}</h1>
                   {(profile.isAdmin || profile.profile?.profileVerified) && (
                     <span className="text-blue-400 text-xl animate-in fade-in zoom-in duration-500 delay-300">✓</span>
                   )}
@@ -571,7 +571,7 @@ export default function ProfileClient({ params }: ProfilePageProps) {
                   </Link>
                 )}
 
-                <div className="flex flex-wrap gap-4 mb-6">
+                <div className="grid grid-cols-3 md:flex md:flex-wrap gap-3 md:gap-4 mb-4 md:mb-6">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-cyan-300" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>Lvl {profile.level}</div>
                     <div className="text-sm text-gray-100" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>{profile.xp} XP</div>
@@ -592,7 +592,7 @@ export default function ProfileClient({ params }: ProfilePageProps) {
 
                 <div className="flex flex-col gap-3">
                   {currentUser && currentUser.id !== profile.id && (
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-2 md:gap-3">
                       <FollowButton
                         targetUserId={profile.id}
                         currentUserId={currentUser.id}
@@ -655,7 +655,7 @@ export default function ProfileClient({ params }: ProfilePageProps) {
           {/* Tabs */}
           <div className="flex space-x-1 mb-6">
             <button
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+              className={`px-3 py-2 md:px-6 md:py-3 rounded-lg text-sm md:text-base font-semibold transition-colors ${
                 activeTab === 'posts'
                   ? 'bg-cyan-500 text-white'
                   : 'bg-white/10 text-gray-300 hover:bg-white/20'
@@ -665,7 +665,7 @@ export default function ProfileClient({ params }: ProfilePageProps) {
               Posts ({posts.length})
             </button>
             <button
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+              className={`px-3 py-2 md:px-6 md:py-3 rounded-lg text-sm md:text-base font-semibold transition-colors ${
                 activeTab === 'shared'
                   ? 'bg-cyan-500 text-white'
                   : 'bg-white/10 text-gray-300 hover:bg-white/20'
@@ -675,7 +675,7 @@ export default function ProfileClient({ params }: ProfilePageProps) {
               Shared ({sharedPosts.length})
             </button>
             <button
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+              className={`px-3 py-2 md:px-6 md:py-3 rounded-lg text-sm md:text-base font-semibold transition-colors ${
                 activeTab === 'tips'
                   ? 'bg-cyan-500 text-white'
                   : 'bg-white/10 text-gray-300 hover:bg-white/20'
@@ -685,7 +685,7 @@ export default function ProfileClient({ params }: ProfilePageProps) {
               💰 Received ({tips.length})
             </button>
             <button
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+              className={`px-3 py-2 md:px-6 md:py-3 rounded-lg text-sm md:text-base font-semibold transition-colors ${
                 activeTab === 'tipsSent'
                   ? 'bg-cyan-500 text-white'
                   : 'bg-white/10 text-gray-300 hover:bg-white/20'
