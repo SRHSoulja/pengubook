@@ -61,7 +61,8 @@
       "Bash(git remote set-url:*)",
       "Read(//WSL.LOCALHOST/UBUNTU/home/arson/PenguBook/src/components/**)",
       "Read(//WSL.LOCALHOST/UBUNTU/home/arson/PenguBook/src/app/profile/[id]/**)",
-      "Read(//WSL.LOCALHOST/UBUNTU/home/arson/PenguBook/src/app/**)"
+      "Read(//WSL.LOCALHOST/UBUNTU/home/arson/PenguBook/src/app/**)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

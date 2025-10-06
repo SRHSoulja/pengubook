@@ -88,27 +88,37 @@ export async function POST(
       )
     }
 
-    // Check if reaction already exists
-    const existingReaction = await prisma.reaction.findUnique({
+    // Check if user already has ANY reaction on this post
+    const existingReactions = await prisma.reaction.findMany({
       where: {
-        userId_postId_reactionType: {
-          userId,
-          postId,
-          reactionType
-        }
+        userId,
+        postId
       }
     })
 
     let toggled = false
 
-    if (existingReaction) {
-      // Remove reaction (toggle off)
+    // Check if clicking the same reaction (toggle off)
+    const sameReaction = existingReactions.find(r => r.reactionType === reactionType)
+
+    if (sameReaction) {
+      // Remove the same reaction (toggle off)
       await prisma.reaction.delete({
-        where: { id: existingReaction.id }
+        where: { id: sameReaction.id }
       })
       toggled = false
     } else {
-      // Add reaction (toggle on)
+      // Remove all existing reactions first
+      if (existingReactions.length > 0) {
+        await prisma.reaction.deleteMany({
+          where: {
+            userId,
+            postId
+          }
+        })
+      }
+
+      // Add new reaction (toggle on)
       await prisma.reaction.create({
         data: {
           userId,
@@ -142,7 +152,7 @@ export async function POST(
       }
     }
 
-    // Get updated reaction counts
+    // Get updated reaction counts and user's current reactions
     const reactions = await prisma.reaction.findMany({
       where: { postId }
     })
@@ -152,11 +162,23 @@ export async function POST(
       counts[reaction.reactionType] = (counts[reaction.reactionType] || 0) + 1
     })
 
+    // Get user's current reactions after the operation
+    const userReactions = await prisma.reaction.findMany({
+      where: {
+        userId,
+        postId
+      },
+      select: {
+        reactionType: true
+      }
+    })
+
     return NextResponse.json({
       success: true,
       data: {
         toggled,
-        counts
+        counts,
+        userReactions: userReactions.map(r => r.reactionType)
       }
     })
   } catch (error: any) {

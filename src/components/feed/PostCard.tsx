@@ -327,15 +327,8 @@ export default function PostCard({ post, currentUserId, onPostUpdate, className 
 
       if (result.success) {
         setReactionCounts(result.data.counts || {})
-
-        // Update user reactions
-        const newUserReactions = new Set(userReactions)
-        if (result.data.toggled) {
-          newUserReactions.add(reactionType)
-        } else {
-          newUserReactions.delete(reactionType)
-        }
-        setUserReactions(newUserReactions)
+        // Update user reactions from API response
+        setUserReactions(new Set(result.data.userReactions || []))
       }
     } catch (error) {
       console.error(`Error reacting to post:`, error)

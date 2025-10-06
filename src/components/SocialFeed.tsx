@@ -404,16 +404,11 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
 
       if (result.success) {
         setPostReactions(prev => {
-          const prevReactions = prev[postId]?.userReactions || []
-          const prevArray = Array.from(prevReactions)
-
           return {
             ...prev,
             [postId]: {
               counts: result.data.counts || {},
-              userReactions: result.data.toggled
-                ? new Set([...prevArray, reactionType])
-                : new Set(prevArray.filter(r => r !== reactionType))
+              userReactions: new Set(result.data.userReactions || [])
             }
           }
         })
