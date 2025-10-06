@@ -22,6 +22,10 @@ export default function MobileBottomNav() {
   const [showTipModal, setShowTipModal] = useState(false)
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false)
 
+  // This component is now deprecated - navigation handled by NavigationWrapper
+  // Keeping for backwards compatibility but hiding it
+  return null
+
   if (!isAuthenticated) return null
 
   const navItems: NavItem[] = [

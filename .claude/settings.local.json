@@ -62,7 +62,10 @@
       "Read(//WSL.LOCALHOST/UBUNTU/home/arson/PenguBook/src/components/**)",
       "Read(//WSL.LOCALHOST/UBUNTU/home/arson/PenguBook/src/app/profile/[id]/**)",
       "Read(//WSL.LOCALHOST/UBUNTU/home/arson/PenguBook/src/app/**)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Read(///**)",
+      "Bash(git checkout:*)",
+      "Read(//home/arson/PenguBook/**)"
     ],
     "deny": [],
     "ask": []
