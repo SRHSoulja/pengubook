@@ -222,8 +222,10 @@ export const PUT = withAuth(async (request: NextRequest, user: any) => {
       const sanitizedDisplayName = sanitizeText(displayName)
 
       // Check if displayName is valid (wallet address, Discord username, or Twitter handle)
-      const isWalletAddress = sanitizedDisplayName === existingUser.walletAddress ||
-                              sanitizedDisplayName === existingUser.walletAddress.toLowerCase()
+      const isWalletAddress = existingUser.walletAddress && (
+        sanitizedDisplayName === existingUser.walletAddress ||
+        sanitizedDisplayName === existingUser.walletAddress.toLowerCase()
+      )
       const isDiscordName = existingUser.discordName && sanitizedDisplayName === existingUser.discordName
       const isTwitterHandle = existingUser.twitterHandle && (
         sanitizedDisplayName === existingUser.twitterHandle ||
@@ -232,8 +234,10 @@ export const PUT = withAuth(async (request: NextRequest, user: any) => {
 
       // Also allow USER_XXXX format (default displayName for wallet-only users)
       const walletLast4 = existingUser.walletAddress ? existingUser.walletAddress.slice(-4).toUpperCase() : ''
-      const isUserFormat = sanitizedDisplayName === `USER_${walletLast4}` ||
-                          sanitizedDisplayName.toUpperCase() === `USER_${walletLast4}`
+      const isUserFormat = walletLast4 && (
+        sanitizedDisplayName === `USER_${walletLast4}` ||
+        sanitizedDisplayName.toUpperCase() === `USER_${walletLast4}`
+      )
 
       const isValid = isWalletAddress || isDiscordName || isTwitterHandle || isUserFormat
 
