@@ -237,6 +237,8 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
   const [postReactions, setPostReactions] = useState<{ [postId: string]: { counts: { [key: string]: number }, userReactions: Set<string> } }>({})
   const [reactingTo, setReactingTo] = useState<string | null>(null)
   const [reactionEmojis, setReactionEmojis] = useState<{ [key: string]: string }>(defaultReactionEmojis)
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  const loadingRef = useRef(false)
 
   // DEBUG: Log component mount and userId
   useEffect(() => {
@@ -354,6 +356,27 @@ export default function SocialFeed({ userId, communityId, authorId, limit = 10 }
       setLoading(false)
     }
   }
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel || !hasMore) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingRef.current) {
+          loadingRef.current = true
+          fetchPosts(page + 1).finally(() => {
+            loadingRef.current = false
+          })
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasMore, page])
 
   // Load reactions for all posts
   useEffect(() => {
@@ -1085,21 +1108,7 @@ via @PeBloq`
       {/* Infinite Scroll Sentinel */}
       {hasMore && (
         <div
-          ref={(node) => {
-            if (!node || loading) return
-
-            const observer = new IntersectionObserver(
-              (entries) => {
-                if (entries[0].isIntersecting && hasMore && !loading) {
-                  fetchPosts(page + 1)
-                }
-              },
-              { threshold: 0.5, rootMargin: '200px' }
-            )
-
-            observer.observe(node)
-            return () => observer.disconnect()
-          }}
+          ref={sentinelRef}
           className="h-20 flex items-center justify-center"
         >
           {loading && (
@@ -1108,6 +1117,13 @@ via @PeBloq`
               <p className="text-gray-400 text-sm">Loading more posts...</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* End of Feed */}
+      {!hasMore && posts.length > 0 && (
+        <div className="text-center py-8 text-gray-400">
+          <p className="text-sm">You've reached the end of the feed 🐧</p>
         </div>
       )}
 
