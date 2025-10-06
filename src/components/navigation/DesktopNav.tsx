@@ -175,27 +175,31 @@ export default function DesktopNav() {
               </button>
 
               {showMoreMenu && (
-                <div className="absolute top-full right-0 mt-2 w-64 glass-card-strong border border-white/30 rounded-xl shadow-2xl overflow-hidden z-50">
+                <div className="absolute top-full right-0 mt-2 w-72 glass-card-strong border border-white/30 rounded-xl shadow-2xl overflow-hidden z-50">
                   <button onClick={() => { router.push('/achievements'); setShowMoreMenu(false) }} className="dropdown-item w-full text-left">
-                    <span className="text-lg">🏆</span>
-                    <span>Achievements</span>
+                    <span className="text-lg flex-shrink-0">🏆</span>
+                    <span className="whitespace-nowrap">Achievements</span>
                   </button>
                   <button onClick={() => { router.push('/levels'); setShowMoreMenu(false) }} className="dropdown-item w-full text-left">
-                    <span className="text-lg">⭐</span>
-                    <span>Levels</span>
+                    <span className="text-lg flex-shrink-0">⭐</span>
+                    <span className="whitespace-nowrap">Levels</span>
                   </button>
                   <button onClick={() => { router.push('/bookmarks'); setShowMoreMenu(false) }} className="dropdown-item w-full text-left">
-                    <span className="text-lg">🔖</span>
-                    <span>Bookmarks</span>
+                    <span className="text-lg flex-shrink-0">🔖</span>
+                    <span className="whitespace-nowrap">Bookmarks</span>
+                  </button>
+                  <button onClick={() => { router.push('/settings'); setShowMoreMenu(false) }} className="dropdown-item w-full text-left">
+                    <span className="text-lg flex-shrink-0">⚙️</span>
+                    <span className="whitespace-nowrap">Settings</span>
                   </button>
                   <button onClick={() => { router.push('/apply-project-verification'); setShowMoreMenu(false) }} className="dropdown-item border-t border-cyan-500/20 bg-cyan-500/10 w-full text-left">
-                    <span className="text-lg">🏢</span>
-                    <span className="text-cyan-300">Apply as Project</span>
+                    <span className="text-lg flex-shrink-0">🏢</span>
+                    <span className="text-cyan-300 whitespace-nowrap">Apply as Project</span>
                   </button>
                   {isAdmin && (
                     <button onClick={() => { router.push('/admin'); setShowMoreMenu(false) }} className="dropdown-item bg-purple-500/10 border-t border-purple-500/20 w-full text-left">
-                      <span className="text-lg">👑</span>
-                      <span className="text-purple-300 font-semibold">Admin</span>
+                      <span className="text-lg flex-shrink-0">👑</span>
+                      <span className="text-purple-300 font-semibold whitespace-nowrap">Admin Panel</span>
                     </button>
                   )}
                 </div>
