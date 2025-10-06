@@ -234,8 +234,54 @@
   @apply transition-transform duration-150 active:scale-95;
 }
 
-/* Theme System CSS Variables */
+/* Design Token System */
 :root {
+  /* Brand Colors */
+  --pengu-green: #00E177;
+  --pengu-orange: #FFB92E;
+
+  /* Spacing Scale (4px base) */
+  --space-xs: 0.25rem;   /* 4px */
+  --space-sm: 0.5rem;    /* 8px */
+  --space-md: 0.75rem;   /* 12px */
+  --space-lg: 1rem;      /* 16px */
+  --space-xl: 1.5rem;    /* 24px */
+  --space-2xl: 2rem;     /* 32px */
+  --space-3xl: 3rem;     /* 48px */
+
+  /* Border Radius */
+  --radius-sm: 0.5rem;   /* 8px */
+  --radius-md: 0.75rem;  /* 12px */
+  --radius-lg: 1rem;     /* 16px */
+  --radius-xl: 1.5rem;   /* 24px */
+
+  /* Transitions */
+  --transition-fast: 150ms ease-out;
+  --transition-base: 200ms ease-out;
+  --transition-slow: 300ms ease-out;
+
+  /* Shadows (Elevation) */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.25);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.3);
+  --shadow-2xl: 0 24px 64px rgba(0, 0, 0, 0.4);
+
+  /* Glass Morphism Layers */
+  --glass-subtle: rgba(255, 255, 255, 0.05);
+  --glass-base: rgba(255, 255, 255, 0.1);
+  --glass-strong: rgba(255, 255, 255, 0.15);
+
+  /* Z-Index Scale */
+  --z-base: 0;
+  --z-dropdown: 50;
+  --z-sticky: 50;
+  --z-tooltip: 60;
+  --z-modal-backdrop: 80;
+  --z-modal-content: 90;
+  --z-toast: 100;
+
+  /* Theme System (Legacy - keep for backwards compatibility) */
   --theme-from: #111827;
   --theme-via: #064e3b;
   --theme-to: #065f46;
@@ -411,4 +457,146 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   @apply bg-cyan-400/70;
+}
+
+/* Standardized Utility Classes (Design System) */
+
+/* Glass Morphism Variants */
+.glass-subtle {
+  @apply bg-white/5 backdrop-blur-md border border-white/10;
+}
+
+.glass {
+  @apply bg-white/10 backdrop-blur-lg border border-white/20;
+}
+
+.glass-strong {
+  @apply bg-white/15 backdrop-blur-xl border border-white/30;
+}
+
+.glass-interactive {
+  @apply glass hover:bg-white/15 hover:border-white/30
+         transition-all duration-200;
+}
+
+/* Button System */
+.btn-base {
+  @apply inline-flex items-center justify-center gap-2
+         font-medium rounded-xl min-h-[48px] px-6
+         transition-all duration-200 ease-out
+         focus-visible:ring-2 focus-visible:ring-pengu-green
+         focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900
+         active:scale-[0.98];
+}
+
+.btn-primary {
+  @apply btn-base bg-gradient-to-r from-pengu-green to-pengu-600
+         hover:from-pengu-400 hover:to-pengu-700
+         text-white shadow-lg hover:shadow-xl
+         hover:shadow-pengu-green/20;
+}
+
+.btn-secondary {
+  @apply btn-base glass hover:bg-white/15
+         hover:border-white/30 text-white;
+}
+
+.btn-ghost {
+  @apply btn-base hover:bg-white/10 text-white;
+}
+
+/* Interaction Utilities */
+.interactive-scale {
+  @apply hover:scale-[1.02] active:scale-[0.98]
+         transition-transform duration-200;
+}
+
+.interactive-lift {
+  @apply hover:-translate-y-1 hover:shadow-xl
+         transition-all duration-300;
+}
+
+/* Card Variants */
+.card-base {
+  @apply glass-card rounded-2xl;
+}
+
+.card-interactive {
+  @apply card-base hover:bg-white/15 hover:border-white/30
+         hover:shadow-lg transition-all duration-200
+         cursor-pointer;
+}
+
+.card-elevated {
+  @apply card-base shadow-lg hover:shadow-xl
+         hover:-translate-y-1 transition-all duration-300;
+}
+
+/* Modal Utilities */
+.modal-backdrop {
+  @apply fixed inset-0
+         bg-black/70 backdrop-blur-md
+         flex items-center justify-center p-4;
+  z-index: var(--z-modal-backdrop);
+}
+
+.modal-content {
+  @apply bg-gradient-to-br from-gray-900 to-gray-800
+         border border-white/20 rounded-2xl
+         shadow-2xl max-w-md w-full;
+  z-index: var(--z-modal-content);
+}
+
+/* Text Utilities */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Safe Area Utilities for Mobile */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-left {
+  padding-left: env(safe-area-inset-left, 0);
+}
+
+.safe-right {
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+/* Shimmer Animation for Skeletons */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.05) 25%,
+    rgba(255,255,255,0.1) 50%,
+    rgba(255,255,255,0.05) 75%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
