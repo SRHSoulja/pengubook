@@ -71,7 +71,7 @@ interface TokenAccessData {
 
 export default function CommunityPage({ params }: CommunityPageProps) {
   const { user, isAuthenticated } = useAuth()
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [community, setCommunity] = useState<Community | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -159,11 +159,11 @@ export default function CommunityPage({ params }: CommunityPageProps) {
       if (response.ok) {
         await fetchCommunity() // Refresh community data
       } else {
-        addToast(data.error || 'Failed to join community', 'error')
+        toast(data.error || 'Failed to join community', 'error')
       }
     } catch (error) {
       console.error('Error joining community:', error)
-      addToast('Failed to join community', 'error')
+      toast('Failed to join community', 'error')
     } finally {
       setJoining(false)
     }

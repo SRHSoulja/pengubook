@@ -48,7 +48,7 @@ interface Conversation {
 export default function MessagesPage() {
   const { user, isAuthenticated, loading: authLoading, sessionToken } = useAuth()
   const { currentTheme } = useTheme()
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -138,11 +138,11 @@ export default function MessagesPage() {
         // Remove from local state
         setConversations(conversations.filter(c => c.id !== conversationId))
       } else {
-        addToast('Failed to delete conversation: ' + (result.error || 'Unknown error'), 'error')
+        toast('Failed to delete conversation: ' + (result.error || 'Unknown error'), 'error')
       }
     } catch (error) {
       console.error('Error deleting conversation:', error)
-      addToast('Failed to delete conversation', 'error')
+      toast('Failed to delete conversation', 'error')
     }
   }
 

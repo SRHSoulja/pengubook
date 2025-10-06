@@ -28,7 +28,7 @@ interface ModToolsProps {
 
 export default function ModTools({ communityId, creatorId }: ModToolsProps) {
   const { user } = useAuth()
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState<'members' | 'reports' | 'logs'>('members')
   const [members, setMembers] = useState<Member[]>([])
   const [moderators, setModerators] = useState<any[]>([])
@@ -89,14 +89,14 @@ export default function ModTools({ communityId, creatorId }: ModToolsProps) {
       if (response.ok) {
         await fetchData()
         setSelectedMember(null)
-        addToast(`Member ${action} successfully`, 'success')
+        toast(`Member ${action} successfully`, 'success')
       } else {
         const error = await response.json()
-        addToast(error.error || `Failed to ${action} member`, 'error')
+        toast(error.error || `Failed to ${action} member`, 'error')
       }
     } catch (error) {
       console.error(`Error ${action} member:`, error)
-      addToast(`Failed to ${action} member`, 'error')
+      toast(`Failed to ${action} member`, 'error')
     }
   }
 
@@ -120,14 +120,14 @@ export default function ModTools({ communityId, creatorId }: ModToolsProps) {
         await fetchData()
         setSelectedMember(null)
         setCustomTitleInput('')
-        addToast('Member title updated successfully', 'success')
+        toast('Member title updated successfully', 'success')
       } else {
         const error = await response.json()
-        addToast(error.error || 'Failed to update member title', 'error')
+        toast(error.error || 'Failed to update member title', 'error')
       }
     } catch (error) {
       console.error('Error updating member title:', error)
-      addToast('Failed to update member title', 'error')
+      toast('Failed to update member title', 'error')
     }
   }
 

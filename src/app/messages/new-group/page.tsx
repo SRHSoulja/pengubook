@@ -22,7 +22,7 @@ interface User {
 
 export default function NewGroupPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const router = useRouter()
   const [step, setStep] = useState<'info' | 'members'>('info')
   const [loading, setLoading] = useState(false)
@@ -85,11 +85,11 @@ export default function NewGroupPage() {
   const createGroup = async () => {
     if (!user?.walletAddress) return
     if (selectedUsers.length < 2) {
-      addToast('Please select at least 2 other members for the group', 'warning')
+      toast('Please select at least 2 other members for the group', 'warning')
       return
     }
     if (!groupInfo.name.trim()) {
-      addToast('Please enter a group name', 'warning')
+      toast('Please enter a group name', 'warning')
       return
     }
 
@@ -114,11 +114,11 @@ export default function NewGroupPage() {
       if (data.success) {
         router.push(`/messages/${data.conversation.id}`)
       } else {
-        addToast(data.error || 'Failed to create group', 'error')
+        toast(data.error || 'Failed to create group', 'error')
       }
     } catch (error) {
       console.error('Error creating group:', error)
-      addToast('Failed to create group', 'error')
+      toast('Failed to create group', 'error')
     } finally {
       setLoading(false)
     }

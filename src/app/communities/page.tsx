@@ -28,7 +28,7 @@ interface Community {
 export default function CommunitiesPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const { currentTheme } = useTheme()
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [communities, setCommunities] = useState<Community[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
@@ -97,13 +97,13 @@ export default function CommunitiesPage() {
             : community
         ))
         // Show success message or redirect to community
-        addToast(data.message, 'success')
+        toast(data.message, 'success')
       } else {
-        addToast(data.error || 'Failed to join community', 'error')
+        toast(data.error || 'Failed to join community', 'error')
       }
     } catch (error) {
       console.error('Error joining community:', error)
-      addToast('Failed to join community', 'error')
+      toast('Failed to join community', 'error')
     }
   }
 

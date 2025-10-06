@@ -52,7 +52,7 @@ interface CommunityRecommendation {
 export default function DiscoverPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const { currentTheme } = useTheme()
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [suggestedUsers, setSuggestedUsers] = useState<UserSuggestion[]>([])
   const [suggestedCommunities, setSuggestedCommunities] = useState<CommunityRecommendation[]>([])
   const [verifiedProjects, setVerifiedProjects] = useState<any[]>([])
@@ -114,13 +114,13 @@ export default function DiscoverPage() {
       if (response.ok) {
         // Remove community from suggestions
         setSuggestedCommunities(prev => prev.filter(suggestion => suggestion.community.id !== communityId))
-        addToast(data.message, 'success')
+        toast(data.message, 'success')
       } else {
-        addToast(data.error || 'Failed to join community', 'error')
+        toast(data.error || 'Failed to join community', 'error')
       }
     } catch (error) {
       console.error('Error joining community:', error)
-      addToast('Failed to join community', 'error')
+      toast('Failed to join community', 'error')
     }
   }
 

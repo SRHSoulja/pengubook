@@ -56,7 +56,7 @@ interface Community {
 
 export default function CommunityClient({ params }: CommunityPageProps) {
   const { user, isAuthenticated } = useAuth()
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [community, setCommunity] = useState<Community | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -152,13 +152,13 @@ export default function CommunityClient({ params }: CommunityPageProps) {
       if (response.ok) {
         // Refresh community data
         fetchCommunity()
-        addToast(data.message, 'success')
+        toast(data.message, 'success')
       } else {
-        addToast(data.error || 'Failed to join community', 'error')
+        toast(data.error || 'Failed to join community', 'error')
       }
     } catch (error) {
       console.error('Error joining community:', error)
-      addToast('Failed to join community', 'error')
+      toast('Failed to join community', 'error')
     }
   }
 

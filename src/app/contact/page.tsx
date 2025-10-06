@@ -8,7 +8,7 @@ import Link from 'next/link'
 
 export default function ContactPage() {
   const { user } = useAuth()
-  const { addToast } = useToast()
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
     name: user?.displayName || '',
     email: '',
@@ -46,11 +46,11 @@ export default function ContactPage() {
           type: 'bug'
         })
       } else {
-        addToast('Failed to send message. Please try again.', 'error')
+        toast('Failed to send message. Please try again.', 'error')
       }
     } catch (error) {
       console.error('Contact form error:', error)
-      addToast('Failed to send message. Please try again.', 'error')
+      toast('Failed to send message. Please try again.', 'error')
     } finally {
       setSubmitting(false)
     }
