@@ -16,9 +16,11 @@ export default function Navbar() {
   const router = useRouter()
   const [unreadCount, setUnreadCount] = useState(0)
   const [showMoreMenu, setShowMoreMenu] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false)
   const moreMenuRef = useRef<HTMLDivElement>(null)
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
 
   const isAdmin = user?.isAdmin || false
@@ -28,6 +30,9 @@ export default function Navbar() {
     function handleClickOutside(event: MouseEvent) {
       if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
         setShowMoreMenu(false)
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setShowMobileMenu(false)
       }
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setShowUserMenu(false)
@@ -306,7 +311,7 @@ export default function Navbar() {
 
           {/* Mobile Menu Button (shown on smaller screens) */}
           <button
-            onClick={() => setShowMoreMenu(!showMoreMenu)}
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
             className="lg:hidden nav-link-compact"
           >
             <span className="text-xl">☰</span>
@@ -314,12 +319,12 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu - Full Navigation for mobile devices */}
-        {showMoreMenu && (
-          <div className="lg:hidden mt-4 glass-card-strong border border-white/30 rounded-xl overflow-hidden">
+        {showMobileMenu && (
+          <div className="lg:hidden mt-4 glass-card-strong border border-white/30 rounded-xl overflow-hidden" ref={mobileMenuRef}>
             <div className="flex items-center justify-between p-3 border-b border-white/10">
               <span className="text-white font-semibold">Menu</span>
               <button
-                onClick={() => setShowMoreMenu(false)}
+                onClick={() => setShowMobileMenu(false)}
                 className="text-white text-xl hover:text-pengu-green transition-colors"
               >
                 ✕
@@ -328,7 +333,7 @@ export default function Navbar() {
             <button
               onClick={() => {
                 router.push('/dashboard')
-                setShowMoreMenu(false)
+                setShowMobileMenu(false)
               }}
               className="dropdown-item flex items-center gap-3 w-full text-left"
             >
@@ -338,7 +343,7 @@ export default function Navbar() {
             <button
               onClick={() => {
                 router.push('/feed')
-                setShowMoreMenu(false)
+                setShowMobileMenu(false)
               }}
               className="dropdown-item flex items-center gap-3 w-full text-left"
             >
@@ -348,7 +353,7 @@ export default function Navbar() {
             <button
               onClick={() => {
                 router.push('/communities')
-                setShowMoreMenu(false)
+                setShowMobileMenu(false)
               }}
               className="dropdown-item flex items-center gap-3 w-full text-left"
             >
@@ -358,7 +363,7 @@ export default function Navbar() {
             <button
               onClick={() => {
                 router.push('/discover')
-                setShowMoreMenu(false)
+                setShowMobileMenu(false)
               }}
               className="dropdown-item flex items-center gap-3 w-full text-left"
             >
@@ -368,7 +373,7 @@ export default function Navbar() {
             <button
               onClick={() => {
                 router.push('/friends')
-                setShowMoreMenu(false)
+                setShowMobileMenu(false)
               }}
               className="dropdown-item flex items-center gap-3 w-full text-left"
             >
@@ -378,7 +383,7 @@ export default function Navbar() {
             <button
               onClick={() => {
                 router.push('/messages')
-                setShowMoreMenu(false)
+                setShowMobileMenu(false)
               }}
               className="dropdown-item flex items-center gap-3 relative w-full text-left"
             >
@@ -395,7 +400,7 @@ export default function Navbar() {
               <button
                 onClick={() => {
                   router.push('/achievements')
-                  setShowMoreMenu(false)
+                  setShowMobileMenu(false)
                 }}
                 className="dropdown-item flex items-center gap-3 w-full text-left"
               >
@@ -405,7 +410,7 @@ export default function Navbar() {
               <button
                 onClick={() => {
                   router.push('/levels')
-                  setShowMoreMenu(false)
+                  setShowMobileMenu(false)
                 }}
                 className="dropdown-item flex items-center gap-3 w-full text-left"
               >
@@ -415,7 +420,7 @@ export default function Navbar() {
               <button
                 onClick={() => {
                   router.push('/bookmarks')
-                  setShowMoreMenu(false)
+                  setShowMobileMenu(false)
                 }}
                 className="dropdown-item flex items-center gap-3 w-full text-left"
               >
@@ -428,7 +433,7 @@ export default function Navbar() {
               <button
                 onClick={() => {
                   router.push('/profile')
-                  setShowMoreMenu(false)
+                  setShowMobileMenu(false)
                 }}
                 className="dropdown-item flex items-center gap-3 w-full text-left"
               >
@@ -438,7 +443,7 @@ export default function Navbar() {
               <button
                 onClick={() => {
                   router.push('/settings')
-                  setShowMoreMenu(false)
+                  setShowMobileMenu(false)
                 }}
                 className="dropdown-item flex items-center gap-3 w-full text-left"
               >
@@ -448,7 +453,7 @@ export default function Navbar() {
               <button
                 onClick={() => {
                   setShowThemeCustomizer(true)
-                  setShowMoreMenu(false)
+                  setShowMobileMenu(false)
                 }}
                 className="dropdown-item flex items-center gap-3 w-full text-left"
               >
@@ -461,7 +466,7 @@ export default function Navbar() {
               <button
                 onClick={() => {
                   router.push('/apply-project-verification')
-                  setShowMoreMenu(false)
+                  setShowMobileMenu(false)
                 }}
                 className="dropdown-item flex items-center gap-3 bg-cyan-500/10 w-full text-left"
               >
@@ -472,7 +477,7 @@ export default function Navbar() {
                 <button
                   onClick={() => {
                     router.push('/admin')
-                    setShowMoreMenu(false)
+                    setShowMobileMenu(false)
                   }}
                   className="dropdown-item flex items-center gap-3 bg-purple-500/10 w-full text-left"
                 >
@@ -492,7 +497,7 @@ export default function Navbar() {
               <button
                 onClick={() => {
                   handleLogout()
-                  setShowMoreMenu(false)
+                  setShowMobileMenu(false)
                 }}
                 className="dropdown-item flex items-center gap-3 w-full text-left text-red-300 hover:bg-red-500/20"
               >
