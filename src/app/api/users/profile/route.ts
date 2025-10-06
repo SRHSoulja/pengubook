@@ -220,7 +220,7 @@ export const PUT = withAuth(async (request: NextRequest, user: any) => {
     // Sanitize user inputs to prevent XSS attacks
     if (displayName !== undefined) updateData.displayName = sanitizeText(displayName)
 
-    // SECURITY: Username must match one of the linked social accounts
+    // SECURITY: Username must match one of the linked social accounts OR be wallet-based
     if (username !== undefined) {
       const sanitizedUsername = sanitizeText(username)
 
@@ -231,11 +231,29 @@ export const PUT = withAuth(async (request: NextRequest, user: any) => {
         sanitizedUsername === existingUser.twitterHandle.replace('@', '')
       )
 
-      if (!isDiscordUsername && !isTwitterUsername) {
-        return NextResponse.json(
-          { error: 'Username must match one of your linked social accounts (Discord or X/Twitter)' },
-          { status: 400 }
-        )
+      // For wallet-only users, allow wallet address or wallet-based usernames
+      const isWalletBased = existingUser.walletAddress && (
+        sanitizedUsername === existingUser.walletAddress ||
+        sanitizedUsername === existingUser.walletAddress.toLowerCase() ||
+        sanitizedUsername.startsWith('0x') // Allow any wallet-style username for wallet users
+      )
+
+      // Allow if matches social accounts OR if wallet-only user with wallet-based username
+      const hasSocialAccounts = existingUser.discordId || existingUser.twitterId
+      const isValid = isDiscordUsername || isTwitterUsername || (!hasSocialAccounts && isWalletBased) || isWalletBased
+
+      if (!isValid) {
+        if (hasSocialAccounts) {
+          return NextResponse.json(
+            { error: 'Username must match one of your linked social accounts (Discord or X/Twitter)' },
+            { status: 400 }
+          )
+        } else {
+          return NextResponse.json(
+            { error: 'Username must be your wallet address for wallet-only accounts' },
+            { status: 400 }
+          )
+        }
       }
 
       updateData.username = sanitizedUsername
