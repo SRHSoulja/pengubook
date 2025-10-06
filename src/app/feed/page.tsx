@@ -11,7 +11,7 @@ import EnhancedPostComposer from '@/components/EnhancedPostComposer'
 
 export default function FeedPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
-  const { currentTheme } = useTheme()
+  // Theme handled by ThemeWrapper
 
   const handlePost = async (data: { title: string; content: string; media?: any[] }) => {
     if (!user) return
@@ -82,7 +82,7 @@ export default function FeedPage() {
   }
 
   return (
-    <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+    <div className="min-h-screen transition-all duration-500">
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">

@@ -9,7 +9,7 @@ import Link from 'next/link'
 
 export default function ApplyProjectVerificationPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
-  const { currentTheme } = useTheme()
+  // Theme handled by ThemeWrapper
   const router = useRouter()
 
   const [formData, setFormData] = useState({
@@ -62,7 +62,7 @@ export default function ApplyProjectVerificationPage() {
 
   if (authLoading) {
     return (
-      <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+      <div className="min-h-screen transition-all duration-500">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -73,7 +73,7 @@ export default function ApplyProjectVerificationPage() {
 
   if (!authLoading && !isAuthenticated) {
     return (
-      <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+      <div className="min-h-screen transition-all duration-500">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center text-white">
@@ -91,7 +91,7 @@ export default function ApplyProjectVerificationPage() {
 
   if (success) {
     return (
-      <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+      <div className="min-h-screen transition-all duration-500">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center text-white max-w-md">
@@ -108,7 +108,7 @@ export default function ApplyProjectVerificationPage() {
   }
 
   return (
-    <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+    <div className="min-h-screen transition-all duration-500">
       <Navbar />
 
       <div className="container mx-auto px-4 py-8 max-w-3xl">

@@ -42,9 +42,6 @@ export default function Dashboard() {
     <div
       key={themeKey}
       className="min-h-screen transition-all duration-500"
-      style={{
-        background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})`
-      }}
     >
       <Navbar />
 

@@ -68,7 +68,8 @@
       "Read(//home/arson/PenguBook/**)",
       "Bash(xargs:*)",
       "Bash(do sed -i 's/addToast/toast/g' \"$file\")",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(perl:*)"
     ],
     "deny": [],
     "ask": []

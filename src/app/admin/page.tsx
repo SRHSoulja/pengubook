@@ -20,7 +20,7 @@ import Link from 'next/link'
 
 export default function AdminPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
-  const { currentTheme } = useTheme()
+  // Theme handled by ThemeWrapper
   const [activeTab, setActiveTab] = useState('overview')
   const [queueCount, setQueueCount] = useState(0)
   const [reportsCount, setReportsCount] = useState(0)
@@ -124,7 +124,7 @@ export default function AdminPage() {
 
   if (authLoading) {
     return (
-      <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+      <div className="min-h-screen transition-all duration-500">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center text-white">
@@ -140,7 +140,7 @@ export default function AdminPage() {
   // Show access denied ONLY after loading is complete
   if (!authLoading && (!isAuthenticated || !user)) {
     return (
-      <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+      <div className="min-h-screen transition-all duration-500">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center text-white">
@@ -163,7 +163,7 @@ export default function AdminPage() {
 
   if (!user.isAdmin) {
     return (
-      <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+      <div className="min-h-screen transition-all duration-500">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center text-white">
@@ -208,7 +208,7 @@ export default function AdminPage() {
   ]
 
   return (
-    <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+    <div className="min-h-screen transition-all duration-500">
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">

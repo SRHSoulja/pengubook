@@ -31,7 +31,7 @@ interface FriendRequest {
 
 export default function FriendsPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
-  const { currentTheme } = useTheme()
+  // Theme handled by ThemeWrapper
   const [friends, setFriends] = useState<Friend[]>([])
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([])
   const [loading, setLoading] = useState(true)
@@ -114,7 +114,7 @@ export default function FriendsPage() {
 
   if (authLoading) {
     return (
-      <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+      <div className="min-h-screen transition-all duration-500">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center text-white">
@@ -129,7 +129,7 @@ export default function FriendsPage() {
 
   if (!isAuthenticated && !authLoading) {
     return (
-      <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+      <div className="min-h-screen transition-all duration-500">
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center text-white">
@@ -146,7 +146,7 @@ export default function FriendsPage() {
   }
 
   return (
-    <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+    <div className="min-h-screen transition-all duration-500">
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">

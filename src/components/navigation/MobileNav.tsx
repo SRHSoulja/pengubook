@@ -3,12 +3,14 @@
 import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/providers/AuthProvider'
+import ThemeCustomizer from '@/components/ThemeCustomizer'
 
 export default function MobileNav() {
   const router = useRouter()
   const pathname = usePathname()
   const { user } = useAuth()
   const [showSearch, setShowSearch] = useState(false)
+  const [showThemeCustomizer, setShowThemeCustomizer] = useState(false)
 
   return (
     <>
@@ -248,6 +250,21 @@ export default function MobileNav() {
               <span className="text-xs font-medium whitespace-nowrap">Settings</span>
             </button>
 
+            {/* Themes */}
+            <button
+              onClick={() => setShowThemeCustomizer(true)}
+              className="flex flex-col items-center gap-1 p-2 rounded-lg touch-target transition-all duration-200 flex-shrink-0 text-gray-400 hover:text-white hover:bg-white/5"
+              aria-label="Themes"
+            >
+              <img
+                src="https://gmgnrepeat.com/icons/penguintheme1.png"
+                alt=""
+                aria-hidden="true"
+                className="w-6 h-6 transition-transform duration-200"
+              />
+              <span className="text-xs font-medium whitespace-nowrap">Themes</span>
+            </button>
+
             {/* Profile */}
             <button
               onClick={() => router.push('/profile')}
@@ -271,6 +288,12 @@ export default function MobileNav() {
           </div>
         </div>
       </div>
+
+      {/* Theme Customizer Modal */}
+      <ThemeCustomizer
+        isOpen={showThemeCustomizer}
+        onClose={() => setShowThemeCustomizer(false)}
+      />
     </>
   )
 }

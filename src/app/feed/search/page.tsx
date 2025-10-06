@@ -23,7 +23,7 @@ interface SearchResult extends Omit<Post, 'createdAt' | 'updatedAt'> {
 export default function FeedSearchPage() {
   const searchParams = useSearchParams()
   const query = searchParams?.get('q') || ''
-  const { currentTheme } = useTheme()
+  // Theme handled by ThemeWrapper
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -73,7 +73,7 @@ export default function FeedSearchPage() {
   }
 
   return (
-    <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+    <div className="min-h-screen transition-all duration-500">
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">

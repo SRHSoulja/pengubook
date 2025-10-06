@@ -51,7 +51,7 @@ interface CommunityRecommendation {
 
 export default function DiscoverPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
-  const { currentTheme } = useTheme()
+  // Theme handled by ThemeWrapper
   const { toast } = useToast()
   const [suggestedUsers, setSuggestedUsers] = useState<UserSuggestion[]>([])
   const [suggestedCommunities, setSuggestedCommunities] = useState<CommunityRecommendation[]>([])
@@ -144,7 +144,7 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+    <div className="min-h-screen transition-all duration-500">
       <Navbar />
 
       <div className="container mx-auto px-4 py-4 md:py-8">

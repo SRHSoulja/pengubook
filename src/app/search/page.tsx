@@ -29,7 +29,7 @@ interface SearchResult {
 export default function SearchPage() {
   const searchParams = useSearchParams()
   const query = searchParams?.get('q') || ''
-  const { currentTheme } = useTheme()
+  // Theme handled by ThemeWrapper
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState(query)
@@ -81,7 +81,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div style={{ background: `linear-gradient(135deg, ${currentTheme.colors.from}, ${currentTheme.colors.via}, ${currentTheme.colors.to})` }} className="min-h-screen transition-all duration-500">
+    <div className="min-h-screen transition-all duration-500">
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">
