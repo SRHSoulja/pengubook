@@ -2,7 +2,7 @@
 
 import { useLoginWithAbstract, useAbstractClient } from '@abstract-foundation/agw-react'
 import { useState, useEffect, useRef } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/providers/AuthProvider'
 import UserSearch from './UserSearch'
 import ThemeCustomizer from './ThemeCustomizer'
@@ -13,6 +13,7 @@ export default function Navbar() {
   const { data: client } = useAbstractClient()
   const { user, isAuthenticated, oauthSession } = useAuth()
   const pathname = usePathname()
+  const router = useRouter()
   const [unreadCount, setUnreadCount] = useState(0)
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
@@ -370,14 +371,26 @@ export default function Navbar() {
             </div>
 
             <div className="border-t border-white/10 mt-2 pt-2">
-              <a href="/profile" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+              <button
+                onClick={() => {
+                  router.push('/profile')
+                  setShowMoreMenu(false)
+                }}
+                className="dropdown-item flex items-center gap-3 w-full text-left"
+              >
                 <img src="https://gmgnrepeat.com/icons/penguinsilhouette1.png" alt="Profile" className="w-5 h-5" />
                 <span>My Profile</span>
-              </a>
-              <a href="/settings" className="dropdown-item flex items-center gap-3" onClick={() => setShowMoreMenu(false)}>
+              </button>
+              <button
+                onClick={() => {
+                  router.push('/settings')
+                  setShowMoreMenu(false)
+                }}
+                className="dropdown-item flex items-center gap-3 w-full text-left"
+              >
                 <span className="text-xl">⚙️</span>
                 <span>Settings</span>
-              </a>
+              </button>
               <button
                 onClick={() => {
                   setShowThemeCustomizer(true)
@@ -391,15 +404,27 @@ export default function Navbar() {
             </div>
 
             <div className="border-t border-white/10 mt-2 pt-2">
-              <a href="/apply-project-verification" className="dropdown-item flex items-center gap-3 bg-cyan-500/10" onClick={() => setShowMoreMenu(false)}>
+              <button
+                onClick={() => {
+                  router.push('/apply-project-verification')
+                  setShowMoreMenu(false)
+                }}
+                className="dropdown-item flex items-center gap-3 bg-cyan-500/10 w-full text-left"
+              >
                 <span className="text-xl">🏢</span>
                 <span className="text-cyan-300">Apply as Project</span>
-              </a>
+              </button>
               {isAdmin && (
-                <a href="/admin" className="dropdown-item flex items-center gap-3 bg-purple-500/10" onClick={() => setShowMoreMenu(false)}>
+                <button
+                  onClick={() => {
+                    router.push('/admin')
+                    setShowMoreMenu(false)
+                  }}
+                  className="dropdown-item flex items-center gap-3 bg-purple-500/10 w-full text-left"
+                >
                   <span className="text-xl">👑</span>
                   <span className="text-purple-300 font-semibold">Admin</span>
-                </a>
+                </button>
               )}
             </div>
 
