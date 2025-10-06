@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/providers/AuthProvider'
 import Link from 'next/link'
 
 interface ContactSubmission {
@@ -24,6 +25,7 @@ interface ContactSubmission {
 }
 
 export default function ContactSubmissionsManager() {
+  const { user } = useAuth()
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>('all') // all, pending, reviewed, resolved, closed
@@ -33,20 +35,33 @@ export default function ContactSubmissionsManager() {
   const [adminNotes, setAdminNotes] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    fetchSubmissions()
-  }, [filter, typeFilter])
+    if (user) {
+      fetchSubmissions()
+    }
+  }, [filter, typeFilter, user])
 
   const fetchSubmissions = async () => {
+    if (!user) return
+
     try {
       setLoading(true)
       const params = new URLSearchParams()
       if (filter !== 'all') params.append('status', filter.toUpperCase())
       if (typeFilter !== 'all') params.append('type', typeFilter)
 
-      const response = await fetch(`/api/admin/contact-submissions?${params}`)
+      const headers: Record<string, string> = {}
+      if (user.walletAddress) headers['x-wallet-address'] = user.walletAddress
+      if (user.id) headers['x-user-id'] = user.id
+
+      const response = await fetch(`/api/admin/contact-submissions?${params}`, {
+        headers,
+        credentials: 'include'
+      })
       if (response.ok) {
         const data = await response.json()
         setSubmissions(data.submissions || [])
+      } else {
+        console.error('Failed to fetch submissions:', response.status)
       }
     } catch (err) {
       console.error('Failed to fetch contact submissions:', err)
@@ -56,15 +71,24 @@ export default function ContactSubmissionsManager() {
   }
 
   const updateSubmissionStatus = async (id: string, newStatus: string) => {
+    if (!user) return
+
     try {
       setUpdatingStatus(id)
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+      if (user.walletAddress) headers['x-wallet-address'] = user.walletAddress
+      if (user.id) headers['x-user-id'] = user.id
+
       const response = await fetch(`/api/admin/contact-submissions/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           status: newStatus,
           adminNotes: adminNotes[id] || null
-        })
+        }),
+        credentials: 'include'
       })
 
       if (response.ok) {
