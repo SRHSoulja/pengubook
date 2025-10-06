@@ -40,10 +40,10 @@ export async function POST(request: NextRequest) {
     // Mark all notifications as read
     await prisma.notification.updateMany({
       where: {
-        recipientId: user.id,
-        read: false
+        toUserId: user.id,
+        isRead: false
       },
-      data: { read: true }
+      data: { isRead: true }
     })
 
     return NextResponse.json({ success: true })

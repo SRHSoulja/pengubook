@@ -39,9 +39,9 @@ export async function GET(request: NextRequest) {
 
     // Fetch notifications for user
     const notifications = await prisma.notification.findMany({
-      where: { recipientId: user.id },
+      where: { toUserId: user.id },
       include: {
-        actor: {
+        fromUser: {
           select: {
             id: true,
             displayName: true,
@@ -55,8 +55,8 @@ export async function GET(request: NextRequest) {
 
     const unreadCount = await prisma.notification.count({
       where: {
-        recipientId: user.id,
-        read: false
+        toUserId: user.id,
+        isRead: false
       }
     })
 
@@ -64,11 +64,11 @@ export async function GET(request: NextRequest) {
       notifications: notifications.map(n => ({
         id: n.id,
         type: n.type,
+        title: n.title,
         content: n.content,
-        read: n.read,
+        isRead: n.isRead,
         createdAt: n.createdAt.toISOString(),
-        actor: n.actor,
-        actionUrl: n.actionUrl
+        fromUser: n.fromUser
       })),
       unreadCount
     })
