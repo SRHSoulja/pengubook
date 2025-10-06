@@ -9,8 +9,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="text-4xl">🐧</div>
+            <div className="flex items-center space-x-3 mb-4">
+              <img src="https://gmgnrepeat.com/pengubooklogo1.png" alt="PeBloq Logo" className="w-10 h-10 object-contain" />
               <span className="text-2xl font-bold text-white">PeBloq</span>
             </div>
             <p className="text-gray-300 text-sm mb-4">
