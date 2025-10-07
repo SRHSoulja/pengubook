@@ -206,8 +206,10 @@ export const POST = withRateLimit(3, 60 * 60 * 1000)(withAuth(async (request: Ne
         reportsSubmitted: {
           select: {
             id: true,
-            targetType: true,
             targetId: true,
+            postId: true,
+            commentId: true,
+            messageId: true,
             reason: true,
             description: true,
             status: true,
