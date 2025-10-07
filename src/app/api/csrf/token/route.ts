@@ -38,7 +38,7 @@ export const GET = withRateLimit(60, 60000)( // 60 requests per minute
       await storeCsrfTokenInDB(token, userId, sessionId)
 
       // Create response with token
-      let response = NextResponse.json({
+      let response: NextResponse = NextResponse.json({
         success: true,
         token,
         expiresIn: 3600, // 1 hour in seconds
