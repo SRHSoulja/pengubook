@@ -127,7 +127,7 @@ class Logger {
   }
 
   /**
-   * Output log entry to console/stream
+   * Output log entry to console/stream and external drains
    */
   private output(logEntry: LogEntry) {
     if (this.isProduction) {
@@ -155,6 +155,50 @@ class Logger {
           break
       }
     }
+
+    // Send to external log drains (non-blocking)
+    this.sendToLogDrains(logEntry)
+  }
+
+  /**
+   * Send log entry to external log drains (Datadog, Axiom, Loki)
+   * Non-blocking - failures don't affect application
+   */
+  private sendToLogDrains(logEntry: LogEntry) {
+    // Only send in production or if explicitly enabled
+    if (!this.isProduction && process.env.LOG_DRAIN_ENABLED !== 'true') {
+      return
+    }
+
+    // Lazy load log-drain to avoid circular dependencies
+    setImmediate(async () => {
+      try {
+        const { drainLog } = await import('@/lib/log-drain')
+        drainLog({
+          timestamp: logEntry.timestamp,
+          level: logEntry.level,
+          message: logEntry.message,
+          data: logEntry.data,
+          context: {
+            component: logEntry.component,
+            requestId: logEntry.requestId,
+            userId: logEntry.userId,
+            ip: logEntry.ip
+          },
+          metadata: {
+            version: '2.7.4',
+            environment: process.env.NODE_ENV || 'development',
+            hostname: process.env.HOSTNAME
+          }
+        })
+      } catch (error) {
+        // Silently fail - log drain errors should not crash app
+        // Only log to console in development
+        if (!this.isProduction) {
+          console.error('[LOG_DRAIN] Error:', error)
+        }
+      }
+    })
   }
 
   /**
