@@ -60,7 +60,7 @@ export const GET = withRateLimit(60, 60 * 1000)(withAdminAuth(async (request: Ne
       userCount: users.length,
       totalUsers,
       search: search || 'none'
-    }, 'AdminPanel')
+    }, { component: 'AdminPanel' })
 
     return NextResponse.json({
       success: true,
