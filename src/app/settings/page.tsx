@@ -74,7 +74,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <label className="text-gray-300 text-sm">Username</label>
-                <p className="text-white bg-black/20 p-2 rounded">
+                <p className="text-white font-mono text-sm bg-black/20 p-2 rounded break-all">
                   {user.username || 'Not set'}
                 </p>
               </div>
