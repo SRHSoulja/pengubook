@@ -75,22 +75,33 @@ export function sanitizeInlineText(input: string): string {
 /**
  * Sanitize URL to prevent javascript: and data: URL attacks
  * Use for: validating user-provided URLs
+ * SECURITY: Blocks javascript:, data:, vbscript:, file: and other dangerous protocols
  */
 export function sanitizeUrl(url: string): string {
   if (!url) return ''
 
+  // Strip any HTML first
   const sanitized = DOMPurify.sanitize(url, {
     ALLOWED_TAGS: [],
     ALLOWED_ATTR: []
-  })
+  }).trim()
 
-  // Check if URL is safe (http/https only)
-  const urlPattern = /^https?:\/\//i
-  if (!urlPattern.test(sanitized)) {
+  // Validate URL format and protocol using URL constructor
+  try {
+    const parsed = new URL(sanitized)
+
+    // SECURITY: Only allow http and https protocols
+    // Blocks: javascript:, data:, vbscript:, file:, etc.
+    if (!['http:', 'https:'].includes(parsed.protocol.toLowerCase())) {
+      return ''
+    }
+
+    // Return normalized URL (prevents bypasses with mixed case, etc.)
+    return parsed.toString()
+  } catch {
+    // Invalid URL format
     return ''
   }
-
-  return sanitized
 }
 
 /**

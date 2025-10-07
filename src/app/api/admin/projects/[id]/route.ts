@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sanitizeUrl } from '@/lib/sanitize'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,6 +40,21 @@ export async function PATCH(
 
     const userId = params.id
 
+    // SECURITY: Validate project URLs before saving to database
+    const sanitizedProjectWebsite = projectWebsite ? sanitizeUrl(projectWebsite) : null
+    const sanitizedProjectTwitter = projectTwitter ? sanitizeUrl(projectTwitter) : null
+    const sanitizedProjectDiscord = projectDiscord ? sanitizeUrl(projectDiscord) : null
+
+    if (projectWebsite && !sanitizedProjectWebsite) {
+      return NextResponse.json({ error: 'Invalid project website URL' }, { status: 400 })
+    }
+    if (projectTwitter && !sanitizedProjectTwitter) {
+      return NextResponse.json({ error: 'Invalid project Twitter URL' }, { status: 400 })
+    }
+    if (projectDiscord && !sanitizedProjectDiscord) {
+      return NextResponse.json({ error: 'Invalid project Discord URL' }, { status: 400 })
+    }
+
     // Find user
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -56,9 +72,9 @@ export async function PATCH(
           userId,
           isProject: isProject || false,
           projectType: projectType || null,
-          projectWebsite: projectWebsite || null,
-          projectTwitter: projectTwitter || null,
-          projectDiscord: projectDiscord || null,
+          projectWebsite: sanitizedProjectWebsite,
+          projectTwitter: sanitizedProjectTwitter,
+          projectDiscord: sanitizedProjectDiscord,
           contractAddress: contractAddress || null,
           profileVerified: profileVerified || false
         }
@@ -70,9 +86,9 @@ export async function PATCH(
         data: {
           isProject: isProject !== undefined ? isProject : user.profile.isProject,
           projectType: projectType !== undefined ? projectType : user.profile.projectType,
-          projectWebsite: projectWebsite !== undefined ? projectWebsite : user.profile.projectWebsite,
-          projectTwitter: projectTwitter !== undefined ? projectTwitter : user.profile.projectTwitter,
-          projectDiscord: projectDiscord !== undefined ? projectDiscord : user.profile.projectDiscord,
+          projectWebsite: sanitizedProjectWebsite !== null ? sanitizedProjectWebsite : user.profile.projectWebsite,
+          projectTwitter: sanitizedProjectTwitter !== null ? sanitizedProjectTwitter : user.profile.projectTwitter,
+          projectDiscord: sanitizedProjectDiscord !== null ? sanitizedProjectDiscord : user.profile.projectDiscord,
           contractAddress: contractAddress !== undefined ? contractAddress : user.profile.contractAddress,
           profileVerified: profileVerified !== undefined ? profileVerified : user.profile.profileVerified
         }

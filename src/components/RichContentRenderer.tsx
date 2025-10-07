@@ -73,6 +73,16 @@ export default function RichContentRenderer({
     let lastIndex = 0
 
     // Replace URLs with links
+    // SECURITY: Validate URL protocol to prevent javascript: and data: attacks
+    const isSafeUrl = (url: string): boolean => {
+      try {
+        const parsedUrl = new URL(url)
+        return ['http:', 'https:'].includes(parsedUrl.protocol)
+      } catch {
+        return false
+      }
+    }
+
     line.replace(urlRegex, (match, ...args) => {
       const url = match
       const index = args[args.length - 2]
@@ -81,17 +91,27 @@ export default function RichContentRenderer({
         parts.push(formatTextSegment(line.substring(lastIndex, index)))
       }
 
-      parts.push(
-        <a
-          key={`url-${index}`}
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-cyan-400 hover:text-cyan-300 underline"
-        >
-          {url.length > 50 ? url.substring(0, 50) + '...' : url}
-        </a>
-      )
+      // Only render as link if URL is safe (http/https only)
+      if (isSafeUrl(url)) {
+        parts.push(
+          <a
+            key={`url-${index}`}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-cyan-400 hover:text-cyan-300 underline"
+          >
+            {url.length > 50 ? url.substring(0, 50) + '...' : url}
+          </a>
+        )
+      } else {
+        // Render as plain text if URL protocol is dangerous
+        parts.push(
+          <span key={`url-${index}`} className="text-gray-400">
+            {url.length > 50 ? url.substring(0, 50) + '...' : url}
+          </span>
+        )
+      }
 
       lastIndex = index + match.length
       return match

@@ -317,14 +317,36 @@ export const PUT = withAuth(async (request: NextRequest, user: any) => {
       })
 
       if (currentProfile?.isProject && currentProfile?.profileVerified) {
+        // SECURITY: Validate project URLs to prevent XSS attacks
         if (projectWebsite !== undefined) {
-          profileData.projectWebsite = projectWebsite || null
+          const sanitized = sanitizeUrl(projectWebsite || '')
+          if (projectWebsite && !sanitized) {
+            return NextResponse.json(
+              { error: 'Invalid project website URL. Must be a valid http/https URL.' },
+              { status: 400 }
+            )
+          }
+          profileData.projectWebsite = sanitized || null
         }
         if (projectTwitter !== undefined) {
-          profileData.projectTwitter = projectTwitter || null
+          const sanitized = sanitizeUrl(projectTwitter || '')
+          if (projectTwitter && !sanitized) {
+            return NextResponse.json(
+              { error: 'Invalid project Twitter URL. Must be a valid http/https URL.' },
+              { status: 400 }
+            )
+          }
+          profileData.projectTwitter = sanitized || null
         }
         if (projectDiscord !== undefined) {
-          profileData.projectDiscord = projectDiscord || null
+          const sanitized = sanitizeUrl(projectDiscord || '')
+          if (projectDiscord && !sanitized) {
+            return NextResponse.json(
+              { error: 'Invalid project Discord URL. Must be a valid http/https URL.' },
+              { status: 400 }
+            )
+          }
+          profileData.projectDiscord = sanitized || null
         }
       }
 

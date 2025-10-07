@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sanitizeUrl } from '@/lib/sanitize'
 
 export const dynamic = 'force-dynamic'
 
@@ -244,6 +245,29 @@ export async function PUT(
           sanitizedUpdateData[field] = updateData[field]
         }
       }
+    }
+
+    // SECURITY: Validate avatar and banner URLs to prevent XSS
+    if (sanitizedUpdateData.avatar) {
+      const sanitized = sanitizeUrl(sanitizedUpdateData.avatar)
+      if (!sanitized) {
+        return NextResponse.json(
+          { error: 'Invalid avatar URL. Must be a valid http/https URL.' },
+          { status: 400 }
+        )
+      }
+      sanitizedUpdateData.avatar = sanitized
+    }
+
+    if (sanitizedUpdateData.banner) {
+      const sanitized = sanitizeUrl(sanitizedUpdateData.banner)
+      if (!sanitized) {
+        return NextResponse.json(
+          { error: 'Invalid banner URL. Must be a valid http/https URL.' },
+          { status: 400 }
+        )
+      }
+      sanitizedUpdateData.banner = sanitized
     }
 
     // Cannot change name after creation
