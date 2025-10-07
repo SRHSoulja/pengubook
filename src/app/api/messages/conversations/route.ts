@@ -345,7 +345,7 @@ export const POST = withAuth(async (request: NextRequest, user: any) => {
       createdBy: user.id.slice(0, 8) + '...',
       participantCount: allParticipantIds.length,
       isGroup
-    }, 'Messaging')
+    }, { component: 'Messaging' })
 
     return NextResponse.json({
       success: true,

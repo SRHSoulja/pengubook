@@ -261,7 +261,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
     logger.info('Friend request sent', {
       fromUserId: user.id.slice(0, 8) + '...',
       toUserId: targetUserId.slice(0, 8) + '...'
-    }, 'Friends')
+    }, { component: 'Friends' })
 
     return NextResponse.json({
       success: true,

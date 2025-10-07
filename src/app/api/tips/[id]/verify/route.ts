@@ -78,7 +78,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: N
       txHash: tip.transactionHash.slice(0, 10) + '...',
       from: tip.fromUser.walletAddress.slice(0, 10) + '...',
       to: tip.toUser.walletAddress.slice(0, 10) + '...'
-    }, 'TipVerification')
+    }, { component: 'TipVerification' })
 
     const verificationResult = await verifyTipTransaction(
       tip.transactionHash,
@@ -92,7 +92,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: N
         tipId: tip.id,
         txHash: tip.transactionHash,
         error: verificationResult.error
-      }, 'TipVerification')
+      }, { component: 'TipVerification' })
 
       return NextResponse.json(
         { error: 'Transaction not found on blockchain', details: verificationResult.error },
@@ -112,7 +112,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: N
         tipId: tip.id,
         txHash: tip.transactionHash,
         error: verificationResult.error
-      }, 'TipVerification')
+      }, { component: 'TipVerification' })
 
       // Auto-mark as FAILED
       const updateData: any = {
@@ -220,7 +220,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: N
       token: tip.token.symbol,
       txHash: tip.transactionHash.slice(0, 10) + '...',
       verifiedBy: user.id
-    }, 'TipVerification')
+    }, { component: 'TipVerification' })
 
     return NextResponse.json({
       success: true,

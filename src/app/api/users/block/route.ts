@@ -79,7 +79,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
     logger.info('User blocked', {
       blockerId: user.id.slice(0, 8) + '...',
       blockedId: targetUserId.slice(0, 8) + '...'
-    }, 'Privacy')
+    }, { component: 'Privacy' })
 
     return NextResponse.json({
       success: true,
@@ -130,7 +130,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAuth(async (request: Next
     logger.info('User unblocked', {
       blockerId: user.id.slice(0, 8) + '...',
       blockedId: targetUserId.slice(0, 8) + '...'
-    }, 'Privacy')
+    }, { component: 'Privacy' })
 
     return NextResponse.json({
       success: true,

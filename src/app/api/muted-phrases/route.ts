@@ -168,7 +168,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
       isRegex,
       muteType,
       scope
-    }, 'MutedPhrases')
+    }, { component: 'MutedPhrases' })
 
     return NextResponse.json({
       success: true,

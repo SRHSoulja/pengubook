@@ -146,7 +146,7 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextReq
     logger.info('Privacy settings updated', {
       userId: user.id.slice(0, 8) + '...',
       changes: Object.keys(updateData)
-    }, 'Privacy')
+    }, { component: 'Privacy' })
 
     return NextResponse.json({
       success: true,

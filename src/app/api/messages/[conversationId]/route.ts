@@ -291,7 +291,7 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
       senderId: user.id.slice(0, 8) + '...',
       contentLength: sanitizedContent.length,
       hasMedia: mediaUrls.length > 0
-    }, 'Messaging')
+    }, { component: 'Messaging' })
 
     // TODO: Emit WebSocket event for real-time delivery
     // This would notify all connected participants about the new message
