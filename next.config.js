@@ -7,11 +7,19 @@ const nextConfig = {
 
   // Security headers for production hardening
   async headers() {
+    const isDev = process.env.NODE_ENV !== 'production'
+
     return [
       {
         // Apply security headers to all routes
         source: '/:path*',
-        headers: [
+        headers: isDev ? [
+          // Relaxed CSP for development
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; connect-src *;"
+          }
+        ] : [
           {
             key: 'X-DNS-Prefetch-Control',
             value: 'on'
