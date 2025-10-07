@@ -444,10 +444,24 @@ export default function ProfileClient({ params }: ProfilePageProps) {
               </div>
 
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-2xl md:text-3xl font-bold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{profile.displayName}</h1>
-                  {(profile.isAdmin || profile.profile?.profileVerified) && (
-                    <span className="text-blue-400 text-xl animate-in fade-in zoom-in duration-500 delay-300">✓</span>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-2xl md:text-3xl font-bold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{profile.displayName}</h1>
+                    {(profile.isAdmin || profile.profile?.profileVerified) && (
+                      <span className="text-blue-400 text-xl animate-in fade-in zoom-in duration-500 delay-300">✓</span>
+                    )}
+                  </div>
+                  {currentUser?.id === profile.id && (
+                    <Link
+                      href="/settings"
+                      className="text-gray-300 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+                      aria-label="Settings"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </Link>
                   )}
                 </div>
 
@@ -517,6 +531,20 @@ export default function ProfileClient({ params }: ProfilePageProps) {
 
                 {profile.bio && (
                   <p className="text-gray-100 mb-4">{profile.bio}</p>
+                )}
+
+                {/* Interests */}
+                {profile.profile?.interests && profile.profile.interests.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {profile.profile.interests.map((interest, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-1 bg-pengu-green/10 border border-pengu-green/30 px-3 py-1 rounded-full text-sm text-pengu-green"
+                      >
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
                 )}
 
                 {/* Social Accounts Section */}
