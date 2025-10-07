@@ -44,11 +44,11 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://abstract-global-wallet.com https://cdn.jsdelivr.net",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://abstract-global-wallet.com https://cdn.jsdelivr.net https://va.vercel-scripts.com https://*.vercel-scripts.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https: http:",
               "font-src 'self' data: https://fonts.gstatic.com",
-              "connect-src 'self' https://api.mainnet.abs.xyz https://api.testnet.abs.xyz https://abstract-global-wallet.com wss://api.mainnet.abs.xyz wss://api.testnet.abs.xyz https://*.neon.tech wss://*.pusher.com https://api.cloudinary.com https://auth.privy.io https://*.privy.io",
+              "connect-src 'self' https://api.mainnet.abs.xyz https://api.testnet.abs.xyz https://abstract-global-wallet.com wss://api.mainnet.abs.xyz wss://api.testnet.abs.xyz https://*.neon.tech wss://*.pusher.com https://api.cloudinary.com https://auth.privy.io https://*.privy.io https://vitals.vercel-insights.com https://*.vercel-insights.com",
               "media-src 'self' https://res.cloudinary.com blob: data:",
               "object-src 'none'",
               "base-uri 'self'",
