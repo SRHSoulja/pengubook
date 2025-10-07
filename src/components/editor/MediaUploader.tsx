@@ -92,7 +92,8 @@ export default function MediaUploader({
       try {
         const response = await fetch('/api/upload', {
           method: 'POST',
-          body: formData
+          body: formData,
+          credentials: 'include' // Required for withAuth middleware
         })
 
         if (!response.ok) {

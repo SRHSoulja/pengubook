@@ -61,7 +61,8 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
 
         const response = await fetch('/api/upload', {
           method: 'POST',
-          body: formData
+          body: formData,
+          credentials: 'include' // Required for withAuth middleware
         })
 
         const result = await response.json()
