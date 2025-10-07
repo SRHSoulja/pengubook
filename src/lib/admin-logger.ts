@@ -291,7 +291,7 @@ export async function getAdminActionStats(
   actions.forEach(action => {
     if (!actionsByAdmin[action.adminId]) {
       actionsByAdmin[action.adminId] = {
-        name: action.admin.displayName,
+        name: action.admin.displayName || action.admin.username || 'Unknown Admin',
         count: 0
       }
     }
