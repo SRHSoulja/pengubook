@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/providers/AuthProvider'
 import ThemeCustomizer from '@/components/ThemeCustomizer'
-import { logout } from '@/lib/utils/logout'
+import { performLogout } from '@/lib/utils/logout'
 
 export default function MobileNav() {
   const router = useRouter()
@@ -14,8 +14,7 @@ export default function MobileNav() {
   const [showThemeCustomizer, setShowThemeCustomizer] = useState(false)
 
   const handleLogout = async () => {
-    await logout()
-    router.push('/')
+    await performLogout({ redirectTo: '/' })
   }
 
   return (
