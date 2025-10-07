@@ -961,3 +961,19 @@ model Upload {
   @@index([publicId]) // Fast lookup for deletion
   @@map("uploads")
 }
+
+// SECURITY: CSRF token storage for protecting state-changing operations
+// Tokens are single-use and expire after 1 hour
+model CsrfToken {
+  id        String   @id @default(cuid())
+  token     String   @unique // Cryptographically secure random token
+  userId    String?  // Optional: associate with specific user for extra security
+  sessionId String?  // Session identifier for validation
+  used      Boolean  @default(false) // Single-use tokens
+  expiresAt DateTime // 1 hour expiration
+  createdAt DateTime @default(now())
+
+  @@index([token, used]) // Fast lookup and check if already used
+  @@index([expiresAt]) // Cleanup expired tokens
+  @@map("csrf_tokens")
+}
