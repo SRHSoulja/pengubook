@@ -1,42 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { filterContent } from '@/lib/content-filter'
-import { withRateLimit } from '@/lib/auth-middleware'
+import { withRateLimit, withAuth } from '@/lib/auth-middleware'
 
 export const dynamic = 'force-dynamic'
 
-// SECURITY: Rate limited to prevent expensive trending calculations from being spammed
+// SECURITY: Rate limited + authenticated to prevent feed access abuse
 export const GET = withRateLimit(1000, 3600000)( // 1000 requests per hour
-  async (request: NextRequest) => {
+  withAuth(async (request: NextRequest, user: any) => {
   try {
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-    const type = searchParams.get('type') || 'following' // 'following', 'discover', 'trending'
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50)
-    const offset = parseInt(searchParams.get('offset') || '0')
+    const rawType = searchParams.get('type') || 'following'
+    const rawLimit = searchParams.get('limit') || '20'
+    const rawOffset = searchParams.get('offset') || '0'
 
-    if (!userId) {
+    // SECURITY: Validate feed type input
+    const validTypes = ['following', 'discover', 'trending']
+    if (!validTypes.includes(rawType)) {
       return NextResponse.json(
-        { error: 'User ID is required' },
+        { error: 'Invalid feed type. Must be: following, discover, or trending' },
         { status: 400 }
       )
     }
+    const type = rawType
 
-    
+    // SECURITY: Validate and sanitize numeric inputs
+    const limit = Math.min(Math.max(parseInt(rawLimit) || 20, 1), 50) // Between 1-50
+    const offset = Math.max(parseInt(rawOffset) || 0, 0) // Non-negative
 
-    // Verify user exists
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, isBanned: true }
-    })
+    // SECURITY: Use authenticated user ID instead of accepting it from query param
+    // This prevents users from viewing other users' personalized feeds
+    const userId = user.id
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      )
-    }
-
+    // SECURITY: Check if authenticated user is banned
     if (user.isBanned) {
       return NextResponse.json(
         { error: 'Banned users cannot access feed' },
@@ -301,5 +297,5 @@ export const GET = withRateLimit(1000, 3600000)( // 1000 requests per hour
       { status: 500 }
     )
   }
-  }
+  })
 )

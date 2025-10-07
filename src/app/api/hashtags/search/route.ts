@@ -1,25 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { searchHashtags } from '@/lib/hashtag-processor'
+import { withRateLimit } from '@/lib/auth-middleware'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+// SECURITY: Rate limited to prevent hashtag database scraping
+export const GET = withRateLimit(100, 60000)( // 100 requests per minute
+  async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url)
-    const query = searchParams.get('q')
-    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 20)
+    const rawQuery = searchParams.get('q')
+    const rawLimit = searchParams.get('limit') || '10'
 
-    if (!query || query.trim().length < 2) {
+    // SECURITY: Validate query exists
+    if (!rawQuery || rawQuery.trim().length < 2) {
       return NextResponse.json(
         { error: 'Search query must be at least 2 characters' },
         { status: 400 }
       )
     }
 
-    
+    // SECURITY: Sanitize and validate query input
+    const query = rawQuery.trim().slice(0, 100) // Max 100 chars
 
-    const hashtags = await searchHashtags(query.trim(), limit, prisma)
+    // SECURITY: Validate limit is reasonable
+    const limit = Math.min(Math.max(parseInt(rawLimit) || 10, 1), 20) // Between 1-20
+
+    // SECURITY: Prevent SQL injection by checking for dangerous chars
+    if (/[<>;"'`]/.test(query)) {
+      return NextResponse.json(
+        { error: 'Invalid characters in search query' },
+        { status: 400 }
+      )
+    }
+
+    const hashtags = await searchHashtags(query, limit, prisma)
 
 
     return NextResponse.json({
@@ -36,4 +52,5 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+  }
+)
