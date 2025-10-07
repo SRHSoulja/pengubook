@@ -268,7 +268,8 @@ export async function getAdminActionStats(
       admin: {
         select: {
           id: true,
-          displayName: true
+          displayName: true,
+          username: true
         }
       }
     },
