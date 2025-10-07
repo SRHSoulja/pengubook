@@ -98,42 +98,42 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-900 rounded-2xl border border-white/20 w-full max-w-5xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/20 bg-gradient-to-r from-gray-900 to-gray-800">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">🎭</span>
-            <h2 className="text-2xl font-bold text-white">Choose a GIF</h2>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-gray-900 rounded-xl sm:rounded-2xl border border-white/20 w-full max-w-5xl h-[95vh] sm:max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
+        {/* Header - Compact on mobile */}
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-white/20 bg-gradient-to-r from-gray-900 to-gray-800 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="text-2xl sm:text-3xl">🎭</span>
+            <h2 className="text-lg sm:text-2xl font-bold text-white">GIF Picker</h2>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-300 hover:text-white hover:bg-white/10 transition-all p-2 rounded-lg"
+            className="text-gray-300 hover:text-white hover:bg-white/10 transition-all p-1.5 sm:p-2 rounded-lg shrink-0"
             aria-label="Close"
           >
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+            <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {/* Search */}
-        <div className="p-4 border-b border-white/20 bg-gray-800/50">
+        {/* Search - Compact on mobile */}
+        <div className="p-2 sm:p-4 border-b border-white/20 bg-gray-800/50 shrink-0">
           <div className="relative">
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search GIPHY for the perfect GIF..."
+              placeholder="Search GIFs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full bg-black/40 border-2 border-white/20 rounded-xl px-4 py-3 pl-12 text-white text-lg placeholder-gray-400 focus:outline-none focus:border-pengu-green focus:ring-2 focus:ring-pengu-green/20 transition-all"
+              className="w-full bg-black/40 border-2 border-white/20 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3 pl-10 sm:pl-12 text-white text-sm sm:text-lg placeholder-gray-400 focus:outline-none focus:border-pengu-green focus:ring-2 focus:ring-pengu-green/20 transition-all"
             />
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+            <div className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2">
               {loading ? (
-                <div className="w-6 h-6 border-2 border-pengu-green border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-pengu-green border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               )}
@@ -141,8 +141,8 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
           </div>
         </div>
 
-        {/* Content - Scrollable Area */}
-        <div className="p-4 flex-1 overflow-y-auto" style={{ maxHeight: 'calc(85vh - 200px)' }}>
+        {/* Content - Scrollable Area with better mobile height */}
+        <div className="p-2 sm:p-4 flex-1 overflow-y-auto min-h-0">
           {error ? (
             <div className="text-center py-8">
               <div className="text-4xl mb-4">😵</div>
@@ -161,25 +161,25 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
               <p className="text-gray-300">Try a different search term</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
               {gifs.map((gif) => (
                 <button
                   key={gif.id}
                   onClick={() => handleGifSelect(gif)}
-                  className="relative group rounded-xl overflow-hidden hover:ring-4 hover:ring-pengu-green hover:shadow-lg hover:shadow-pengu-green/30 transition-all transform hover:scale-[1.02]"
+                  className="relative group rounded-lg sm:rounded-xl overflow-hidden active:ring-4 sm:hover:ring-4 active:ring-pengu-green sm:hover:ring-pengu-green active:shadow-lg sm:hover:shadow-lg active:shadow-pengu-green/30 sm:hover:shadow-pengu-green/30 transition-all transform active:scale-[0.98] sm:hover:scale-[1.02]"
                 >
                   <img
                     src={gif.images.preview}
                     alt={gif.title}
-                    className="w-full h-36 object-cover group-hover:scale-110 transition-transform duration-300"
+                    className="w-full h-28 sm:h-36 object-cover group-active:scale-95 sm:group-hover:scale-110 transition-transform duration-300"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <p className="text-white text-sm font-medium truncate">{gif.title}</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-active:opacity-100 sm:group-hover:opacity-100 transition-opacity"></div>
+                  <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3 opacity-0 group-active:opacity-100 sm:group-hover:opacity-100 transition-opacity">
+                    <p className="text-white text-xs sm:text-sm font-medium truncate">{gif.title}</p>
                   </div>
-                  {/* Hover Indicator */}
-                  <div className="absolute top-2 right-2 bg-pengu-green text-black rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  {/* Hover/Tap Indicator */}
+                  <div className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-pengu-green text-black rounded-full p-1 sm:p-1.5 opacity-0 group-active:opacity-100 sm:group-hover:opacity-100 transition-opacity">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </div>
@@ -196,13 +196,13 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
           )}
         </div>
 
-        {/* Footer - Official GIPHY Attribution */}
-        <div className="p-4 border-t border-white/10 bg-gradient-to-r from-black/40 to-gray-900/40">
-          <div className="flex items-center justify-center gap-3">
-            <span className="text-gray-300 text-base font-semibold">Powered by</span>
+        {/* Footer - Official GIPHY Attribution - Compact on mobile */}
+        <div className="p-2 sm:p-4 border-t border-white/10 bg-gradient-to-r from-black/40 to-gray-900/40 shrink-0">
+          <div className="flex items-center justify-center gap-2 sm:gap-3">
+            <span className="text-gray-300 text-sm sm:text-base font-semibold">Powered by</span>
             <svg
               viewBox="0 0 200 50"
-              className="h-6"
+              className="h-5 sm:h-6"
               role="img"
               aria-label="GIPHY"
             >
