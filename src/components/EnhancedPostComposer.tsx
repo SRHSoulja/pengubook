@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import { useToast } from '@/components/ui/Toast'
+import GiphyPicker from '@/components/GiphyPicker'
 
 interface EnhancedPostComposerProps {
   onPost: (data: { title: string; content: string; media?: any[] }) => Promise<void>
@@ -17,7 +18,11 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [isPosting, setIsPosting] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [mediaUrls, setMediaUrls] = useState<string[]>([])
+  const [showGiphyPicker, setShowGiphyPicker] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const charCount = content.length
   const charsRemaining = MAX_CHARS - charCount
@@ -56,16 +61,67 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
     }
   }, [])
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setIsUploading(true)
+    try {
+      const uploadedUrls: string[] = []
+
+      for (const file of Array.from(files)) {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('type', 'post-media')
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        })
+
+        if (!response.ok) throw new Error('Upload failed')
+
+        const result = await response.json()
+        if (result.success) {
+          uploadedUrls.push(result.url)
+        }
+      }
+
+      setMediaUrls(prev => [...prev, ...uploadedUrls])
+      toast(`Uploaded ${uploadedUrls.length} file(s)`, 'success')
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast('Failed to upload files', 'error')
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleRemoveMedia = (index: number) => {
+    setMediaUrls(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const handleGifSelect = (gifUrl: string) => {
+    setMediaUrls(prev => [...prev, gifUrl])
+    setShowGiphyPicker(false)
+    toast('GIF added!', 'success')
+  }
+
   const handlePost = async () => {
     if (!content.trim() || isOverLimit || isPosting) return
 
     setIsPosting(true)
     try {
-      await onPost({ title, content })
+      await onPost({ title, content, media: mediaUrls })
       // Clear draft on successful post
       localStorage.removeItem('post-draft')
       setTitle('')
       setContent('')
+      setMediaUrls([])
       toast('Post published successfully!', 'success')
     } catch (error: any) {
       console.error('Failed to post:', error)
@@ -192,17 +248,65 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
         </p>
       )}
 
+      {/* Media Preview */}
+      {mediaUrls.length > 0 && (
+        <div className="grid grid-cols-2 gap-2 mt-4">
+          {mediaUrls.map((url, index) => (
+            <div key={index} className="relative group">
+              <img
+                src={url}
+                alt={`Media ${index + 1}`}
+                className="w-full h-32 object-cover rounded-lg"
+              />
+              <button
+                onClick={() => handleRemoveMedia(index)}
+                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Hidden File Input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,video/*"
+        multiple
+        onChange={handleFileUpload}
+        className="hidden"
+      />
+
       {/* Action Buttons */}
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
         <div className="flex gap-2">
-          {/* Media upload buttons would go here */}
-          <button className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+          {/* Image/Video Upload */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+            title="Upload image or video"
+          >
             <span className="text-xl">📸</span>
           </button>
-          <button className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+          {/* GIF Picker */}
+          <button
+            type="button"
+            onClick={() => setShowGiphyPicker(true)}
+            className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+            title="Add GIF"
+          >
             <span className="text-xl">🎭</span>
           </button>
-          <button className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+          {/* Emoji (placeholder) */}
+          <button
+            type="button"
+            className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+            title="Add emoji"
+          >
             <span className="text-xl">😀</span>
           </button>
         </div>
@@ -236,6 +340,13 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
           Draft auto-saved • {new Date().toLocaleTimeString()}
         </p>
       )}
+
+      {/* Giphy Picker */}
+      <GiphyPicker
+        isOpen={showGiphyPicker}
+        onClose={() => setShowGiphyPicker(false)}
+        onSelect={handleGifSelect}
+      />
     </div>
   )
 }
