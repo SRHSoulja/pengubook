@@ -71,6 +71,7 @@ model User {
   projectApplications   ProjectApplication[]
   uploads               Upload[]
   adminActions          AdminAction[] // Admin actions performed by this user
+  securityIncidents     SecurityIncident[] @relation("SecurityIncidents") // Security incidents reported
 }
 
 model Profile {
@@ -1004,4 +1005,25 @@ model AdminAction {
   @@index([action, createdAt]) // Query by action type over time
   @@index([createdAt]) // Query recent actions
   @@map("admin_actions")
+}
+
+model SecurityIncident {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  severity    String   // 'info', 'warning', 'error', 'critical'
+  type        String   // 'rate_limit', 'unauthorized_access', 'data_breach', etc.
+  status      String   @default("open") // 'open', 'investigating', 'resolved', 'closed'
+  reporterId  String
+  metadata    String?  @db.Text // JSON string with incident details
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reporter User @relation("SecurityIncidents", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([severity, status])
+  @@index([type, createdAt])
+  @@index([status, createdAt])
+  @@map("security_incidents")
 }
