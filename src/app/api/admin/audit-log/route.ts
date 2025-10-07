@@ -44,10 +44,17 @@ export const GET = withRateLimit(100, 60000)( // 100 requests per minute
       }
 
       // Return paginated audit logs
+      const actionParam = searchParams.get('action')
+      const targetTypeParam = searchParams.get('targetType')
+
       const filters = {
         adminId: searchParams.get('adminId') || undefined,
-        action: searchParams.get('action') || undefined,
-        targetType: searchParams.get('targetType') || undefined,
+        action: (actionParam && Object.values(ADMIN_ACTIONS).includes(actionParam as any))
+          ? (actionParam as any)
+          : undefined,
+        targetType: (targetTypeParam && Object.values(TARGET_TYPES).includes(targetTypeParam as any))
+          ? (targetTypeParam as any)
+          : undefined,
         targetId: searchParams.get('targetId') || undefined,
         startDate: searchParams.get('startDate')
           ? new Date(searchParams.get('startDate')!)
