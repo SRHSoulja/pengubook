@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { withAuth } from '@/lib/auth-middleware'
+import { withAuth, withAdminAuth } from '@/lib/auth-middleware'
 
 export const dynamic = 'force-dynamic'
 
 // GET: Fetch all moderation settings
-export async function GET(request: NextRequest) {
+// SECURITY: Requires authentication to prevent moderation bypass
+export const GET = withAuth(async (request: NextRequest, user: any) => {
   try {
     const settings = await prisma.moderationSettings.findMany({
       orderBy: [
@@ -25,18 +26,13 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
 // POST: Create or update moderation setting
-export const POST = withAuth(async (request: NextRequest, user: any) => {
+// SECURITY: Already uses withAuth + manual admin check, replace with withAdminAuth
+export const POST = withAdminAuth(async (request: NextRequest, user: any) => {
   try {
-    // Check if user is admin
-    if (!user.isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized. Admin access required.' },
-        { status: 403 }
-      )
-    }
+    // Admin check now handled by withAdminAuth middleware
 
     const body = await request.json()
     const {

@@ -307,6 +307,20 @@ export function withAdminAuth(handler: (request: NextRequest, user: any, ...args
   }
 }
 
+// Optional auth: Continues if no user, passes null
+export function withOptionalAuth(handler: (request: NextRequest, user: any | null, ...args: any[]) => Promise<Response>) {
+  return async (request: NextRequest, ...args: any[]) => {
+    try {
+      const authResult = await authenticateRequest(request)
+      const user = authResult.success ? authResult.user : null
+      return await handler(request, user, ...args)
+    } catch (error: any) {
+      // On auth error, continue with null user
+      return await handler(request, null, ...args)
+    }
+  }
+}
+
 // Rate limiting utilities - DATABASE-BACKED
 // Replaces in-memory Map to work across serverless instances
 export async function rateLimit(

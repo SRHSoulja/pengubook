@@ -69,6 +69,7 @@ model User {
   hiddenTokens          HiddenToken[]
   contactSubmissions    ContactSubmission[]
   projectApplications   ProjectApplication[]
+  uploads               Upload[]
 }
 
 model Profile {
@@ -100,6 +101,12 @@ model Profile {
   showTwitter           Boolean @default(true)
   showNSFW              Boolean @default(false) // Auto-show ALL NSFW content
   allowedNSFWCategories String  @default("[]") @db.Text // JSON array of allowed NSFW labels (only FLAG/ALLOW categories)
+  // SECURITY: Granular privacy controls for PII
+  showLocation          Boolean @default(true)  // Hide/show location field
+  showTimezone          Boolean @default(false) // Hide/show timezone (location inference risk)
+  showInterests         Boolean @default(true)  // Hide/show interests list
+  showSocialLinks       Boolean @default(true)  // Hide/show website and social media
+  showBio               Boolean @default(true)  // Hide/show bio text
   featuredCommunityId   String?
   theme                 String  @default("default")
   bannerImage           String?
@@ -936,4 +943,21 @@ model ProjectApplication {
 
   @@index([status])
   @@index([userId])
+}
+
+// SECURITY: Track all user uploads for quota enforcement and cost control
+model Upload {
+  id        String   @id @default(cuid())
+  userId    String
+  publicId  String   @unique // Cloudinary public_id for deletion
+  url       String   // Full Cloudinary URL
+  type      String   // 'image' | 'video' | 'document'
+  size      Int      // File size in bytes
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt]) // Query user uploads by date for quota checks
+  @@index([publicId]) // Fast lookup for deletion
+  @@map("uploads")
 }

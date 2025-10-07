@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { withAdminAuth } from '@/lib/auth-middleware'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+// SECURITY: Admin-only endpoint - requires authentication and admin privileges
+export const GET = withAdminAuth(async (request: NextRequest, user: any) => {
   try {
-    
-
     // Get start of today (midnight in server timezone)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -50,4 +50,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

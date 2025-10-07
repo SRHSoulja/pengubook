@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sanitizeText, sanitizeHtml, sanitizeUrl } from '@/lib/sanitize'
-import { withAuth } from '@/lib/auth-middleware'
+import { withAuth, withOptionalAuth } from '@/lib/auth-middleware'
 import { INPUT_LIMITS, validateFields } from '@/lib/validation-constraints'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+// SECURITY: Privacy controls - optionally authenticated to determine privacy levels
+export const GET = withOptionalAuth(async (request: NextRequest, requestingUser: any | null) => {
   try {
     // Skip database operations during build
     if (!process.env.DATABASE_URL || process.env.NODE_ENV === 'production' && !request.url) {
@@ -101,28 +102,75 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString()
     })
 
+    // SECURITY: Apply privacy filters
+    const isOwner = requestingUser?.id === user.id
+    const profile = user.profile
+
+    // Build response respecting privacy settings
+    const userResponse: any = {
+      id: user.id,
+      username: user.username || user.displayName || 'Unknown',
+      displayName: user.displayName || user.name || 'Unknown',
+      walletAddress: user.walletAddress || '',
+      avatar: user.avatar || user.image || '',
+      avatarSource: user.avatarSource || 'default',
+      level: user.level,
+      isAdmin: user.isAdmin,
+      isBanned: user.isBanned,
+    }
+
+    // Bio - respect showBio privacy
+    if (isOwner || profile?.showBio !== false) {
+      userResponse.bio = user.bio || ''
+    }
+
+    // Discord - respect showDiscord privacy
+    if (isOwner || profile?.showDiscord !== false) {
+      userResponse.discordName = user.discordName
+      userResponse.discordAvatar = user.discordAvatar
+      userResponse.discordId = user.discordId
+    }
+
+    // Twitter - respect showTwitter privacy
+    if (isOwner || profile?.showTwitter !== false) {
+      userResponse.twitterHandle = user.twitterHandle
+      userResponse.twitterAvatar = user.twitterAvatar
+      userResponse.twitterId = user.twitterId
+    }
+
+    // Apply profile privacy filters
+    if (profile) {
+      const filteredProfile: any = { ...profile }
+
+      // Location - respect showLocation
+      if (!isOwner && profile.showLocation === false) {
+        filteredProfile.location = null
+      }
+
+      // Timezone - respect showTimezone
+      if (!isOwner && profile.showTimezone === false) {
+        filteredProfile.timezone = null
+      }
+
+      // Interests - respect showInterests
+      if (!isOwner && profile.showInterests === false) {
+        filteredProfile.interests = '[]'
+      }
+
+      // Social links - respect showSocialLinks
+      if (!isOwner && profile.showSocialLinks === false) {
+        filteredProfile.socialLinks = '[]'
+        filteredProfile.website = null
+      }
+
+      userResponse.profile = filteredProfile
+    } else {
+      userResponse.profile = profile
+    }
 
     return NextResponse.json({
       success: true,
-      user: {
-        id: user.id,
-        username: user.username || user.displayName || 'Unknown',
-        displayName: user.displayName || user.name || 'Unknown',
-        walletAddress: user.walletAddress || '',
-        bio: user.bio || '',
-        avatar: user.avatar || user.image || '',
-        avatarSource: user.avatarSource || 'default',
-        level: user.level,
-        isAdmin: user.isAdmin,
-        isBanned: user.isBanned,
-        discordName: user.discordName,
-        discordAvatar: user.discordAvatar,
-        twitterHandle: user.twitterHandle,
-        twitterAvatar: user.twitterAvatar,
-        discordId: user.discordId,
-        twitterId: user.twitterId,
-        profile: user.profile
-      }
+      user: userResponse
     })
   } catch (error) {
     console.error('Profile fetch error:', error)
@@ -131,7 +179,7 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
 // SECURITY: Profile updates require authentication to prevent IDOR attacks
 export const PUT = withAuth(async (request: NextRequest, user: any) => {

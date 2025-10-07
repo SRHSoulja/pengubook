@@ -70,7 +70,9 @@
       "Bash(do sed -i 's/addToast/toast/g' \"$file\")",
       "Bash(git pull:*)",
       "Bash(perl:*)",
-      "Read(//mnt/**)"
+      "Read(//mnt/**)",
+      "Read(//WSL.LOCALHOST/UBUNTU/home/arson/PenguBook/src/lib/**)",
+      "Read(//WSL.LOCALHOST/UBUNTU/home/arson/PenguBook/src/lib/utils/**)"
     ],
     "deny": [],
     "ask": []

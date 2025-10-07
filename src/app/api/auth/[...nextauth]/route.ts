@@ -229,7 +229,8 @@ const handler = NextAuth({
   session: {
     strategy: 'jwt', // Use JWT since we're not using database adapter
   },
-  debug: true, // Enable debug in production temporarily for troubleshooting
+  // SECURITY: Only enable debug in development to prevent token leakage in logs
+  debug: process.env.NODE_ENV !== 'production',
 })
 
 export { handler as GET, handler as POST }

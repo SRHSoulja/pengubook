@@ -1,13 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { withRateLimit, withOptionalAuth } from '@/lib/auth-middleware'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const GIPHY_API_KEY = process.env.GIPHY_API_KEY || 'FANQbMithW6QAdeWId55qXyZjIfdZkug'
+// SECURITY: No hardcoded fallback - fail fast if not configured
+const GIPHY_API_KEY = process.env.GIPHY_API_KEY
+if (!GIPHY_API_KEY) {
+  console.error('[Giphy] API key not configured')
+}
+
 const GIPHY_API_BASE = 'https://api.giphy.com/v1'
 
-export async function GET(request: NextRequest) {
+// SECURITY: Rate limited to prevent API quota exhaustion
+export const GET = withRateLimit(60, 60000)( // 60 requests per minute
+  withOptionalAuth(async (request: NextRequest, user: any | null) => {
   try {
+    // SECURITY: Check API key is configured
+    if (!GIPHY_API_KEY) {
+      return NextResponse.json(
+        { success: false, error: 'Giphy service not configured' },
+        { status: 503 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q') || 'trending'
     const limit = parseInt(searchParams.get('limit') || '25')
@@ -67,4 +83,5 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+  })
+)

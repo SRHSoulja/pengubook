@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { filterContent } from '@/lib/content-filter'
+import { withRateLimit } from '@/lib/auth-middleware'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+// SECURITY: Rate limited to prevent expensive trending calculations from being spammed
+export const GET = withRateLimit(1000, 3600000)( // 1000 requests per hour
+  async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
@@ -298,4 +301,5 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+  }
+)

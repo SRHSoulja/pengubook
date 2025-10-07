@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
+import { withAuth, withAdminAuth } from '@/lib/auth-middleware'
 
 export const dynamic = 'force-dynamic'
 
@@ -58,7 +59,8 @@ async function writeConfig(config: XPEarningConfig): Promise<void> {
 }
 
 // GET /api/admin/xp-earning - Get current XP earning configuration
-export async function GET(request: NextRequest) {
+// SECURITY: Requires authentication to prevent XP economy exploitation
+export const GET = withAuth(async (request: NextRequest, user: any) => {
   try {
     const config = await readConfig()
 
@@ -73,10 +75,11 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
 // POST /api/admin/xp-earning - Update XP earning configuration
-export async function POST(request: NextRequest) {
+// SECURITY: Requires admin privileges to modify game economy
+export const POST = withAdminAuth(async (request: NextRequest, user: any) => {
   try {
     const body = await request.json()
     const { config } = body
@@ -114,6 +117,14 @@ export async function POST(request: NextRequest) {
 
     await writeConfig(config)
 
+    // SECURITY: Log config changes for audit trail
+    console.log('[XP Earning] Config updated by admin:', {
+      adminId: user.id.slice(0, 8) + '...',
+      adminWallet: user.walletAddress?.slice(0, 6) + '...' + user.walletAddress?.slice(-4),
+      changes: Object.keys(config).length + ' XP values modified',
+      timestamp: new Date().toISOString()
+    })
+
     return NextResponse.json({
       success: true,
       message: 'XP earning configuration updated successfully'
@@ -125,4 +136,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
