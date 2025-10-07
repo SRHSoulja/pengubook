@@ -189,10 +189,28 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
           )}
         </div>
 
-        {/* Footer */}
+        {/* Footer - Official GIPHY Attribution */}
         <div className="p-4 border-t border-white/20 bg-black/20">
-          <div className="flex items-center justify-center">
-            <p className="text-gray-300 text-sm">Powered by GIPHY</p>
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-gray-300 text-sm font-medium">Powered by</span>
+            <svg
+              viewBox="0 0 200 50"
+              className="h-5"
+              role="img"
+              aria-label="GIPHY"
+            >
+              <text
+                x="10"
+                y="35"
+                fill="#00FF99"
+                fontSize="32"
+                fontWeight="900"
+                fontFamily="Arial, sans-serif"
+                letterSpacing="2"
+              >
+                GIPHY
+              </text>
+            </svg>
           </div>
         </div>
       </div>

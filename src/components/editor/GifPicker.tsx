@@ -167,11 +167,29 @@ export default function GifPicker({ isOpen, onClose, onSelectGif }: GifPickerPro
           )}
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-white/10 text-center">
-          <p className="text-xs text-gray-300">
-            Powered by <span className="text-purple-400">GIPHY</span>
-          </p>
+        {/* Footer - Official GIPHY Attribution */}
+        <div className="p-4 border-t border-white/10">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-gray-300 text-xs font-medium">Powered by</span>
+            <svg
+              viewBox="0 0 200 50"
+              className="h-4"
+              role="img"
+              aria-label="GIPHY"
+            >
+              <text
+                x="10"
+                y="35"
+                fill="#00FF99"
+                fontSize="32"
+                fontWeight="900"
+                fontFamily="Arial, sans-serif"
+                letterSpacing="2"
+              >
+                GIPHY
+              </text>
+            </svg>
+          </div>
         </div>
       </div>
     </div>
