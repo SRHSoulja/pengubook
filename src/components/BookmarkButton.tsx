@@ -27,12 +27,6 @@ export default function BookmarkButton({
     setBookmarked(isBookmarked)
   }, [isBookmarked])
 
-  const sizeClasses = {
-    sm: 'w-4 h-4 p-1 text-xs',
-    md: 'w-5 h-5 p-1.5 text-sm',
-    lg: 'w-6 h-6 p-2 text-base'
-  }
-
   const handleToggleBookmark = async () => {
     if (!user || loading) return
 
@@ -65,28 +59,30 @@ export default function BookmarkButton({
 
   if (!user) return null
 
+  // Icon size based on prop
+  const iconSize = size === 'sm' ? 'w-5 h-5' : size === 'md' ? 'w-6 h-6' : 'w-7 h-7'
+
   return (
     <button
       onClick={handleToggleBookmark}
       disabled={loading}
       className={`
-        ${sizeClasses[size]}
+        flex items-center gap-2 px-3 py-2 rounded-lg transition-colors
         ${bookmarked
-          ? 'text-yellow-400 hover:text-yellow-500'
-          : 'text-gray-300 hover:text-yellow-400'
+          ? 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30'
+          : 'bg-white/10 text-gray-300 hover:bg-white/20'
         }
-        transition-colors duration-200 disabled:opacity-50 rounded-full
-        hover:bg-yellow-400/10 flex items-center space-x-1
+        disabled:opacity-50
       `}
       title={bookmarked ? 'Remove bookmark' : 'Save post'}
     >
       {loading ? (
-        <div className="animate-spin rounded-full border-2 border-current border-t-transparent" />
+        <div className={`${iconSize} animate-spin rounded-full border-2 border-current border-t-transparent`} />
       ) : (
         <>
           {bookmarked ? (
             <svg
-              className={`${size === 'sm' ? 'w-4 h-4' : size === 'md' ? 'w-5 h-5' : 'w-6 h-6'}`}
+              className={iconSize}
               fill="currentColor"
               viewBox="0 0 24 24"
             >
@@ -94,7 +90,7 @@ export default function BookmarkButton({
             </svg>
           ) : (
             <svg
-              className={`${size === 'sm' ? 'w-4 h-4' : size === 'md' ? 'w-5 h-5' : 'w-6 h-6'}`}
+              className={iconSize}
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -104,7 +100,7 @@ export default function BookmarkButton({
             </svg>
           )}
           {showLabel && (
-            <span className="hidden sm:inline ml-1">
+            <span className="hidden sm:inline">
               {bookmarked ? 'Saved' : 'Save'}
             </span>
           )}
