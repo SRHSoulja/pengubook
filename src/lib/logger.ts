@@ -363,7 +363,7 @@ export const logSecurity = {
     }, { component: 'SECURITY', ip })
   },
 
-  unauthorizedAccess: (userId?: string, resource: string, ip?: string) => {
+  unauthorizedAccess: (resource: string, userId?: string, ip?: string) => {
     logger.warn('Unauthorized access attempt', {
       userId: userId?.slice(0, 8) + '...',
       resource

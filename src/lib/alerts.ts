@@ -396,7 +396,7 @@ export const SecurityAlerts = {
     })
   },
 
-  unauthorizedAccess: async (userId: string, resource: string, ip: string) => {
+  unauthorizedAccess: async (resource: string, userId: string, ip: string) => {
     const manager = getAlertManager()
     await manager.sendCritical({
       title: '🔥 Unauthorized Access Attempt',
