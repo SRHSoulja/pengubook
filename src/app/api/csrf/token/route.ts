@@ -28,7 +28,7 @@ export const GET = withRateLimit(60, 60000)( // 60 requests per minute
       try {
         const session = await getSession(request)
         userId = session?.userId
-        sessionId = session?.sessionId
+        sessionId = session?.jti // JWT ID serves as session identifier
       } catch (error) {
         // Session not required for CSRF token generation
         // Tokens can be issued to unauthenticated users
