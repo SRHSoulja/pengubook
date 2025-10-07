@@ -64,7 +64,7 @@ export const POST = withAuth(async (request: NextRequest, user: any) => {
       created,
       updated,
       total: ACHIEVEMENT_DEFINITIONS.length
-    }, 'Achievements')
+    }, { component: 'Achievements' })
 
     return NextResponse.json({
       success: true,

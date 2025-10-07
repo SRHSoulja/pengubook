@@ -81,7 +81,7 @@ export const BLOCKCHAIN_CONFIG = {
 // Mock blockchain service for development
 class MockBlockchainService {
   async getTokenBalance(walletAddress: string, tokenAddress: string): Promise<TokenBalance | null> {
-    logger.debug('Mock: Getting token balance', { walletAddress, tokenAddress }, 'Blockchain')
+    logger.debug('Mock: Getting token balance', { walletAddress, tokenAddress }, { component: 'Blockchain' })
 
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500))
@@ -96,7 +96,7 @@ class MockBlockchainService {
   }
 
   async verifyTransaction(txHash: string): Promise<TransactionVerification | null> {
-    logger.debug('Mock: Verifying transaction', { txHash }, 'Blockchain')
+    logger.debug('Mock: Verifying transaction', { txHash }, { component: 'Blockchain' })
 
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000))
@@ -116,7 +116,7 @@ class MockBlockchainService {
   }
 
   async getTokenInfo(tokenAddress: string): Promise<TokenInfo | null> {
-    logger.debug('Mock: Getting token info', { tokenAddress }, 'Blockchain')
+    logger.debug('Mock: Getting token info', { tokenAddress }, { component: 'Blockchain' })
 
     return {
       name: 'Mock Token',
@@ -127,7 +127,7 @@ class MockBlockchainService {
   }
 
   async checkNFTOwnership(walletAddress: string, contractAddress: string, tokenId?: string): Promise<NFTOwnership[]> {
-    logger.debug('Mock: Checking NFT ownership', { walletAddress, contractAddress, tokenId }, 'Blockchain')
+    logger.debug('Mock: Checking NFT ownership', { walletAddress, contractAddress, tokenId }, { component: 'Blockchain' })
 
     // Mock NFT ownership
     return [{
@@ -159,7 +159,7 @@ class RealBlockchainService {
 
   async getTokenBalance(walletAddress: string, tokenAddress: string): Promise<TokenBalance | null> {
     try {
-      logger.debug('Getting token balance from blockchain', { walletAddress, tokenAddress }, 'Blockchain')
+      logger.debug('Getting token balance from blockchain', { walletAddress, tokenAddress }, { component: 'Blockchain' })
 
       const provider = new ethers.JsonRpcProvider(this.rpcUrl)
 
@@ -190,14 +190,14 @@ class RealBlockchainService {
       }
 
     } catch (error: any) {
-      logger.error('Failed to get token balance', { error: error.message, walletAddress, tokenAddress }, 'Blockchain')
+      logger.error('Failed to get token balance', { error: error.message, walletAddress, tokenAddress }, { component: 'Blockchain' })
       return null
     }
   }
 
   async verifyTransaction(txHash: string): Promise<TransactionVerification | null> {
     try {
-      logger.debug('Verifying transaction on blockchain', { txHash }, 'Blockchain')
+      logger.debug('Verifying transaction on blockchain', { txHash }, { component: 'Blockchain' })
 
       const provider = new ethers.JsonRpcProvider(this.rpcUrl)
 
@@ -233,14 +233,14 @@ class RealBlockchainService {
       }
 
     } catch (error: any) {
-      logger.error('Failed to verify transaction', { error: error.message, txHash }, 'Blockchain')
+      logger.error('Failed to verify transaction', { error: error.message, txHash }, { component: 'Blockchain' })
       return null
     }
   }
 
   async getTokenInfo(tokenAddress: string): Promise<TokenInfo | null> {
     try {
-      logger.debug('Getting token info from blockchain', { tokenAddress }, 'Blockchain')
+      logger.debug('Getting token info from blockchain', { tokenAddress }, { component: 'Blockchain' })
 
       const provider = new ethers.JsonRpcProvider(this.rpcUrl)
       const contract = new ethers.Contract(tokenAddress, ERC20_ABI, provider)
@@ -260,14 +260,14 @@ class RealBlockchainService {
       }
 
     } catch (error: any) {
-      logger.error('Failed to get token info', { error: error.message, tokenAddress }, 'Blockchain')
+      logger.error('Failed to get token info', { error: error.message, tokenAddress }, { component: 'Blockchain' })
       return null
     }
   }
 
   async checkNFTOwnership(walletAddress: string, contractAddress: string, tokenId?: string): Promise<NFTOwnership[]> {
     try {
-      logger.debug('Checking NFT ownership on blockchain', { walletAddress, contractAddress, tokenId }, 'Blockchain')
+      logger.debug('Checking NFT ownership on blockchain', { walletAddress, contractAddress, tokenId }, { component: 'Blockchain' })
 
       const provider = new ethers.JsonRpcProvider(this.rpcUrl)
       const contract = new ethers.Contract(contractAddress, ERC721_ABI, provider)
@@ -296,7 +296,7 @@ class RealBlockchainService {
               metadata = await response.json()
             }
           } catch (metadataError) {
-            logger.warn('Failed to fetch NFT metadata', { tokenId, contractAddress }, 'Blockchain')
+            logger.warn('Failed to fetch NFT metadata', { tokenId, contractAddress }, { component: 'Blockchain' })
           }
 
           return [{
@@ -336,7 +336,7 @@ class RealBlockchainService {
               metadata = await response.json()
             }
           } catch (metadataError) {
-            logger.warn('Failed to fetch NFT metadata', { tokenId: tokenIdStr, contractAddress }, 'Blockchain')
+            logger.warn('Failed to fetch NFT metadata', { tokenId: tokenIdStr, contractAddress }, { component: 'Blockchain' })
           }
 
           ownedNFTs.push({
@@ -346,14 +346,14 @@ class RealBlockchainService {
             metadata
           })
         } catch (indexError) {
-          logger.warn('Failed to get token at index', { index: i, contractAddress }, 'Blockchain')
+          logger.warn('Failed to get token at index', { index: i, contractAddress }, { component: 'Blockchain' })
         }
       }
 
       return ownedNFTs
 
     } catch (error: any) {
-      logger.error('Failed to check NFT ownership', { error: error.message, walletAddress, contractAddress }, 'Blockchain')
+      logger.error('Failed to check NFT ownership', { error: error.message, walletAddress, contractAddress }, { component: 'Blockchain' })
       return []
     }
   }
@@ -450,7 +450,7 @@ export async function checkTokenGateAccess(
       }
     }
   } catch (error: any) {
-    logger.error('Token gate access check failed', { error: error.message, walletAddress, requirements }, 'TokenGating')
+    logger.error('Token gate access check failed', { error: error.message, walletAddress, requirements }, { component: 'TokenGating' })
     return { hasAccess: false }
   }
 }
