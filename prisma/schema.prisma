@@ -70,6 +70,7 @@ model User {
   contactSubmissions    ContactSubmission[]
   projectApplications   ProjectApplication[]
   uploads               Upload[]
+  adminActions          AdminAction[] // Admin actions performed by this user
 }
 
 model Profile {
@@ -976,4 +977,31 @@ model CsrfToken {
   @@index([token, used]) // Fast lookup and check if already used
   @@index([expiresAt]) // Cleanup expired tokens
   @@map("csrf_tokens")
+}
+
+// SECURITY: Admin action audit logging for compliance and security monitoring
+// Tracks all admin operations with full context for forensic analysis
+model AdminAction {
+  id          String   @id @default(cuid())
+  adminId     String   // Admin user who performed the action
+  adminName   String   // Admin displayName at time of action
+  action      String   // Action type: 'USER_BAN', 'USER_UNBAN', 'POST_DELETE', etc.
+  targetType  String   // Type of target: 'USER', 'POST', 'COMMENT', 'COMMUNITY', etc.
+  targetId    String   // ID of the affected entity
+  targetName  String?  // Name/display of target for quick reference
+  reason      String?  // Reason provided by admin
+  metadata    String?  // JSON string with additional context
+  ipAddress   String?  // IP address of admin
+  userAgent   String?  // User agent of admin
+  success     Boolean  @default(true) // Whether action succeeded
+  error       String?  // Error message if action failed
+  createdAt   DateTime @default(now())
+
+  admin User @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId, createdAt]) // Query actions by admin over time
+  @@index([targetType, targetId]) // Query actions by target
+  @@index([action, createdAt]) // Query by action type over time
+  @@index([createdAt]) // Query recent actions
+  @@map("admin_actions")
 }
