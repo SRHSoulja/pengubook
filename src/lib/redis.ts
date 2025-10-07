@@ -71,10 +71,21 @@ class RedisClient {
           token
         })
       } else {
-        // Upstash with URL only (includes token in URL)
-        this.client = new Redis({
-          url
-        })
+        // Upstash with URL only - use fromEnv() or extract token from URL
+        // When token is in URL format: https://xxx.upstash.io?token=xxx
+        const urlObj = new URL(url)
+        const urlToken = urlObj.searchParams.get('token')
+
+        if (urlToken) {
+          // Token is in URL query params
+          this.client = new Redis({
+            url: url.split('?')[0], // Remove query params
+            token: urlToken
+          })
+        } else {
+          // Token must be in environment variable
+          this.client = Redis.fromEnv()
+        }
       }
 
       // Test connection
