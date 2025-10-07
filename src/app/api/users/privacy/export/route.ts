@@ -112,7 +112,7 @@ export const POST = withRateLimit(3, 60 * 60 * 1000)(withAuth(async (request: Ne
             id: true,
             content: true,
             createdAt: true,
-            recipientId: true,
+            conversationId: true,
             isDeleted: true
           }
         },
@@ -172,19 +172,21 @@ export const POST = withRateLimit(3, 60 * 60 * 1000)(withAuth(async (request: Ne
         activities: {
           select: {
             id: true,
-            type: true,
-            targetType: true,
+            activityType: true,
+            content: true,
             targetId: true,
-            metadata: true,
+            targetType: true,
             createdAt: true
           }
         },
         streaks: {
           select: {
             id: true,
-            currentStreak: true,
-            lastActivityDate: true,
-            longestStreak: true
+            streakType: true,
+            currentCount: true,
+            bestCount: true,
+            lastDate: true,
+            isActive: true
           }
         },
         communityMembers: {
@@ -215,11 +217,11 @@ export const POST = withRateLimit(3, 60 * 60 * 1000)(withAuth(async (request: Ne
         reportsReceived: {
           select: {
             id: true,
-            targetType: true,
             reason: true,
+            description: true,
             status: true,
             createdAt: true,
-            submittedById: true
+            reporterId: true
           }
         },
         mutedPhrases: {
@@ -232,18 +234,18 @@ export const POST = withRateLimit(3, 60 * 60 * 1000)(withAuth(async (request: Ne
         hiddenTokens: {
           select: {
             id: true,
-            tokenSymbol: true,
-            reason: true,
+            tokenAddress: true,
+            symbol: true,
             createdAt: true
           }
         },
         uploads: {
           select: {
             id: true,
-            fileName: true,
-            fileSize: true,
-            mimeType: true,
+            publicId: true,
             url: true,
+            type: true,
+            size: true,
             createdAt: true
           }
         },
@@ -253,8 +255,8 @@ export const POST = withRateLimit(3, 60 * 60 * 1000)(withAuth(async (request: Ne
             action: true,
             targetType: true,
             targetId: true,
+            targetName: true,
             reason: true,
-            metadata: true,
             success: true,
             createdAt: true
           }
@@ -264,17 +266,17 @@ export const POST = withRateLimit(3, 60 * 60 * 1000)(withAuth(async (request: Ne
             id: true,
             provider: true,
             providerAccountId: true,
-            type: true,
-            createdAt: true
+            type: true
             // Do NOT expose tokens, refresh_tokens, or other secrets
+            // Account model doesn't have createdAt
           }
         },
         sessions: {
           select: {
             id: true,
-            expires: true,
-            createdAt: true
+            expires: true
             // Do NOT expose sessionToken
+            // Session model doesn't have createdAt
           }
         },
         adInteractions: {
@@ -289,10 +291,11 @@ export const POST = withRateLimit(3, 60 * 60 * 1000)(withAuth(async (request: Ne
           select: {
             id: true,
             title: true,
-            targetUrl: true,
-            status: true,
-            impressions: true,
-            clicks: true,
+            description: true,
+            linkUrl: true,
+            isActive: true,
+            totalViews: true,
+            totalClicks: true,
             createdAt: true
           }
         }
