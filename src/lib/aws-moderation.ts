@@ -92,9 +92,9 @@ export async function moderateImage(
 // Helper function to process Rekognition result
 function processRekognitionResult(result: any, minConfidence: number): ModerationResult {
   // Analyze moderation labels
-  const labels = result.ModerationLabels || []
+  const labels: ModerationLabel[] = result.ModerationLabels || []
   const highConfidenceLabels = labels.filter(
-    (label) => (label.Confidence || 0) >= minConfidence
+    (label: ModerationLabel) => (label.Confidence || 0) >= minConfidence
   )
 
   // Determine if content is NSFW
