@@ -451,7 +451,7 @@ export default function ProfileClient({ params }: ProfilePageProps) {
                   )}
                 </div>
 
-                <p className="text-gray-200 mb-4" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>@{profile.username}</p>
+                <p className="text-gray-200 mb-4 break-all text-sm sm:text-base px-4 sm:px-0" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>@{profile.username}</p>
 
                 {/* Project Badge */}
                 {profile.profile?.isProject && profile.profile?.profileVerified && (

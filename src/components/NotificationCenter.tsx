@@ -51,7 +51,11 @@ export default function NotificationCenter() {
 
     try {
       const response = await fetch('/api/notifications', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'x-user-id': user.id,
+          'x-wallet-address': user.walletAddress || ''
+        }
       })
 
       if (response.ok) {
