@@ -67,7 +67,7 @@ export const PUT = withRateLimit(30, 60 * 1000)(withAdminAuth(async (request: Ne
       targetUserId: id,
       updatedBy: user.id,
       changes: updateData
-    }, 'AdminPanel')
+    }, { component: 'AdminPanel' })
 
     return NextResponse.json({
       success: true,
@@ -134,7 +134,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request:
       deletedUserId: id,
       deletedUsername: targetUser.username,
       deletedBy: user.id
-    }, 'AdminPanel')
+    }, { component: 'AdminPanel' })
 
     return NextResponse.json({
       success: true,
