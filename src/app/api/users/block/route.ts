@@ -88,7 +88,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
     })
 
   } catch (error: any) {
-    logger.error('Error blocking user', error, 'Privacy')
+    logger.error('Error blocking user', error, { component: 'Privacy' })
     return NextResponse.json(
       { error: 'Failed to block user', details: error.message },
       { status: 500 }
@@ -138,7 +138,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAuth(async (request: Next
     })
 
   } catch (error: any) {
-    logger.error('Error unblocking user', error, 'Privacy')
+    logger.error('Error unblocking user', error, { component: 'Privacy' })
     return NextResponse.json(
       { error: 'Failed to unblock user', details: error.message },
       { status: 500 }
@@ -181,7 +181,7 @@ export const GET = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
     })
 
   } catch (error: any) {
-    logger.error('Error fetching blocked users', error, 'Privacy')
+    logger.error('Error fetching blocked users', error, { component: 'Privacy' })
     return NextResponse.json(
       { error: 'Failed to fetch blocked users', details: error.message },
       { status: 500 }

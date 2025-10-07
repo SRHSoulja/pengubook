@@ -150,7 +150,7 @@ export const GET = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
     })
 
   } catch (error: any) {
-    logger.error('Error fetching friends', error, 'Friends')
+    logger.error('Error fetching friends', error, { component: 'Friends' })
     return NextResponse.json(
       { error: 'Failed to fetch friends', details: error.message },
       { status: 500 }
@@ -276,7 +276,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
     })
 
   } catch (error: any) {
-    logger.error('Error sending friend request', error, 'Friends')
+    logger.error('Error sending friend request', error, { component: 'Friends' })
     return NextResponse.json(
       { error: 'Failed to send friend request', details: error.message },
       { status: 500 }
