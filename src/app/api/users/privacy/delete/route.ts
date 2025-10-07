@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic'
  */
 export const POST = withRateLimit(1, 24 * 60 * 60 * 1000)(
   withDatabaseCSRFProtection(
-    withAuth(async (request: NextRequest, user: any) => {
+    withAuth(async (request: NextRequest, user: any): Promise<NextResponse> => {
       const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
                        request.headers.get('x-real-ip') ||
                        'unknown'
@@ -54,10 +54,7 @@ export const POST = withRateLimit(1, 24 * 60 * 60 * 1000)(
 
           // Delete messages (private data)
           await tx.message.deleteMany({
-            where: { OR: [
-              { senderId: user.id },
-              { recipientId: user.id }
-            ]}
+            where: { senderId: user.id }
           })
 
           // Delete message reactions
@@ -149,15 +146,12 @@ export const POST = withRateLimit(1, 24 * 60 * 60 * 1000)(
 
           // Delete reports submitted
           await tx.report.deleteMany({
-            where: { submittedById: user.id }
+            where: { reporterId: user.id }
           })
 
           // Delete reports targeting user (if they're about the user)
           await tx.report.deleteMany({
-            where: {
-              targetType: 'USER',
-              targetId: user.id
-            }
+            where: { targetId: user.id }
           })
 
           // Delete muted phrases
@@ -219,17 +213,17 @@ export const POST = withRateLimit(1, 24 * 60 * 60 * 1000)(
 
           // Anonymize comments
           await tx.comment.updateMany({
-            where: { authorId: user.id },
+            where: { userId: user.id },
             data: {
-              authorId: 'deleted-user'
+              userId: 'deleted-user'
             }
           })
 
           // Anonymize post edits
           await tx.postEdit.updateMany({
-            where: { editorId: user.id },
+            where: { editedBy: user.id },
             data: {
-              editorId: 'deleted-user'
+              editedBy: 'deleted-user'
             }
           })
 
