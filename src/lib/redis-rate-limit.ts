@@ -44,11 +44,11 @@ class MemoryRateLimiter {
     // Cleanup expired entries every minute
     this.cleanupInterval = setInterval(() => {
       const now = Date.now()
-      for (const [key, value] of this.storage.entries()) {
+      Array.from(this.storage.entries()).forEach(([key, value]) => {
         if (value.resetTime < now) {
           this.storage.delete(key)
         }
-      }
+      })
     }, 60000)
   }
 
