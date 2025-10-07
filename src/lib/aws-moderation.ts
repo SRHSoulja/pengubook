@@ -34,65 +34,47 @@ export async function moderateImage(
   minConfidence: number = 60
 ): Promise<ModerationResult> {
   try {
-    // Fetch the image from URL
-    const response = await fetch(imageUrl)
-    const imageBuffer = await response.arrayBuffer()
+    // AWS Rekognition only supports JPEG and PNG via Bytes parameter
+    // For GIF/WebP/other formats, send the URL directly if it's a Cloudinary URL
+    const isCloudinaryUrl = imageUrl.includes('cloudinary.com')
+    const isUnsupportedFormat = imageUrl.match(/\.(gif|webp|bmp|tiff)$/i)
 
-    // Call AWS Rekognition
-    const command = new DetectModerationLabelsCommand({
-      Image: {
-        Bytes: new Uint8Array(imageBuffer),
-      },
-      MinConfidence: minConfidence,
-    })
+    let result
 
-    const result = await rekognitionClient.send(command)
+    if (isCloudinaryUrl && isUnsupportedFormat) {
+      // Use Cloudinary's URL transformation to convert to JPEG
+      // Replace upload/ with upload/f_jpg,q_auto/
+      const jpegUrl = imageUrl.replace('/upload/', '/upload/f_jpg,q_auto/')
 
-    // Analyze moderation labels
-    const labels = result.ModerationLabels || []
-    const highConfidenceLabels = labels.filter(
-      (label) => (label.Confidence || 0) >= minConfidence
-    )
+      const response = await fetch(jpegUrl)
+      const imageBuffer = await response.arrayBuffer()
 
-    // Determine if content is NSFW
-    const hasNSFWContent = highConfidenceLabels.some((label) => {
-      const name = label.Name?.toLowerCase() || ''
-      return (
-        name.includes('explicit') ||
-        name.includes('nudity') ||
-        name.includes('sexual') ||
-        name.includes('graphic') ||
-        name.includes('violence') ||
-        name.includes('gore')
-      )
-    })
+      const command = new DetectModerationLabelsCommand({
+        Image: {
+          Bytes: new Uint8Array(imageBuffer),
+        },
+        MinConfidence: minConfidence,
+      })
 
-    // Calculate average confidence
-    const avgConfidence =
-      highConfidenceLabels.length > 0
-        ? highConfidenceLabels.reduce((sum, label) => sum + (label.Confidence || 0), 0) /
-          highConfidenceLabels.length
-        : 0
-
-    // Determine status
-    let status: 'approved' | 'rejected' | 'pending' | 'flagged'
-    if (hasNSFWContent && avgConfidence >= 90) {
-      status = 'rejected' // Very high confidence NSFW
-    } else if (hasNSFWContent && avgConfidence >= minConfidence) {
-      status = 'flagged' // Moderate confidence NSFW - user can review
-    } else if (highConfidenceLabels.length > 0) {
-      status = 'pending' // Some labels detected but not NSFW
+      result = await rekognitionClient.send(command)
     } else {
-      status = 'approved' // Clean content
+      // Standard processing for JPEG/PNG
+      const response = await fetch(imageUrl)
+      const imageBuffer = await response.arrayBuffer()
+
+      // Call AWS Rekognition
+      const command = new DetectModerationLabelsCommand({
+        Image: {
+          Bytes: new Uint8Array(imageBuffer),
+        },
+        MinConfidence: minConfidence,
+      })
+
+      result = await rekognitionClient.send(command)
     }
 
-    return {
-      status,
-      isNSFW: hasNSFWContent,
-      labels: highConfidenceLabels,
-      confidence: avgConfidence,
-      rawResponse: result,
-    }
+    // Process result from both paths
+    return processRekognitionResult(result, minConfidence)
   } catch (error) {
     console.error('[AWS Moderation] Error moderating image:', error)
 
@@ -104,6 +86,55 @@ export async function moderateImage(
       confidence: 0,
       rawResponse: { error: error instanceof Error ? error.message : 'Unknown error' },
     }
+  }
+}
+
+// Helper function to process Rekognition result
+function processRekognitionResult(result: any, minConfidence: number): ModerationResult {
+  // Analyze moderation labels
+  const labels = result.ModerationLabels || []
+  const highConfidenceLabels = labels.filter(
+    (label) => (label.Confidence || 0) >= minConfidence
+  )
+
+  // Determine if content is NSFW
+  const hasNSFWContent = highConfidenceLabels.some((label) => {
+    const name = label.Name?.toLowerCase() || ''
+    return (
+      name.includes('explicit') ||
+      name.includes('nudity') ||
+      name.includes('sexual') ||
+      name.includes('graphic') ||
+      name.includes('violence') ||
+      name.includes('gore')
+    )
+  })
+
+  // Calculate average confidence
+  const avgConfidence =
+    highConfidenceLabels.length > 0
+      ? highConfidenceLabels.reduce((sum, label) => sum + (label.Confidence || 0), 0) /
+        highConfidenceLabels.length
+      : 0
+
+  // Determine status
+  let status: 'approved' | 'rejected' | 'pending' | 'flagged'
+  if (hasNSFWContent && avgConfidence >= 90) {
+    status = 'rejected' // Very high confidence NSFW
+  } else if (hasNSFWContent && avgConfidence >= minConfidence) {
+    status = 'flagged' // Moderate confidence NSFW - user can review
+  } else if (highConfidenceLabels.length > 0) {
+    status = 'pending' // Some labels detected but not NSFW
+  } else {
+    status = 'approved' // Clean content
+  }
+
+  return {
+    status,
+    isNSFW: hasNSFWContent,
+    labels: highConfidenceLabels,
+    confidence: avgConfidence,
+    rawResponse: result,
   }
 }
 

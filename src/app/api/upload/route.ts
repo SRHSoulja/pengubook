@@ -110,10 +110,7 @@ export const POST = withRateLimit(20, 3600000)( // 20 uploads per hour
         const uploadStream = cloudinary.uploader.upload_stream(
           {
             resource_type: fileType === 'video' ? 'video' : 'image',
-            folder: getFolderPath(),
-            ...(fileType === 'video' && {
-              duration: 30, // Max 30 seconds (Vine length)
-            })
+            folder: getFolderPath()
           },
           (error, result) => {
             if (error) reject(error)
@@ -122,6 +119,28 @@ export const POST = withRateLimit(20, 3600000)( // 20 uploads per hour
         )
         uploadStream.end(buffer)
       })
+
+      // SECURITY: Validate video duration (30 seconds max - Vine length)
+      if (fileType === 'video') {
+        const videoDuration = uploadResult.duration // in seconds
+        if (videoDuration && videoDuration > 30) {
+          // Delete the uploaded video from Cloudinary
+          try {
+            await cloudinary.uploader.destroy(uploadResult.public_id, { resource_type: 'video' })
+          } catch (deleteError) {
+            console.error('[Upload] Failed to delete long video:', deleteError)
+          }
+
+          return NextResponse.json(
+            {
+              error: `Video too long. Maximum duration is 30 seconds (uploaded: ${Math.round(videoDuration)}s)`,
+              maxDuration: 30,
+              videoDuration: Math.round(videoDuration)
+            },
+            { status: 400 }
+          )
+        }
+      }
 
       // Moderate content using AWS Rekognition
       let moderationData = null

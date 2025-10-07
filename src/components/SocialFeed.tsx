@@ -665,35 +665,35 @@ via @PeBloq`
                 )}
               </div>
 
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-white">{post.author.displayName}</h3>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-semibold text-white truncate max-w-[150px] sm:max-w-none">{post.author.displayName}</h3>
                   {post.author.profile?.profileVerified && (
-                    <span className="text-blue-400 text-sm">✓</span>
+                    <span className="text-blue-400 text-sm shrink-0">✓</span>
                   )}
-                  <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-xs">
+                  <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-xs shrink-0">
                     Level {post.author.level}
                   </span>
                   {post.isPinned && (
-                    <span className="text-yellow-400 text-sm">📌</span>
+                    <span className="text-yellow-400 text-sm shrink-0">📌</span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-300">
-                  <span>@{post.author.username}</span>
-                  <span>•</span>
-                  <span>{formatTimeAgo(post.createdAt)}</span>
+                <div className="flex items-center gap-2 text-sm text-gray-300 flex-wrap">
+                  <span className="truncate max-w-[120px] sm:max-w-[200px]">@{post.author.username}</span>
+                  <span className="shrink-0">•</span>
+                  <span className="shrink-0">{formatTimeAgo(post.createdAt)}</span>
                   {post.createdAt !== post.updatedAt && (
                     <>
-                      <span>•</span>
-                      <span className="text-yellow-400">Edited</span>
+                      <span className="shrink-0">•</span>
+                      <span className="text-yellow-400 shrink-0">Edited</span>
                     </>
                   )}
                   {post.community && (
                     <>
-                      <span>•</span>
+                      <span className="shrink-0">•</span>
                       <Link
                         href={`/communities/${post.community.id}`}
-                        className="text-purple-300 hover:text-purple-200"
+                        className="text-purple-300 hover:text-purple-200 truncate max-w-[100px] sm:max-w-none"
                       >
                         #{post.community.name}
                       </Link>
