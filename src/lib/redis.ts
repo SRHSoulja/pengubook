@@ -104,18 +104,20 @@ class RedisClient {
   /**
    * Initialize standard Redis (ioredis)
    * NOTE: ioredis package must be installed separately if using standard Redis
+   * Currently disabled - only Upstash Redis is supported
    */
   private async initializeStandard(url: string) {
+    // DISABLED: ioredis not installed in dependencies
+    // Only Upstash Redis (@upstash/redis) is available
+    logger.warn('Standard Redis not available. Please use Upstash Redis by providing UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN', {}, { component: 'REDIS' })
+    this.isEnabled = false
+
+    /*
+    // Uncomment this block and install ioredis package to enable standard Redis:
+    // npm install ioredis @types/ioredis
+
     try {
-      // Dynamic import - will fail gracefully if ioredis not installed
-      let Redis: any
-      try {
-        Redis = (await import('ioredis')).default
-      } catch (importError) {
-        logger.warn('ioredis package not installed, standard Redis unavailable. Use Upstash Redis instead.', {}, { component: 'REDIS' })
-        this.isEnabled = false
-        return
-      }
+      const Redis = (await import('ioredis')).default
 
       this.client = new Redis(url, {
         maxRetriesPerRequest: 3,
@@ -126,7 +128,6 @@ class RedisClient {
         }
       })
 
-      // Test connection
       await this.client.ping()
       this.isConnected = true
 
@@ -137,6 +138,7 @@ class RedisClient {
       }, { component: 'REDIS' })
       this.isEnabled = false
     }
+    */
   }
 
   /**
