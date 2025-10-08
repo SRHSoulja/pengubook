@@ -109,9 +109,20 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
           // - Videos or large images: Direct to Cloudinary (bypasses Vercel limit)
           const useDirectUpload = fileType === 'video' || file.size >= VERCEL_LIMIT
 
+          console.log('[Upload Decision]', {
+            fileName: file.name,
+            fileType,
+            fileSize: file.size,
+            fileSizeMB: (file.size / 1024 / 1024).toFixed(2),
+            vercelLimit: VERCEL_LIMIT,
+            vercelLimitMB: (VERCEL_LIMIT / 1024 / 1024).toFixed(2),
+            useDirectUpload,
+            reason: fileType === 'video' ? 'video file' : file.size >= VERCEL_LIMIT ? 'large file' : 'small file'
+          })
+
           if (useDirectUpload) {
             // Direct upload to Cloudinary (bypasses Vercel)
-            console.log(`Using direct upload for ${fileType} (${file.size} bytes)`)
+            console.log(`✅ Using direct upload for ${fileType} (${file.size} bytes)`)
             const cloudinaryResult = await uploadToCloudinary(file, (progress) => {
               setCurrentUpload({ fileName: file.name, progress: progress.percentage })
             })
@@ -137,7 +148,7 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
             var result = await response.json()
           } else {
             // Small image: Use Vercel API (server validates/moderates BEFORE upload)
-            console.log(`Using server upload for small image (${file.size} bytes)`)
+            console.log(`⚠️ Using server upload for small image (${file.size} bytes) - may hit 4MB Vercel limit`)
             const formData = new FormData()
             formData.append('file', file)
             formData.append('type', 'post-media')

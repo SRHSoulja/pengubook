@@ -34,6 +34,13 @@ export async function uploadToCloudinary(
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'du4d6q6jx'
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'pebloq_unsigned'
 
+  console.log('[Cloudinary Upload] Config:', {
+    cloudName,
+    uploadPreset,
+    hasEnvCloudName: !!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+    hasEnvPreset: !!process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+  })
+
   const formData = new FormData()
   formData.append('file', file)
   formData.append('upload_preset', uploadPreset)
