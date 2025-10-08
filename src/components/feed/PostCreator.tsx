@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { PostType, Visibility, PostCreateRequest } from '@/types'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
 import GiphyPicker from '@/components/GiphyPicker'
@@ -8,6 +8,7 @@ import Button, { IconButton } from '@/components/ui/Button'
 import dynamic from 'next/dynamic'
 import { Theme } from 'emoji-picker-react'
 import { useToast } from '@/components/ui/Toast'
+import UploadProgress from '@/components/ui/UploadProgress'
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false })
 
@@ -41,65 +42,106 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<string>('')
+  const [currentUpload, setCurrentUpload] = useState<{ fileName: string; progress: number } | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const emojiPickerRef = useRef<HTMLDivElement>(null)
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false)
+      }
+    }
+
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showEmojiPicker])
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
 
     setIsUploading(true)
-    setUploadProgress('Uploading...')
 
     try {
       for (const file of Array.from(files)) {
+        // Start tracking this upload
+        setCurrentUpload({ fileName: file.name, progress: 0 })
+
         const formData = new FormData()
         formData.append('file', file)
         formData.append('type', 'post-media')
 
-        setUploadProgress(`Uploading ${file.name}...`)
+        // Simulate progress (since fetch doesn't support upload progress tracking directly)
+        const progressInterval = setInterval(() => {
+          setCurrentUpload(prev => {
+            if (!prev) return null
+            const newProgress = Math.min(prev.progress + 10, 90)
+            return { ...prev, progress: newProgress }
+          })
+        }, 200)
 
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include' // Required for withAuth middleware
-        })
+        try {
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include' // Required for withAuth middleware
+          })
 
-        const result = await response.json()
+          clearInterval(progressInterval)
 
-        if (result.success) {
-          const uploadedFile: UploadedFile = {
-            url: result.url,
-            type: result.type,
-            publicId: result.publicId,
-            width: result.width,
-            height: result.height,
-            thumbnailUrl: result.thumbnailUrl,
-            isNSFW: result.moderation?.isNSFW,
-            contentWarnings: result.moderation?.contentWarnings
+          const result = await response.json()
+
+          if (result.success) {
+            // Complete progress
+            setCurrentUpload(prev => prev ? { ...prev, progress: 100 } : null)
+
+            const uploadedFile: UploadedFile = {
+              url: result.url,
+              type: result.type,
+              publicId: result.publicId,
+              width: result.width,
+              height: result.height,
+              thumbnailUrl: result.thumbnailUrl,
+              isNSFW: result.moderation?.isNSFW,
+              contentWarnings: result.moderation?.contentWarnings
+            }
+
+            setUploadedFiles(prev => [...prev, uploadedFile])
+            setMediaUrls(prev => [...prev, result.url])
+
+            // Auto-set content type based on upload
+            if (result.type === 'video' && contentType === 'TEXT') {
+              setContentType('VIDEO')
+            } else if (result.type === 'image' && contentType === 'TEXT') {
+              setContentType('IMAGE')
+            }
+
+            // Show completion briefly before clearing
+            setTimeout(() => {
+              setCurrentUpload(null)
+            }, 1000)
+          } else {
+            clearInterval(progressInterval)
+            setCurrentUpload(null)
+            error(`Upload failed: ${result.error}`)
           }
-
-          setUploadedFiles(prev => [...prev, uploadedFile])
-          setMediaUrls(prev => [...prev, result.url])
-
-          // Auto-set content type based on upload
-          if (result.type === 'video' && contentType === 'TEXT') {
-            setContentType('VIDEO')
-          } else if (result.type === 'image' && contentType === 'TEXT') {
-            setContentType('IMAGE')
-          }
-
-          setUploadProgress('')
-        } else {
-          error(`Upload failed: ${result.error}`)
+        } catch (uploadErr) {
+          clearInterval(progressInterval)
+          setCurrentUpload(null)
+          throw uploadErr
         }
       }
     } catch (err) {
       console.error('Upload error:', err)
       error('Failed to upload file')
+      setCurrentUpload(null)
     } finally {
       setIsUploading(false)
-      setUploadProgress('')
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
@@ -308,13 +350,12 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
             )}
 
             {/* Upload Progress */}
-            {isUploading && (
-              <div className="bg-pengu-green/10 border border-pengu-green/30 rounded-lg p-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-pengu-green border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-sm text-pengu-green">{uploadProgress}</span>
-                </div>
-              </div>
+            {currentUpload && (
+              <UploadProgress
+                fileName={currentUpload.fileName}
+                progress={currentUpload.progress}
+                isComplete={currentUpload.progress === 100}
+              />
             )}
 
             {/* Media Controls */}
@@ -358,7 +399,7 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
               </Button>
 
               {/* Emoji Button */}
-              <div className="relative">
+              <div className="relative" ref={emojiPickerRef}>
                 <Button
                   type="button"
                   variant="warning"
@@ -369,8 +410,13 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
                   Emoji
                 </Button>
                 {showEmojiPicker && (
-                  <div className="absolute bottom-full mb-2 right-0 z-50">
-                    <EmojiPicker onEmojiClick={handleEmojiSelect} theme={Theme.DARK} />
+                  <div className="absolute bottom-full mb-2 right-0 z-[100] shadow-2xl">
+                    <EmojiPicker
+                      onEmojiClick={handleEmojiSelect}
+                      theme={Theme.DARK}
+                      width={300}
+                      height={400}
+                    />
                   </div>
                 )}
               </div>
