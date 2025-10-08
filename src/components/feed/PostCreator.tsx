@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic'
 import { Theme } from 'emoji-picker-react'
 import { useToast } from '@/components/ui/Toast'
 import UploadProgress from '@/components/ui/UploadProgress'
+import { uploadToCloudinary } from '@/lib/cloudinary-upload'
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false })
 
@@ -77,42 +78,44 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         }
 
         // Validate file size BEFORE uploading
-        // Vercel has 4.5MB body limit, so we need lower limits for server upload
-        const MAX_IMAGE_SIZE = 4 * 1024 * 1024 // 4MB (under Vercel's 4.5MB limit)
-        const MAX_VIDEO_SIZE = 4 * 1024 * 1024 // 4MB for videos too
+        // Using direct Cloudinary upload (bypasses Vercel 4.5MB limit)
+        const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB for images
+        const MAX_VIDEO_SIZE = 50 * 1024 * 1024 // 50MB for videos
         const maxSize = fileType === 'video' ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE
-        const maxSizeLabel = '4MB'
+        const maxSizeLabel = fileType === 'video' ? '50MB' : '10MB'
 
         if (file.size > maxSize) {
           const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2)
-          error(`File too large: ${file.name} (${fileSizeMB}MB). Max size: ${maxSizeLabel} (Vercel limit)`)
+          error(`File too large: ${file.name} (${fileSizeMB}MB). Max size: ${maxSizeLabel}`)
           continue
         }
 
         // Start tracking this upload
         setCurrentUpload({ fileName: file.name, progress: 0 })
 
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('type', 'post-media')
-
-        // Simulate progress (since fetch doesn't support upload progress tracking directly)
-        const progressInterval = setInterval(() => {
-          setCurrentUpload(prev => {
-            if (!prev) return null
-            const newProgress = Math.min(prev.progress + 10, 90)
-            return { ...prev, progress: newProgress }
-          })
-        }, 200)
-
         try {
-          const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData,
-            credentials: 'include' // Required for withAuth middleware
+          // Upload directly to Cloudinary (bypasses Vercel)
+          const cloudinaryResult = await uploadToCloudinary(file, (progress) => {
+            setCurrentUpload({ fileName: file.name, progress: progress.percentage })
           })
 
-          clearInterval(progressInterval)
+          // Now register the upload with our server for quota tracking and moderation
+          const response = await fetch('/api/upload/direct', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              secure_url: cloudinaryResult.secure_url,
+              public_id: cloudinaryResult.public_id,
+              resource_type: cloudinaryResult.resource_type,
+              bytes: cloudinaryResult.bytes,
+              duration: cloudinaryResult.duration,
+              width: cloudinaryResult.width,
+              height: cloudinaryResult.height
+            })
+          })
 
           const result = await response.json()
 
@@ -146,14 +149,13 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
               setCurrentUpload(null)
             }, 1000)
           } else {
-            clearInterval(progressInterval)
             setCurrentUpload(null)
-            error(`Upload failed: ${result.error}`)
+            error(`Upload registration failed: ${result.error}`)
           }
-        } catch (uploadErr) {
-          clearInterval(progressInterval)
+        } catch (uploadErr: any) {
           setCurrentUpload(null)
-          throw uploadErr
+          console.error('Upload error:', uploadErr)
+          error(`Upload failed: ${uploadErr.message || 'Unknown error'}`)
         }
       }
     } catch (err) {
