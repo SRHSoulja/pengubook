@@ -103,11 +103,19 @@ class RedisClient {
 
   /**
    * Initialize standard Redis (ioredis)
+   * NOTE: ioredis package must be installed separately if using standard Redis
    */
   private async initializeStandard(url: string) {
     try {
-      // Dynamic import to avoid bundling if not used
-      const Redis = (await import('ioredis')).default
+      // Dynamic import - will fail gracefully if ioredis not installed
+      let Redis: any
+      try {
+        Redis = (await import('ioredis')).default
+      } catch (importError) {
+        logger.warn('ioredis package not installed, standard Redis unavailable. Use Upstash Redis instead.', {}, { component: 'REDIS' })
+        this.isEnabled = false
+        return
+      }
 
       this.client = new Redis(url, {
         maxRetriesPerRequest: 3,
