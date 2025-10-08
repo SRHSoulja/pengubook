@@ -51,13 +51,22 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
   // Close emoji picker when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node
+      // Don't close if clicking the button or the picker itself
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(target)) {
+        const pickerElement = document.querySelector('.emoji-picker-container')
+        if (pickerElement && pickerElement.contains(target)) {
+          return // Click was inside the picker, don't close
+        }
         setShowEmojiPicker(false)
       }
     }
 
     if (showEmojiPicker) {
-      document.addEventListener('mousedown', handleClickOutside)
+      // Use setTimeout to avoid immediate closing when button is clicked
+      setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside)
+      }, 0)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [showEmojiPicker])
@@ -464,7 +473,8 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
                   type="button"
                   variant="warning"
                   size="sm"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation()
                     console.log('Emoji button clicked, current state:', showEmojiPicker)
                     setShowEmojiPicker(!showEmojiPicker)
                   }}
@@ -472,27 +482,29 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
                 >
                   Emoji
                 </Button>
-                {showEmojiPicker && (
-                  <div
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 md:absolute md:inset-auto md:bottom-full md:mb-2 md:right-0 md:bg-transparent md:flex md:items-start md:justify-end"
-                    onClick={(e) => {
-                      // Close on backdrop click (mobile only)
-                      if (e.target === e.currentTarget) {
-                        setShowEmojiPicker(false)
-                      }
-                    }}
-                  >
-                    <div className="shadow-2xl">
-                      <EmojiPicker
-                        onEmojiClick={handleEmojiSelect}
-                        theme={Theme.DARK}
-                        width={300}
-                        height={400}
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
+
+              {/* Emoji Picker Portal (outside button container) */}
+              {showEmojiPicker && (
+                <div
+                  className="emoji-picker-container fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 md:absolute md:inset-auto md:bottom-[120px] md:right-4 md:bg-transparent"
+                  onClick={(e) => {
+                    // Close on backdrop click (mobile only)
+                    if (e.target === e.currentTarget) {
+                      setShowEmojiPicker(false)
+                    }
+                  }}
+                >
+                  <div className="shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <EmojiPicker
+                      onEmojiClick={handleEmojiSelect}
+                      theme={Theme.DARK}
+                      width={300}
+                      height={400}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* GIF Button */}
               <Button
