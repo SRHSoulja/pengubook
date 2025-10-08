@@ -78,14 +78,14 @@ export const POST = withRateLimit(20, 3600000)( // 20 uploads per hour
       }
 
       // Validate file size (server-side enforcement)
-      const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB for images
-      const MAX_VIDEO_SIZE = 50 * 1024 * 1024 // 50MB for videos
-      const maxSize = fileType === 'video' ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE
+      // Vercel has 4.5MB body limit, so we enforce 4MB to be safe
+      const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB for both images and videos (Vercel limit)
+      const maxSize = MAX_FILE_SIZE
 
       if (file.size > maxSize) {
         return NextResponse.json(
-          { error: `File too large. Max size: ${fileType === 'video' ? '50MB' : '10MB'}` },
-          { status: 400 }
+          { error: 'File too large. Max size: 4MB (Vercel hosting limit)' },
+          { status: 413 }
         )
       }
 

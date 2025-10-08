@@ -77,14 +77,15 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         }
 
         // Validate file size BEFORE uploading
-        const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB
-        const MAX_VIDEO_SIZE = 50 * 1024 * 1024 // 50MB
+        // Vercel has 4.5MB body limit, so we need lower limits for server upload
+        const MAX_IMAGE_SIZE = 4 * 1024 * 1024 // 4MB (under Vercel's 4.5MB limit)
+        const MAX_VIDEO_SIZE = 4 * 1024 * 1024 // 4MB for videos too
         const maxSize = fileType === 'video' ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE
-        const maxSizeLabel = fileType === 'video' ? '50MB' : '10MB'
+        const maxSizeLabel = '4MB'
 
         if (file.size > maxSize) {
           const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2)
-          error(`File too large: ${file.name} (${fileSizeMB}MB). Max size: ${maxSizeLabel}`)
+          error(`File too large: ${file.name} (${fileSizeMB}MB). Max size: ${maxSizeLabel} (Vercel limit)`)
           continue
         }
 
@@ -423,19 +424,32 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
                   type="button"
                   variant="warning"
                   size="sm"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  onClick={() => {
+                    console.log('Emoji button clicked, current state:', showEmojiPicker)
+                    setShowEmojiPicker(!showEmojiPicker)
+                  }}
                   iconLeft={<span>😀</span>}
                 >
                   Emoji
                 </Button>
                 {showEmojiPicker && (
-                  <div className="absolute bottom-full mb-2 right-0 z-[100] shadow-2xl">
-                    <EmojiPicker
-                      onEmojiClick={handleEmojiSelect}
-                      theme={Theme.DARK}
-                      width={300}
-                      height={400}
-                    />
+                  <div
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 md:absolute md:inset-auto md:bottom-full md:mb-2 md:right-0 md:bg-transparent md:flex md:items-start md:justify-end"
+                    onClick={(e) => {
+                      // Close on backdrop click (mobile only)
+                      if (e.target === e.currentTarget) {
+                        setShowEmojiPicker(false)
+                      }
+                    }}
+                  >
+                    <div className="shadow-2xl">
+                      <EmojiPicker
+                        onEmojiClick={handleEmojiSelect}
+                        theme={Theme.DARK}
+                        width={300}
+                        height={400}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
