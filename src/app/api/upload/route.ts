@@ -14,6 +14,9 @@ cloudinary.config({
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+// Increase max duration for video uploads (App Router)
+export const maxDuration = 60 // 60 seconds
+
 // SECURITY: Daily upload quota per user
 const DAILY_UPLOAD_LIMIT = 50
 

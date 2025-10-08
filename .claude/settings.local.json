@@ -77,7 +77,8 @@
       "Bash([ -f src/lib/csrf.ts ])",
       "Bash(wslpath:*)",
       "Bash([ -f src/lib/logger.ts ])",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Read(//WSL.LOCALHOST/UBUNTU/home/arson/PenguBook/**)"
     ],
     "deny": [],
     "ask": []

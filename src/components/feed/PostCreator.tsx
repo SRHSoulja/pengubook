@@ -69,6 +69,25 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
 
     try {
       for (const file of Array.from(files)) {
+        // Validate file type
+        const fileType = file.type.split('/')[0]
+        if (!['image', 'video'].includes(fileType)) {
+          error(`Invalid file type: ${file.type}. Only images and videos are allowed.`)
+          continue
+        }
+
+        // Validate file size BEFORE uploading
+        const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB
+        const MAX_VIDEO_SIZE = 50 * 1024 * 1024 // 50MB
+        const maxSize = fileType === 'video' ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE
+        const maxSizeLabel = fileType === 'video' ? '50MB' : '10MB'
+
+        if (file.size > maxSize) {
+          const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2)
+          error(`File too large: ${file.name} (${fileSizeMB}MB). Max size: ${maxSizeLabel}`)
+          continue
+        }
+
         // Start tracking this upload
         setCurrentUpload({ fileName: file.name, progress: 0 })
 
