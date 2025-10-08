@@ -78,9 +78,10 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         }
 
         // Validate file size BEFORE uploading
-        // Using direct Cloudinary upload (bypasses Vercel 4.5MB limit)
         const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB for images
         const MAX_VIDEO_SIZE = 50 * 1024 * 1024 // 50MB for videos
+        const VERCEL_LIMIT = 4 * 1024 * 1024 // 4MB Vercel serverless function limit
+
         const maxSize = fileType === 'video' ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE
         const maxSizeLabel = fileType === 'video' ? '50MB' : '10MB'
 
@@ -94,30 +95,67 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         setCurrentUpload({ fileName: file.name, progress: 0 })
 
         try {
-          // Upload directly to Cloudinary (bypasses Vercel)
-          const cloudinaryResult = await uploadToCloudinary(file, (progress) => {
-            setCurrentUpload({ fileName: file.name, progress: progress.percentage })
-          })
+          // HYBRID APPROACH:
+          // - Small images (< 4MB): Use Vercel API (server-side moderation BEFORE upload)
+          // - Videos or large images: Direct to Cloudinary (bypasses Vercel limit)
+          const useDirectUpload = fileType === 'video' || file.size >= VERCEL_LIMIT
 
-          // Now register the upload with our server for quota tracking and moderation
-          const response = await fetch('/api/upload/direct', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-              secure_url: cloudinaryResult.secure_url,
-              public_id: cloudinaryResult.public_id,
-              resource_type: cloudinaryResult.resource_type,
-              bytes: cloudinaryResult.bytes,
-              duration: cloudinaryResult.duration,
-              width: cloudinaryResult.width,
-              height: cloudinaryResult.height
+          if (useDirectUpload) {
+            // Direct upload to Cloudinary (bypasses Vercel)
+            console.log(`Using direct upload for ${fileType} (${file.size} bytes)`)
+            const cloudinaryResult = await uploadToCloudinary(file, (progress) => {
+              setCurrentUpload({ fileName: file.name, progress: progress.percentage })
             })
-          })
 
-          const result = await response.json()
+            // Register upload with server for quota tracking and moderation
+            const response = await fetch('/api/upload/direct', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              credentials: 'include',
+              body: JSON.stringify({
+                secure_url: cloudinaryResult.secure_url,
+                public_id: cloudinaryResult.public_id,
+                resource_type: cloudinaryResult.resource_type,
+                bytes: cloudinaryResult.bytes,
+                duration: cloudinaryResult.duration,
+                width: cloudinaryResult.width,
+                height: cloudinaryResult.height
+              })
+            })
+
+            var result = await response.json()
+          } else {
+            // Small image: Use Vercel API (server validates/moderates BEFORE upload)
+            console.log(`Using server upload for small image (${file.size} bytes)`)
+            const formData = new FormData()
+            formData.append('file', file)
+            formData.append('type', 'post-media')
+
+            // Simulate progress for server upload
+            const progressInterval = setInterval(() => {
+              setCurrentUpload(prev => {
+                if (!prev) return null
+                const newProgress = Math.min(prev.progress + 10, 90)
+                return { ...prev, progress: newProgress }
+              })
+            }, 200)
+
+            try {
+              const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+              })
+
+              clearInterval(progressInterval)
+              var result = await response.json()
+            } catch (err) {
+              clearInterval(progressInterval)
+              throw err
+            }
+          }
 
           if (result.success) {
             // Complete progress
