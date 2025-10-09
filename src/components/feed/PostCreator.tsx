@@ -32,6 +32,9 @@ interface UploadedFile {
 
 export default function PostCreator({ onPostCreated, className = '' }: PostCreatorProps) {
   const { walletAddress } = useAuth()
+  // Force BUILD_VERSION into output
+  if (process.env.NODE_ENV === 'development' && BUILD_VERSION) console.log('Build:', BUILD_VERSION)
+
   const { success, error } = useToast()
   const [content, setContent] = useState('')
   const [contentType, setContentType] = useState<PostType>('TEXT')
