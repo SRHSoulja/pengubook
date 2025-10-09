@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { useToast } from '@/components/ui/Toast'
+import { useAuth } from '@/providers/AuthProvider'
 
 export interface MediaFile {
   id: string
@@ -27,6 +28,7 @@ export default function MediaUploader({
   maxFiles = 4
 }: MediaUploaderProps) {
   const { toast } = useToast()
+  const { user } = useAuth()
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -90,10 +92,17 @@ export default function MediaUploader({
       formData.append('type', 'post-media')
 
       try {
+        if (!user?.walletAddress) {
+          throw new Error('Wallet not connected')
+        }
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
           method: 'POST',
+          headers: {
+            'x-wallet-address': user.walletAddress
+          },
           body: formData,
-          credentials: 'include' // Required for withAuth middleware
+          credentials: 'include'
         })
 
         if (!response.ok) {

@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { GiphyService } from '@/lib/giphy'
 import { useToast } from '@/components/ui/Toast'
+import { useAuth } from '@/providers/AuthProvider'
 
 interface RichContentEditorProps {
   value: string
@@ -34,6 +35,7 @@ export default function RichContentEditor({
   allowEmbeds = true
 }: RichContentEditorProps) {
   const { toast } = useToast()
+  const { user } = useAuth()
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [gifSearchQuery, setGifSearchQuery] = useState('')
@@ -103,10 +105,17 @@ export default function RichContentEditor({
       formData.append('type', 'message_media')
 
       try {
+        if (!user?.walletAddress) {
+          throw new Error('Wallet not connected')
+        }
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
           method: 'POST',
+          headers: {
+            'x-wallet-address': user.walletAddress
+          },
           body: formData,
-          credentials: 'include' // Required for withAuth middleware
+          credentials: 'include'
         })
 
         if (response.ok) {

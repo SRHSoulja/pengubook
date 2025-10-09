@@ -61,6 +61,19 @@ export async function withAuth(request: FastifyRequest, reply: FastifyReply) {
     if (walletAddress) {
       console.log('[Auth] Attempting wallet auth for address:', walletAddress)
 
+      // Validate wallet address format (Ethereum address: 0x + 40 hex chars)
+      const walletAddressRegex = /^0x[a-fA-F0-9]{40}$/
+      if (!walletAddressRegex.test(walletAddress)) {
+        console.log('[Auth] Invalid wallet address format:', walletAddress)
+        return reply.status(400).send({ error: 'Invalid wallet address format' })
+      }
+
+      // Prevent path traversal and SQL injection attempts
+      if (walletAddress.includes('..') || walletAddress.includes('//')) {
+        console.log('[Auth] Malicious wallet address detected:', walletAddress)
+        return reply.status(400).send({ error: 'Invalid wallet address' })
+      }
+
       // Get user by wallet address
       const user = await prisma.user.findUnique({
         where: { walletAddress: walletAddress.toLowerCase() }

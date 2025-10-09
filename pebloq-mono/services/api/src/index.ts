@@ -31,6 +31,9 @@ async function start() {
       origin: [
         process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000',
         'http://localhost:3000',
+        'http://localhost:3001',
+        'https://pengubook.vercel.app',
+        'https://pebloq.gmgnrepeat.com',
         /^https:\/\/.*\.vercel\.app$/
       ],
       credentials: true

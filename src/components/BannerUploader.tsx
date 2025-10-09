@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
 import { useToast } from '@/components/ui/Toast'
+import { useAuth } from '@/providers/AuthProvider'
 
 interface BannerUploaderProps {
   currentBanner?: string | null
@@ -12,6 +13,7 @@ interface BannerUploaderProps {
 
 export default function BannerUploader({ currentBanner, onBannerChange }: BannerUploaderProps) {
   const { toast } = useToast()
+  const { user } = useAuth()
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(currentBanner || null)
   const [showCropper, setShowCropper] = useState(false)
@@ -117,10 +119,17 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
       formData.append('file', file)
       formData.append('type', 'profile-banner')
 
+      if (!user?.walletAddress) {
+        throw new Error('Wallet not connected')
+      }
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
         method: 'POST',
+        headers: {
+          'x-wallet-address': user.walletAddress
+        },
         body: formData,
-        credentials: 'include' // Required for withAuth middleware
+        credentials: 'include'
       })
 
       if (!response.ok) {
