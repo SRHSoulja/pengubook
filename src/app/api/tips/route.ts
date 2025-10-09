@@ -372,7 +372,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextRe
       amount: validAmount,
       token: token.symbol,
       txHash: validTxHash.slice(0, 10) + '...'
-    }, { component: 'Tipping' })
+    }, 'Tipping')
 
     return NextResponse.json({
       success: true,

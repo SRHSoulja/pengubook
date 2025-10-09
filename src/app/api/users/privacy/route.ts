@@ -41,7 +41,7 @@ export const GET = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
     })
 
   } catch (error: any) {
-    logger.error('Error fetching privacy settings', error, { component: 'Privacy' })
+    logger.error('Error fetching privacy settings', error, 'Privacy')
     return NextResponse.json(
       { error: 'Failed to fetch privacy settings', details: error.message },
       { status: 500 }
@@ -146,7 +146,7 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextReq
     logger.info('Privacy settings updated', {
       userId: user.id.slice(0, 8) + '...',
       changes: Object.keys(updateData)
-    }, { component: 'Privacy' })
+    }, 'Privacy')
 
     return NextResponse.json({
       success: true,
@@ -155,7 +155,7 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (request: NextReq
     })
 
   } catch (error: any) {
-    logger.error('Error updating privacy settings', error, { component: 'Privacy' })
+    logger.error('Error updating privacy settings', error, 'Privacy')
     return NextResponse.json(
       { error: 'Failed to update privacy settings', details: error.message },
       { status: 500 }

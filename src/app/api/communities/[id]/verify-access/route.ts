@@ -131,7 +131,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
         walletAddress: walletAddress.slice(0, 10) + '...',
         hasAccess: accessCheck.hasAccess,
         tokenSymbol: community.tokenSymbol
-      }, { component: 'TokenGating' })
+      }, 'TokenGating')
 
 
       return NextResponse.json({
@@ -150,7 +150,7 @@ export const POST = withRateLimit(20, 60 * 1000)(withAuth(async (request: NextRe
       })
 
     } catch (blockchainError: any) {
-      logger.error('Blockchain verification failed', { error: blockchainError.message, communityId, walletAddress }, { component: 'TokenGating' })
+      logger.error('Blockchain verification failed', { error: blockchainError.message, communityId, walletAddress }, 'TokenGating')
 
       return NextResponse.json(
         { error: 'Unable to verify token ownership. Please try again later.', details: blockchainError.message },

@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
         take: Math.min(limit, 50) // Max 50 results
       })
 
-      logger.debug('Search completed', { query, resultsCount: users.length }, { component: 'UserSearch' })
+      logger.debug('Search completed', { query, resultsCount: users.length }, 'UserSearch')
 
 
       // Format results for frontend

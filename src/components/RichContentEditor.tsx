@@ -103,7 +103,7 @@ export default function RichContentEditor({
       formData.append('type', 'message_media')
 
       try {
-        const response = await fetch('/api/upload', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
           method: 'POST',
           body: formData,
           credentials: 'include' // Required for withAuth middleware

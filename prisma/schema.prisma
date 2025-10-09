@@ -5,7 +5,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  // directUrl = env("DIRECT_DATABASE_URL") // Commented out - using pooled connection with pgbouncer=true
 }
 
 model User {
@@ -71,8 +70,6 @@ model User {
   contactSubmissions    ContactSubmission[]
   projectApplications   ProjectApplication[]
   uploads               Upload[]
-  adminActions          AdminAction[] // Admin actions performed by this user
-  securityIncidents     SecurityIncident[] @relation("SecurityIncidents") // Security incidents reported
 }
 
 model Profile {
@@ -963,68 +960,4 @@ model Upload {
   @@index([userId, createdAt]) // Query user uploads by date for quota checks
   @@index([publicId]) // Fast lookup for deletion
   @@map("uploads")
-}
-
-// SECURITY: CSRF token storage for protecting state-changing operations
-// Tokens are single-use and expire after 1 hour
-model CsrfToken {
-  id        String   @id @default(cuid())
-  token     String   @unique // Cryptographically secure random token
-  userId    String?  // Optional: associate with specific user for extra security
-  sessionId String?  // Session identifier for validation
-  used      Boolean  @default(false) // Single-use tokens
-  expiresAt DateTime // 1 hour expiration
-  createdAt DateTime @default(now())
-
-  @@index([token, used]) // Fast lookup and check if already used
-  @@index([expiresAt]) // Cleanup expired tokens
-  @@map("csrf_tokens")
-}
-
-// SECURITY: Admin action audit logging for compliance and security monitoring
-// Tracks all admin operations with full context for forensic analysis
-model AdminAction {
-  id          String   @id @default(cuid())
-  adminId     String   // Admin user who performed the action
-  adminName   String   // Admin displayName at time of action
-  action      String   // Action type: 'USER_BAN', 'USER_UNBAN', 'POST_DELETE', etc.
-  targetType  String   // Type of target: 'USER', 'POST', 'COMMENT', 'COMMUNITY', etc.
-  targetId    String   // ID of the affected entity
-  targetName  String?  // Name/display of target for quick reference
-  reason      String?  // Reason provided by admin
-  metadata    String?  // JSON string with additional context
-  ipAddress   String?  // IP address of admin
-  userAgent   String?  // User agent of admin
-  success     Boolean  @default(true) // Whether action succeeded
-  error       String?  // Error message if action failed
-  createdAt   DateTime @default(now())
-
-  admin User @relation(fields: [adminId], references: [id], onDelete: Cascade)
-
-  @@index([adminId, createdAt]) // Query actions by admin over time
-  @@index([targetType, targetId]) // Query actions by target
-  @@index([action, createdAt]) // Query by action type over time
-  @@index([createdAt]) // Query recent actions
-  @@map("admin_actions")
-}
-
-model SecurityIncident {
-  id          String   @id @default(cuid())
-  title       String
-  description String   @db.Text
-  severity    String   // 'info', 'warning', 'error', 'critical'
-  type        String   // 'rate_limit', 'unauthorized_access', 'data_breach', etc.
-  status      String   @default("open") // 'open', 'investigating', 'resolved', 'closed'
-  reporterId  String
-  metadata    String?  @db.Text // JSON string with incident details
-  resolvedAt  DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  reporter User @relation("SecurityIncidents", fields: [reporterId], references: [id], onDelete: Cascade)
-
-  @@index([severity, status])
-  @@index([type, createdAt])
-  @@index([status, createdAt])
-  @@map("security_incidents")
 }

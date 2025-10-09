@@ -90,7 +90,7 @@ export const PUT = withRateLimit(20, 60 * 1000)(withAdminAuth(async (request: Ne
       tokenId: updatedToken.id,
       changes: Object.keys(updateData),
       updatedBy: user.id
-    }, { component: 'TokenManagement' })
+    }, 'TokenManagement')
 
     return NextResponse.json({
       success: true,
@@ -160,7 +160,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request:
       tokenId: existingToken.id,
       tokenSymbol: existingToken.symbol,
       deletedBy: user.id
-    }, { component: 'TokenManagement' })
+    }, 'TokenManagement')
 
     return NextResponse.json({
       success: true,

@@ -266,7 +266,7 @@ export const POST = withRateLimit(3, 60 * 60 * 1000)(withAuth(async (request: Ne
       commentId: commentId || 'none',
       messageId: messageId || 'none',
       reason
-    }, { component: 'Reports' })
+    }, 'Reports')
 
     return NextResponse.json({
       success: true,

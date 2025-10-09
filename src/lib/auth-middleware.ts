@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { prisma } from '@/lib/prisma'
 
@@ -265,45 +265,51 @@ export async function requireAdmin(request: NextRequest) {
   return user
 }
 
-export function withAuth(handler: (request: NextRequest, user: any, ...args: any[]) => Promise<NextResponse>) {
-  return async (request: NextRequest, ...args: any[]): Promise<NextResponse> => {
+export function withAuth(handler: (request: NextRequest, user: any, ...args: any[]) => Promise<Response>) {
+  return async (request: NextRequest, ...args: any[]) => {
     try {
       const user = await requireAuth(request)
       return await handler(request, user, ...args)
     } catch (error: any) {
       const errorData = JSON.parse(error.message)
-      return NextResponse.json(
-        {
+      return new Response(
+        JSON.stringify({
           error: errorData.error,
           timestamp: new Date().toISOString()
-        },
-        { status: errorData.status }
+        }),
+        {
+          status: errorData.status,
+          headers: { 'Content-Type': 'application/json' }
+        }
       )
     }
   }
 }
 
-export function withAdminAuth(handler: (request: NextRequest, user: any, ...args: any[]) => Promise<NextResponse>) {
-  return async (request: NextRequest, ...args: any[]): Promise<NextResponse> => {
+export function withAdminAuth(handler: (request: NextRequest, user: any, ...args: any[]) => Promise<Response>) {
+  return async (request: NextRequest, ...args: any[]) => {
     try {
       const user = await requireAdmin(request)
       return await handler(request, user, ...args)
     } catch (error: any) {
       const errorData = JSON.parse(error.message)
-      return NextResponse.json(
-        {
+      return new Response(
+        JSON.stringify({
           error: errorData.error,
           timestamp: new Date().toISOString()
-        },
-        { status: errorData.status }
+        }),
+        {
+          status: errorData.status,
+          headers: { 'Content-Type': 'application/json' }
+        }
       )
     }
   }
 }
 
 // Optional auth: Continues if no user, passes null
-export function withOptionalAuth(handler: (request: NextRequest, user: any | null, ...args: any[]) => Promise<NextResponse>) {
-  return async (request: NextRequest, ...args: any[]): Promise<NextResponse> => {
+export function withOptionalAuth(handler: (request: NextRequest, user: any | null, ...args: any[]) => Promise<Response>) {
+  return async (request: NextRequest, ...args: any[]) => {
     try {
       const authResult = await authenticateRequest(request)
       const user = authResult.success ? authResult.user : null

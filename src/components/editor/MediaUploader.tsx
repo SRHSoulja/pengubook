@@ -90,7 +90,7 @@ export default function MediaUploader({
       formData.append('type', 'post-media')
 
       try {
-        const response = await fetch('/api/upload', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
           method: 'POST',
           body: formData,
           credentials: 'include' // Required for withAuth middleware

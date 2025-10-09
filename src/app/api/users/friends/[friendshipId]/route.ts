@@ -104,7 +104,7 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (
         friendshipId,
         acceptedBy: user.id.slice(0, 8) + '...',
         initiatorId: friendship.initiatorId.slice(0, 8) + '...'
-      }, { component: 'Friends' })
+      }, 'Friends')
 
       return NextResponse.json({
         success: true,
@@ -130,7 +130,7 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (
         friendshipId,
         declinedBy: user.id.slice(0, 8) + '...',
         initiatorId: friendship.initiatorId.slice(0, 8) + '...'
-      }, { component: 'Friends' })
+      }, 'Friends')
 
       return NextResponse.json({
         success: true,
@@ -139,7 +139,7 @@ export const PUT = withRateLimit(10, 60 * 1000)(withAuth(async (
     }
 
   } catch (error: any) {
-    logger.error('Error responding to friend request', error, { component: 'Friends' })
+    logger.error('Error responding to friend request', error, 'Friends')
     return NextResponse.json(
       { error: 'Failed to respond to friend request', details: error.message },
       { status: 500 }
@@ -198,7 +198,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAuth(async (
       friendshipId,
       actionBy: user.id.slice(0, 8) + '...',
       otherUserId: (friendship.initiatorId === user.id ? friendship.receiverId : friendship.initiatorId).slice(0, 8) + '...'
-    }, { component: 'Friends' })
+    }, 'Friends')
 
     return NextResponse.json({
       success: true,
@@ -206,7 +206,7 @@ export const DELETE = withRateLimit(10, 60 * 1000)(withAuth(async (
     })
 
   } catch (error: any) {
-    logger.error('Error removing friendship', error, { component: 'Friends' })
+    logger.error('Error removing friendship', error, 'Friends')
     return NextResponse.json(
       { error: 'Failed to remove friendship', details: error.message },
       { status: 500 }

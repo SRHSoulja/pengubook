@@ -74,7 +74,7 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
         formData.append('file', file)
         formData.append('type', 'post-media')
 
-        const response = await fetch('/api/upload', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
           method: 'POST',
           body: formData,
           credentials: 'include'

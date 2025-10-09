@@ -54,7 +54,7 @@ export const DELETE = withAuth(async (
       mutedPhraseId,
       userId: user.id,
       phraseLength: mutedPhrase.phrase.length
-    }, { component: 'MutedPhrases' })
+    }, 'MutedPhrases')
 
     return NextResponse.json({
       success: true,

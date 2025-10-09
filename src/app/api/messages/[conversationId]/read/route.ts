@@ -106,7 +106,7 @@ export const POST = withRateLimit(60, 60 * 1000)(withAuth(async (request: NextRe
       userId: user.id.slice(0, 8) + '...',
       messageCount: messagesFromOthers.length,
       readReceiptsCreated: result.count
-    }, { component: 'Messaging' })
+    }, 'Messaging')
 
     // TODO: Emit WebSocket event to notify other participants about read receipts
 
@@ -203,7 +203,7 @@ export const PUT = withRateLimit(30, 60 * 1000)(withAuth(async (request: NextReq
       userId: user.id.slice(0, 8) + '...',
       messageCount: unreadMessages.length,
       readReceiptsCreated: result.count
-    }, { component: 'Messaging' })
+    }, 'Messaging')
 
     return NextResponse.json({
       success: true,

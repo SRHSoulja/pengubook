@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { PostType, Visibility, PostCreateRequest } from '@/types'
 import { useAbstractClient } from '@abstract-foundation/agw-react'
 import GiphyPicker from '@/components/GiphyPicker'
@@ -8,8 +8,6 @@ import Button, { IconButton } from '@/components/ui/Button'
 import dynamic from 'next/dynamic'
 import { Theme } from 'emoji-picker-react'
 import { useToast } from '@/components/ui/Toast'
-import UploadProgress from '@/components/ui/UploadProgress'
-import { uploadToCloudinary } from '@/lib/cloudinary-upload'
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false })
 
@@ -43,185 +41,66 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<string>('')
-  const [currentUpload, setCurrentUpload] = useState<{ fileName: string; progress: number } | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const emojiPickerRef = useRef<HTMLDivElement>(null)
-
-  // Close emoji picker when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node
-      // Don't close if clicking the button or the picker itself
-      if (emojiPickerRef.current && !emojiPickerRef.current.contains(target)) {
-        const pickerElement = document.querySelector('.emoji-picker-container')
-        if (pickerElement && pickerElement.contains(target)) {
-          return // Click was inside the picker, don't close
-        }
-        setShowEmojiPicker(false)
-      }
-    }
-
-    if (showEmojiPicker) {
-      // Use setTimeout to avoid immediate closing when button is clicked
-      setTimeout(() => {
-        document.addEventListener('mousedown', handleClickOutside)
-      }, 0)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [showEmojiPicker])
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
 
     setIsUploading(true)
+    setUploadProgress('Uploading...')
 
     try {
       for (const file of Array.from(files)) {
-        // Validate file type
-        const fileType = file.type.split('/')[0]
-        if (!['image', 'video'].includes(fileType)) {
-          error(`Invalid file type: ${file.type}. Only images and videos are allowed.`)
-          continue
-        }
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('type', 'post-media')
 
-        // Validate file size BEFORE uploading
-        const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB for images
-        const MAX_VIDEO_SIZE = 50 * 1024 * 1024 // 50MB for videos
-        const VERCEL_LIMIT = 3.5 * 1024 * 1024 // 3.5MB Vercel serverless function limit (with overhead)
+        setUploadProgress(`Uploading ${file.name}...`)
 
-        const maxSize = fileType === 'video' ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE
-        const maxSizeLabel = fileType === 'video' ? '50MB' : '10MB'
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || ''
+        const response = await fetch(`${apiUrl}/upload`, {
+          method: 'POST',
+          body: formData,
+          credentials: 'include' // Required for withAuth middleware
+        })
 
-        if (file.size > maxSize) {
-          const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2)
-          error(`File too large: ${file.name} (${fileSizeMB}MB). Max size: ${maxSizeLabel}`)
-          continue
-        }
+        const result = await response.json()
 
-        // Start tracking this upload
-        setCurrentUpload({ fileName: file.name, progress: 0 })
-
-        try {
-          // HYBRID APPROACH:
-          // - Small images (< 3.5MB): Use Vercel API (server-side moderation BEFORE upload)
-          // - Videos or large images: Direct to Cloudinary (bypasses Vercel limit)
-          const useDirectUpload = fileType === 'video' || file.size >= VERCEL_LIMIT
-
-          console.log('[Upload Decision]', {
-            fileName: file.name,
-            fileType,
-            fileSize: file.size,
-            fileSizeMB: (file.size / 1024 / 1024).toFixed(2),
-            vercelLimit: VERCEL_LIMIT,
-            vercelLimitMB: (VERCEL_LIMIT / 1024 / 1024).toFixed(2),
-            useDirectUpload,
-            reason: fileType === 'video' ? 'video file' : file.size >= VERCEL_LIMIT ? 'large file' : 'small file'
-          })
-
-          if (useDirectUpload) {
-            // Direct upload to Cloudinary (bypasses Vercel)
-            console.log(`✅ Using direct upload for ${fileType} (${file.size} bytes)`)
-            const cloudinaryResult = await uploadToCloudinary(file, (progress) => {
-              setCurrentUpload({ fileName: file.name, progress: progress.percentage })
-            })
-
-            // Register upload with server for quota tracking and moderation
-            const response = await fetch('/api/upload/direct', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              credentials: 'include',
-              body: JSON.stringify({
-                secure_url: cloudinaryResult.secure_url,
-                public_id: cloudinaryResult.public_id,
-                resource_type: cloudinaryResult.resource_type,
-                bytes: cloudinaryResult.bytes,
-                duration: cloudinaryResult.duration,
-                width: cloudinaryResult.width,
-                height: cloudinaryResult.height
-              })
-            })
-
-            var result = await response.json()
-          } else {
-            // Small image: Use Vercel API (server validates/moderates BEFORE upload)
-            console.log(`✅ Using server upload for small image (${file.size} bytes)`)
-            const formData = new FormData()
-            formData.append('file', file)
-            formData.append('type', 'post-media')
-
-            // Simulate progress for server upload
-            const progressInterval = setInterval(() => {
-              setCurrentUpload(prev => {
-                if (!prev) return null
-                const newProgress = Math.min(prev.progress + 10, 90)
-                return { ...prev, progress: newProgress }
-              })
-            }, 200)
-
-            try {
-              const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData,
-                credentials: 'include'
-              })
-
-              clearInterval(progressInterval)
-              var result = await response.json()
-            } catch (err) {
-              clearInterval(progressInterval)
-              throw err
-            }
+        if (result.success) {
+          const uploadedFile: UploadedFile = {
+            url: result.url,
+            type: result.type,
+            publicId: result.publicId,
+            width: result.width,
+            height: result.height,
+            thumbnailUrl: result.thumbnailUrl,
+            isNSFW: result.moderation?.isNSFW,
+            contentWarnings: result.moderation?.contentWarnings
           }
 
-          if (result.success) {
-            // Complete progress
-            setCurrentUpload(prev => prev ? { ...prev, progress: 100 } : null)
+          setUploadedFiles(prev => [...prev, uploadedFile])
+          setMediaUrls(prev => [...prev, result.url])
 
-            const uploadedFile: UploadedFile = {
-              url: result.url,
-              type: result.type,
-              publicId: result.publicId,
-              width: result.width,
-              height: result.height,
-              thumbnailUrl: result.thumbnailUrl,
-              isNSFW: result.moderation?.isNSFW,
-              contentWarnings: result.moderation?.contentWarnings
-            }
-
-            setUploadedFiles(prev => [...prev, uploadedFile])
-            setMediaUrls(prev => [...prev, result.url])
-
-            // Auto-set content type based on upload
-            if (result.type === 'video' && contentType === 'TEXT') {
-              setContentType('VIDEO')
-            } else if (result.type === 'image' && contentType === 'TEXT') {
-              setContentType('IMAGE')
-            }
-
-            // Show completion briefly before clearing
-            setTimeout(() => {
-              setCurrentUpload(null)
-            }, 1000)
-          } else {
-            setCurrentUpload(null)
-            error(`Upload registration failed: ${result.error}`)
+          // Auto-set content type based on upload
+          if (result.type === 'video' && contentType === 'TEXT') {
+            setContentType('VIDEO')
+          } else if (result.type === 'image' && contentType === 'TEXT') {
+            setContentType('IMAGE')
           }
-        } catch (uploadErr: any) {
-          setCurrentUpload(null)
-          console.error('Upload error:', uploadErr)
-          error(`Upload failed: ${uploadErr.message || 'Unknown error'}`)
+
+          setUploadProgress('')
+        } else {
+          error(`Upload failed: ${result.error}`)
         }
       }
     } catch (err) {
       console.error('Upload error:', err)
       error('Failed to upload file')
-      setCurrentUpload(null)
     } finally {
       setIsUploading(false)
+      setUploadProgress('')
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
@@ -430,12 +309,13 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
             )}
 
             {/* Upload Progress */}
-            {currentUpload && (
-              <UploadProgress
-                fileName={currentUpload.fileName}
-                progress={currentUpload.progress}
-                isComplete={currentUpload.progress === 100}
-              />
+            {isUploading && (
+              <div className="bg-pengu-green/10 border border-pengu-green/30 rounded-lg p-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-pengu-green border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-sm text-pengu-green">{uploadProgress}</span>
+                </div>
+              </div>
             )}
 
             {/* Media Controls */}
@@ -479,43 +359,22 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
               </Button>
 
               {/* Emoji Button */}
-              <div className="relative" ref={emojiPickerRef}>
+              <div className="relative">
                 <Button
                   type="button"
                   variant="warning"
                   size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    console.log('Emoji button clicked, current state:', showEmojiPicker)
-                    setShowEmojiPicker(!showEmojiPicker)
-                  }}
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                   iconLeft={<span>😀</span>}
                 >
                   Emoji
                 </Button>
-              </div>
-
-              {/* Emoji Picker Portal (outside button container) */}
-              {showEmojiPicker && (
-                <div
-                  className="emoji-picker-container fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 md:absolute md:inset-auto md:bottom-[120px] md:right-4 md:bg-transparent"
-                  onClick={(e) => {
-                    // Close on backdrop click (mobile only)
-                    if (e.target === e.currentTarget) {
-                      setShowEmojiPicker(false)
-                    }
-                  }}
-                >
-                  <div className="shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                    <EmojiPicker
-                      onEmojiClick={handleEmojiSelect}
-                      theme={Theme.DARK}
-                      width={300}
-                      height={400}
-                    />
+                {showEmojiPicker && (
+                  <div className="absolute bottom-full mb-2 right-0 z-50">
+                    <EmojiPicker onEmojiClick={handleEmojiSelect} theme={Theme.DARK} />
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* GIF Button */}
               <Button

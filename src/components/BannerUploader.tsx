@@ -117,7 +117,7 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
       formData.append('file', file)
       formData.append('type', 'profile-banner')
 
-      const response = await fetch('/api/upload', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
         method: 'POST',
         body: formData,
         credentials: 'include' // Required for withAuth middleware

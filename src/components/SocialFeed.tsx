@@ -71,7 +71,7 @@ function renderContentWithEmbeds(content: string): JSX.Element {
 
   if (mediaUrls.length === 0) {
     return (
-      <p className="text-gray-200 whitespace-pre-wrap leading-relaxed break-words overflow-wrap-anywhere">
+      <p className="text-gray-200 whitespace-pre-wrap leading-relaxed">
         {renderTextWithHashtags(content)}
       </p>
     )
@@ -88,7 +88,7 @@ function renderContentWithEmbeds(content: string): JSX.Element {
       if (urlIndex > 0) {
         const textBefore = remainingContent.substring(0, urlIndex)
         elements.push(
-          <p key={`text-before-${index}`} className="text-gray-200 whitespace-pre-wrap leading-relaxed break-words overflow-wrap-anywhere">
+          <p key={`text-before-${index}`} className="text-gray-200 whitespace-pre-wrap leading-relaxed">
             {renderTextWithHashtags(textBefore)}
           </p>
         )
@@ -644,11 +644,11 @@ via @PeBloq`
   }
 
   return (
-    <div className="space-y-6 w-full max-w-full overflow-hidden">
+    <div className="space-y-6">
       {posts.map((post) => (
         <div
           key={post.id}
-          className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-4 sm:p-6 hover:bg-white/15 transition-all w-full max-w-full overflow-hidden"
+          className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 hover:bg-white/15 transition-all"
         >
           {/* Post Header */}
           <div className="flex items-center gap-3 mb-4">
