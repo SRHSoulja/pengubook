@@ -89,7 +89,7 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         // Validate file size BEFORE uploading
         const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB for images
         const MAX_VIDEO_SIZE = 50 * 1024 * 1024 // 50MB for videos
-        const VERCEL_LIMIT = 4 * 1024 * 1024 // 4MB Vercel serverless function limit
+        const VERCEL_LIMIT = 3.5 * 1024 * 1024 // 3.5MB Vercel serverless function limit (with overhead)
 
         const maxSize = fileType === 'video' ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE
         const maxSizeLabel = fileType === 'video' ? '50MB' : '10MB'
@@ -105,7 +105,7 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
 
         try {
           // HYBRID APPROACH:
-          // - Small images (< 4MB): Use Vercel API (server-side moderation BEFORE upload)
+          // - Small images (< 3.5MB): Use Vercel API (server-side moderation BEFORE upload)
           // - Videos or large images: Direct to Cloudinary (bypasses Vercel limit)
           const useDirectUpload = fileType === 'video' || file.size >= VERCEL_LIMIT
 
@@ -148,7 +148,7 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
             var result = await response.json()
           } else {
             // Small image: Use Vercel API (server validates/moderates BEFORE upload)
-            console.log(`⚠️ Using server upload for small image (${file.size} bytes) - may hit 4MB Vercel limit`)
+            console.log(`✅ Using server upload for small image (${file.size} bytes)`)
             const formData = new FormData()
             formData.append('file', file)
             formData.append('type', 'post-media')
