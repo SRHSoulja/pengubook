@@ -15,7 +15,10 @@ export default async function postsRoutes(app: FastifyInstance) {
         orderBy: { createdAt: 'desc' },
         where: {
           visibility: 'PUBLIC',
-          moderationStatus: { in: ['approved', null] }
+          OR: [
+            { moderationStatus: 'approved' },
+            { moderationStatus: null }
+          ]
         },
         include: {
           author: {
