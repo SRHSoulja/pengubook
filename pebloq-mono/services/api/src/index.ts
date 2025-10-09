@@ -30,7 +30,8 @@ async function start() {
     await app.register(cors, {
       origin: [
         process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000',
-        'http://localhost:3000'
+        'http://localhost:3000',
+        /^https:\/\/.*\.vercel\.app$/
       ],
       credentials: true
     })
