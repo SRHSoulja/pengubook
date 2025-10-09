@@ -4,6 +4,10 @@ const nextConfig = {
   // and no longer needs to be specified in experimental config
 
   output: 'standalone',
+  generateBuildId: async () => {
+    // Force unique build ID
+    return `build-${Date.now()}`
+  },
 
   // Security headers for production hardening
   async headers() {
