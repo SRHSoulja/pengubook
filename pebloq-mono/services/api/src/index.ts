@@ -52,6 +52,25 @@ async function start() {
     const notificationsRoutes = await import('./routes/notifications.js')
     const communitiesRoutes = await import('./routes/communities.js')
 
+    // Root route - API info
+    app.get('/', async () => {
+      return {
+        name: 'PeBloq API',
+        version: '1.0.0',
+        status: 'running',
+        endpoints: {
+          health: '/health',
+          auth: '/auth',
+          posts: '/posts',
+          users: '/users',
+          upload: '/upload',
+          comments: '/comments',
+          notifications: '/notifications',
+          communities: '/communities'
+        }
+      }
+    })
+
     // Health check
     app.get('/health', async () => {
       return {
