@@ -1,6 +1,6 @@
 'use client'
 // Build cache bust: forces new chunk hash
-const BUILD_VERSION = '2025-01-09-FINAL'
+const BUILD_VERSION = '2025-01-09-DEBUG-ALERTS'
 
 
 import { useState, useRef } from 'react'
@@ -54,6 +54,10 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
     const files = e.target.files
     if (!files || files.length === 0) return
 
+    // VISIBLE DEBUG: Show wallet status
+    const debugMsg = `WALLET: ${walletAddress ? walletAddress.substring(0, 10) + '...' : 'NOT CONNECTED'}`
+    alert(debugMsg)
+
     // Check wallet connection first
     if (!walletAddress) {
       error("Please connect your wallet before uploading")
@@ -74,6 +78,10 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || ''
         console.log('[Upload] Wallet address:', walletAddress)
         console.log('[Upload] API URL:', apiUrl)
+
+        // VISIBLE DEBUG: Show what we're sending
+        alert(`SENDING TO: ${apiUrl}/upload\nHEADER: ${walletAddress}`)
+
         const response = await fetch(`${apiUrl}/upload`, {
           method: 'POST',
           headers: {
@@ -85,6 +93,9 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
 
         const result = await response.json()
         console.log('[Upload] Response:', result)
+
+        // VISIBLE DEBUG: Show response
+        alert(`RESPONSE: ${response.status} - ${JSON.stringify(result).substring(0, 100)}`)
 
         if (result.success) {
           const uploadedFile: UploadedFile = {
