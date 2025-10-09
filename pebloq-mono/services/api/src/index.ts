@@ -2,6 +2,7 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import multipart from '@fastify/multipart'
+import rateLimit from '@fastify/rate-limit'
 
 const PORT = parseInt(process.env.PORT || '4000')
 const HOST = '0.0.0.0'
@@ -37,6 +38,17 @@ async function start() {
         /^https:\/\/.*\.vercel\.app$/
       ],
       credentials: true
+    })
+
+    // Rate limiting (prevents brute force and DoS attacks)
+    await app.register(rateLimit, {
+      max: 100, // 100 requests
+      timeWindow: '1 minute', // per minute
+      keyGenerator: (request) => {
+        // Rate limit by IP + wallet address combination
+        const walletAddress = request.headers['x-wallet-address'] as string
+        return `${request.ip}_${walletAddress || 'anonymous'}`
+      }
     })
 
     // Multipart support for file uploads
