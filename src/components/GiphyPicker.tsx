@@ -98,8 +98,8 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-2 sm:p-4">
-      <div className="bg-gray-900 rounded-xl sm:rounded-2xl border border-white/20 w-full max-w-5xl h-[95vh] sm:max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center sm:p-4">
+      <div className="bg-gray-900 w-full h-full sm:h-auto sm:rounded-2xl border-0 sm:border border-white/20 sm:max-w-5xl sm:max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
         {/* Header - Compact on mobile */}
         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-white/20 bg-gradient-to-r from-gray-900 to-gray-800 shrink-0">
           <div className="flex items-center gap-2 sm:gap-3">
@@ -144,32 +144,15 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
         {/* Content - Scrollable Area with better mobile height */}
         <div className="p-2 sm:p-4 flex-1 overflow-y-auto min-h-0">
           {error ? (
-            <div className="text-center py-8 px-4">
-              <div className="text-4xl sm:text-5xl mb-4">😵</div>
-              <p className="text-red-300 text-base sm:text-lg font-semibold mb-2">{error}</p>
-              {error.includes('not configured') ? (
-                <div className="mt-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 text-left max-w-md mx-auto">
-                  <p className="text-yellow-200 text-sm mb-2">
-                    🔑 <strong>Giphy API key required</strong>
-                  </p>
-                  <p className="text-gray-300 text-xs sm:text-sm mb-2">
-                    To enable GIF search, add a Giphy API key to your environment:
-                  </p>
-                  <code className="block bg-black/50 p-2 rounded text-xs text-green-400 overflow-x-auto">
-                    GIPHY_API_KEY=your_key_here
-                  </code>
-                  <p className="text-gray-400 text-xs mt-2">
-                    Get a free API key at <a href="https://developers.giphy.com" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">developers.giphy.com</a>
-                  </p>
-                </div>
-              ) : (
-                <button
-                  onClick={() => loadGifs(searchQuery || 'trending')}
-                  className="mt-4 bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg transition-colors text-sm sm:text-base"
-                >
-                  Try Again
-                </button>
-              )}
+            <div className="text-center py-8">
+              <div className="text-4xl mb-4">😵</div>
+              <p className="text-red-300 text-lg">{error}</p>
+              <button
+                onClick={() => loadGifs(searchQuery || 'trending')}
+                className="mt-4 bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Try Again
+              </button>
             </div>
           ) : gifs.length === 0 && !loading ? (
             <div className="text-center py-8">
