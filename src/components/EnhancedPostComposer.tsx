@@ -65,6 +65,12 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
     const files = e.target.files
     if (!files || files.length === 0) return
 
+    // Check wallet connection
+    if (!user?.walletAddress) {
+      toast('Please connect your wallet before uploading', 'error')
+      return
+    }
+
     setIsUploading(true)
     try {
       const uploadedUrls: string[] = []
@@ -74,13 +80,24 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
         formData.append('file', file)
         formData.append('type', 'post-media')
 
+        console.log('[EnhancedPostComposer] Uploading to Railway with wallet:', user.walletAddress)
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
           method: 'POST',
+          headers: {
+            'x-wallet-address': user.walletAddress
+          },
           body: formData,
           credentials: 'include'
         })
 
-        if (!response.ok) throw new Error('Upload failed')
+        console.log('[EnhancedPostComposer] Upload response:', response.status)
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('[EnhancedPostComposer] Upload failed:', errorData)
+          throw new Error(errorData.error || 'Upload failed')
+        }
 
         const result = await response.json()
         if (result.success) {
