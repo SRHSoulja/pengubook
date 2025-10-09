@@ -4,6 +4,10 @@ import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import { useToast } from '@/components/ui/Toast'
 import GiphyPicker from '@/components/GiphyPicker'
+import dynamic from 'next/dynamic'
+import { Theme } from 'emoji-picker-react'
+
+const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false })
 
 interface EnhancedPostComposerProps {
   onPost: (data: { title: string; content: string; media?: any[] }) => Promise<void>
@@ -21,8 +25,10 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
   const [isUploading, setIsUploading] = useState(false)
   const [mediaUrls, setMediaUrls] = useState<string[]>([])
   const [showGiphyPicker, setShowGiphyPicker] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const emojiPickerRef = useRef<HTMLDivElement>(null)
 
   const charCount = content.length
   const charsRemaining = MAX_CHARS - charCount
@@ -60,6 +66,20 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
       }
     }
   }, [])
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false)
+      }
+    }
+
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showEmojiPicker])
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -128,6 +148,25 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
     toast('GIF added!', 'success')
   }
 
+  const handleEmojiSelect = (emojiData: any) => {
+    const emoji = emojiData.emoji
+    const textarea = textareaRef.current
+    if (textarea) {
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const newContent = content.substring(0, start) + emoji + content.substring(end)
+      setContent(newContent)
+
+      // Set cursor position after emoji
+      setTimeout(() => {
+        textarea.focus()
+        textarea.setSelectionRange(start + emoji.length, start + emoji.length)
+      }, 0)
+    } else {
+      setContent(content + emoji)
+    }
+  }
+
   const handlePost = async () => {
     if (!content.trim() || isOverLimit || isPosting) return
 
@@ -165,10 +204,10 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
   const { circumference, offset } = getCircleProgress()
 
   return (
-    <div className="glass-card rounded-2xl p-6">
+    <div className="glass-card rounded-2xl p-4 sm:p-6">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold overflow-hidden">
+      <div className="flex items-center gap-2 sm:gap-3 mb-4">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0">
           {user?.avatar ? (
             <img
               src={user.avatar}
@@ -179,7 +218,7 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
             user?.displayName?.charAt(0) || 'P'
           )}
         </div>
-        <h2 className="text-lg font-semibold text-white">
+        <h2 className="text-base sm:text-lg font-semibold text-white truncate">
           What's happening, {user?.displayName || 'Penguin'}?
         </h2>
       </div>
@@ -190,7 +229,7 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
         placeholder="Post title (optional)"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="w-full px-4 py-3 mb-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pengu-green focus:border-transparent transition-all"
+        className="w-full px-3 sm:px-4 py-2 sm:py-3 mb-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pengu-green focus:border-transparent transition-all text-sm sm:text-base"
       />
 
       {/* Content Textarea */}
@@ -200,21 +239,30 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
           placeholder="Share your thoughts with the colony..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className={`w-full px-4 py-3 rounded-xl bg-white/10 border text-white placeholder-gray-400 focus:outline-none focus:ring-2 resize-none transition-all ${
+          className={`w-full px-3 sm:px-4 py-2 sm:py-3 pr-16 sm:pr-20 rounded-xl bg-white/10 border text-white placeholder-gray-400 focus:outline-none focus:ring-2 resize-none transition-all text-sm sm:text-base ${
             isOverLimit
               ? 'border-red-500 focus:ring-red-500'
               : 'border-white/20 focus:ring-pengu-green focus:border-transparent'
           }`}
           rows={4}
-          style={{ minHeight: '120px', maxHeight: '400px' }}
+          style={{ minHeight: '100px', maxHeight: '400px' }}
         />
 
         {/* Character Counter - Bottom Right */}
-        <div className="absolute bottom-4 right-4 flex items-center gap-3">
+        <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex items-center gap-3">
           {/* Circular Progress */}
-          <div className="relative w-12 h-12">
-            <svg className="w-12 h-12 transform -rotate-90">
+          <div className="relative w-10 h-10 sm:w-12 sm:h-12">
+            <svg className="w-10 h-10 sm:w-12 sm:h-12 transform -rotate-90">
               {/* Background circle */}
+              <circle
+                cx="20"
+                cy="20"
+                r="16"
+                stroke="currentColor"
+                strokeWidth="3"
+                fill="none"
+                className="text-white/10 sm:hidden"
+              />
               <circle
                 cx="24"
                 cy="24"
@@ -222,17 +270,35 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
                 stroke="currentColor"
                 strokeWidth="3"
                 fill="none"
-                className="text-white/10"
+                className="text-white/10 hidden sm:block"
               />
               {/* Progress circle */}
               <circle
+                cx="20"
+                cy="20"
+                r="16"
+                stroke="currentColor"
+                strokeWidth="3"
+                fill="none"
+                className={`transition-all duration-300 sm:hidden ${
+                  isOverLimit
+                    ? 'text-red-500'
+                    : isNearLimit
+                    ? 'text-pengu-orange'
+                    : 'text-pengu-green'
+                }`}
+                strokeDasharray={2 * Math.PI * 16}
+                strokeDashoffset={2 * Math.PI * 16 - ((charCount / MAX_CHARS) * 100 / 100) * 2 * Math.PI * 16}
+                strokeLinecap="round"
+              />
+              <circle
                 cx="24"
                 cy="24"
                 r="18"
                 stroke="currentColor"
                 strokeWidth="3"
                 fill="none"
-                className={`transition-all duration-300 ${
+                className={`transition-all duration-300 hidden sm:block ${
                   isOverLimit
                     ? 'text-red-500'
                     : isNearLimit
@@ -247,7 +313,7 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
             {/* Character count text */}
             {charCount > 0 && (
               <span
-                className={`absolute inset-0 flex items-center justify-center text-xs font-bold ${
+                className={`absolute inset-0 flex items-center justify-center text-[10px] sm:text-xs font-bold ${
                   isOverLimit ? 'text-red-400' : isNearLimit ? 'text-pengu-orange' : 'text-gray-400'
                 }`}
               >
@@ -260,32 +326,33 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
 
       {/* Error Message */}
       {isOverLimit && (
-        <p className="text-red-400 text-sm mt-2">
+        <p className="text-red-400 text-xs sm:text-sm mt-2">
           Character limit exceeded by {Math.abs(charsRemaining)} characters
         </p>
       )}
 
       {/* Upload Progress Indicator */}
       {isUploading && (
-        <div className="mt-4 bg-pengu-green/10 border border-pengu-green/30 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-5 h-5 border-2 border-pengu-green border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-sm text-pengu-green font-medium">Uploading to Railway API...</span>
+        <div className="mt-3 sm:mt-4 bg-pengu-green/10 border border-pengu-green/30 rounded-lg p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-pengu-green border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+            <span className="text-xs sm:text-sm text-pengu-green font-medium">Uploading to Railway API...</span>
           </div>
         </div>
       )}
 
       {/* Media Preview */}
       {mediaUrls.length > 0 && (
-        <div className="grid grid-cols-2 gap-2 mt-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3 sm:mt-4">
           {mediaUrls.map((url, index) => {
             const isVideo = url.includes('.mp4') || url.includes('.mov') || url.includes('.webm') || url.includes('video')
+            const isGif = url.includes('.gif') || url.includes('giphy.com')
             return (
               <div key={index} className="relative group">
                 {isVideo ? (
                   <video
                     src={url}
-                    className="w-full h-32 object-cover rounded-lg"
+                    className="w-full h-24 sm:h-32 object-cover rounded-lg"
                     controls
                     muted
                     playsInline
@@ -293,13 +360,19 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
                 ) : (
                   <img
                     src={url}
-                    alt={`Media ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg"
+                    alt={isGif ? 'GIF' : `Media ${index + 1}`}
+                    className="w-full h-24 sm:h-32 object-cover rounded-lg"
                   />
+                )}
+                {isGif && (
+                  <div className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+                    GIF
+                  </div>
                 )}
                 <button
                   onClick={() => handleRemoveMedia(index)}
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-sm font-bold"
+                  aria-label="Remove media"
                 >
                   ✕
                 </button>
@@ -320,42 +393,60 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
       />
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
-        <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-4 pt-4 border-t border-white/10">
+        <div className="flex gap-1 sm:gap-2 justify-start">
           {/* Image/Video Upload */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+            className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors disabled:opacity-50 touch-manipulation"
             title="Upload image or video"
+            aria-label="Upload media"
           >
-            <span className="text-xl">📸</span>
+            <span className="text-lg sm:text-xl">📸</span>
           </button>
           {/* GIF Picker */}
           <button
             type="button"
             onClick={() => setShowGiphyPicker(true)}
-            className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+            className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors touch-manipulation"
             title="Add GIF"
+            aria-label="Add GIF"
           >
-            <span className="text-xl">🎭</span>
+            <span className="text-lg sm:text-xl">🎭</span>
           </button>
-          {/* Emoji (placeholder) */}
-          <button
-            type="button"
-            className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
-            title="Add emoji"
-          >
-            <span className="text-xl">😀</span>
-          </button>
+          {/* Emoji Picker */}
+          <div className="relative" ref={emojiPickerRef}>
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors touch-manipulation"
+              title="Add emoji"
+              aria-label="Add emoji"
+            >
+              <span className="text-lg sm:text-xl">😀</span>
+            </button>
+            {showEmojiPicker && (
+              <div className="absolute bottom-full left-0 mb-2 z-50">
+                <EmojiPicker
+                  onEmojiClick={handleEmojiSelect}
+                  theme={Theme.DARK}
+                  width={280}
+                  height={350}
+                  searchPlaceHolder="Search emoji..."
+                  previewConfig={{ showPreview: false }}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-2 sm:gap-3">
           {onCancel && (
             <button
               onClick={handleCancel}
-              className="px-6 py-2 rounded-xl border border-white/20 text-white hover:bg-white/10 transition-all font-medium"
+              className="flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-xl border border-white/20 text-white hover:bg-white/10 transition-all font-medium text-sm sm:text-base touch-manipulation"
             >
               Cancel
             </button>
@@ -363,7 +454,7 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
           <button
             onClick={handlePost}
             disabled={!content.trim() || isOverLimit || isPosting}
-            className={`px-6 py-2 rounded-xl font-medium transition-all ${
+            className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-xl font-medium transition-all text-sm sm:text-base touch-manipulation ${
               !content.trim() || isOverLimit || isPosting
                 ? 'bg-white/10 text-gray-500 cursor-not-allowed'
                 : 'bg-gradient-to-r from-pengu-green to-green-600 text-white hover:from-pengu-400 hover:to-green-700 hover:shadow-lg hover:shadow-pengu-green/20'
@@ -376,7 +467,7 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
 
       {/* Draft indicator */}
       {(title || content) && !isPosting && (
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-[10px] sm:text-xs text-gray-500 mt-2">
           Draft auto-saved • {new Date().toLocaleTimeString()}
         </p>
       )}
