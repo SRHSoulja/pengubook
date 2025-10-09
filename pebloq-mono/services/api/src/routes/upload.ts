@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { v2 as cloudinary } from 'cloudinary'
 import { prisma } from '../lib/prisma.js'
 import { withAuth } from '../middleware/auth.js'
+import { moderateImage, moderateVideo } from '../lib/aws-moderation.js'
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -138,6 +139,49 @@ export default async function uploadRoutes(app: FastifyInstance) {
         uploadStream.end(buffer)
       })
 
+      // Moderate content using AWS Rekognition
+      let moderationData = null
+      try {
+        const moderationResult = fileType === 'video'
+          ? await moderateVideo(uploadResult.secure_url, 60)
+          : await moderateImage(uploadResult.secure_url, 60)
+
+        const contentWarnings = moderationResult.labels
+          .filter(label => (label.Confidence || 0) >= 60)
+          .map(label => label.Name || '')
+          .filter(name => name.length > 0)
+
+        moderationData = {
+          status: moderationResult.status,
+          kind: 'aws_rekognition',
+          isNSFW: moderationResult.isNSFW,
+          confidence: moderationResult.confidence,
+          contentWarnings
+        }
+
+        console.log('[Upload] Moderation result:', moderationData)
+
+        // Reject if flagged as NSFW with high confidence
+        if (moderationResult.status === 'rejected') {
+          // Delete from Cloudinary
+          await cloudinary.uploader.destroy(uploadResult.public_id)
+          return reply.status(400).send({
+            error: 'Content violates community guidelines',
+            moderation: moderationData
+          })
+        }
+      } catch (moderationError) {
+        console.error('[Upload] Moderation error:', moderationError)
+        // Continue with upload but mark as pending review
+        moderationData = {
+          status: 'pending',
+          kind: 'aws_rekognition',
+          isNSFW: false,
+          confidence: 0,
+          contentWarnings: []
+        }
+      }
+
       // Track upload
       await prisma.upload.create({
         data: {
@@ -155,7 +199,8 @@ export default async function uploadRoutes(app: FastifyInstance) {
         publicId: uploadResult.public_id,
         type: fileType,
         width: uploadResult.width,
-        height: uploadResult.height
+        height: uploadResult.height,
+        moderation: moderationData
       })
     } catch (error: any) {
       app.log.error(error)
