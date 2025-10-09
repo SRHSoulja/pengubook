@@ -113,7 +113,7 @@ function processRekognitionResult(result: any, minConfidence: number): Moderatio
   // Calculate average confidence
   const avgConfidence =
     highConfidenceLabels.length > 0
-      ? highConfidenceLabels.reduce((sum, label) => sum + (label.Confidence || 0), 0) /
+      ? highConfidenceLabels.reduce((sum: number, label: ModerationLabel) => sum + (label.Confidence || 0), 0) /
         highConfidenceLabels.length
       : 0
 
