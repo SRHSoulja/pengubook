@@ -35,7 +35,7 @@ export default function RichContentEditor({
   allowEmbeds = true
 }: RichContentEditorProps) {
   const { toast } = useToast()
-  const { user } = useAuth()
+  const { user, sessionToken } = useAuth()
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [gifSearchQuery, setGifSearchQuery] = useState('')
@@ -109,11 +109,15 @@ export default function RichContentEditor({
           throw new Error('Wallet not connected')
         }
 
+        const headers: Record<string, string> = {}
+        if (sessionToken) {
+          headers['Authorization'] = `Bearer ${sessionToken}`
+        }
+        headers['x-wallet-address'] = user.walletAddress
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
           method: 'POST',
-          headers: {
-            'x-wallet-address': user.walletAddress
-          },
+          headers,
           body: formData,
           credentials: 'include'
         })

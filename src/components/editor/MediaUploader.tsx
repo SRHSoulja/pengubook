@@ -28,7 +28,7 @@ export default function MediaUploader({
   maxFiles = 4
 }: MediaUploaderProps) {
   const { toast } = useToast()
-  const { user } = useAuth()
+  const { user, sessionToken } = useAuth()
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -96,11 +96,20 @@ export default function MediaUploader({
           throw new Error('Wallet not connected')
         }
 
+        // Build headers with JWT Bearer token authentication (preferred) and wallet address fallback
+        const headers: Record<string, string> = {}
+
+        // Prefer JWT token authentication (most secure)
+        if (sessionToken) {
+          headers['Authorization'] = `Bearer ${sessionToken}`
+        }
+
+        // Fallback to wallet address (less secure but still works)
+        headers['x-wallet-address'] = user.walletAddress
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
           method: 'POST',
-          headers: {
-            'x-wallet-address': user.walletAddress
-          },
+          headers,
           body: formData,
           credentials: 'include'
         })

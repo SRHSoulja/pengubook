@@ -13,7 +13,7 @@ interface BannerUploaderProps {
 
 export default function BannerUploader({ currentBanner, onBannerChange }: BannerUploaderProps) {
   const { toast } = useToast()
-  const { user } = useAuth()
+  const { user, sessionToken } = useAuth()
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(currentBanner || null)
   const [showCropper, setShowCropper] = useState(false)
@@ -123,11 +123,15 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
         throw new Error('Wallet not connected')
       }
 
+      const headers: Record<string, string> = {}
+      if (sessionToken) {
+        headers['Authorization'] = `Bearer ${sessionToken}`
+      }
+      headers['x-wallet-address'] = user.walletAddress
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
         method: 'POST',
-        headers: {
-          'x-wallet-address': user.walletAddress
-        },
+        headers,
         body: formData,
         credentials: 'include'
       })
