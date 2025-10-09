@@ -17,15 +17,6 @@ export const runtime = 'nodejs'
 // Increase max duration for video uploads (App Router)
 export const maxDuration = 60 // 60 seconds
 
-// Configure body size limit for Vercel (4.5MB max)
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '4mb', // Set to 4MB to stay under Vercel's 4.5MB limit
-    },
-  },
-}
-
 // SECURITY: Daily upload quota per user
 const DAILY_UPLOAD_LIMIT = 50
 
