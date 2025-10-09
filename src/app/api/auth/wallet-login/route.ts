@@ -374,10 +374,11 @@ export async function POST(request: NextRequest) {
           isAdmin: user.isAdmin
         })
 
-        // Create response
+        // Create response - INCLUDE sessionToken for Railway API authentication
         const response = NextResponse.json({
           success: true,
           content: 'Wallet authentication successful',
+          sessionToken, // Add JWT token to response body
           user: {
             id: user.id,
             walletAddress: user.walletAddress,

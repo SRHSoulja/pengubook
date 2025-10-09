@@ -68,6 +68,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Now relying solely on HTTP-only cookies verified server-side
   // Check for existing session on mount via server verification
   useEffect(() => {
+    // Load JWT token from localStorage if it exists
+    const storedToken = localStorage.getItem('pengubook-jwt')
+    if (storedToken) {
+      setSessionToken(storedToken)
+      console.log('[AuthProvider] JWT token loaded from localStorage')
+    }
+
     const verifySession = async () => {
       try {
         const response = await fetch('/api/auth/verify-session', {
@@ -461,6 +468,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const result = await verifyWithAgw(client)
+
+      // Store JWT token from verification response
+      if (result?.sessionToken) {
+        setSessionToken(result.sessionToken)
+        localStorage.setItem('pengubook-jwt', result.sessionToken)
+        console.log('[AuthProvider] JWT token stored for Railway API authentication')
+      }
 
       setWalletAddress(address)
       setWalletStatus('authenticated')

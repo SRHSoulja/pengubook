@@ -18,7 +18,7 @@ interface EnhancedPostComposerProps {
 const MAX_CHARS = 5000
 
 export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostComposerProps) {
-  const { user } = useAuth()
+  const { user, sessionToken } = useAuth()
   const { toast } = useToast()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -103,11 +103,19 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
 
         console.log('[EnhancedPostComposer] Uploading to Railway with wallet:', user.walletAddress)
 
+        const headers: Record<string, string> = {}
+
+        // Prefer JWT token authentication (most secure)
+        if (sessionToken) {
+          headers['Authorization'] = `Bearer ${sessionToken}`
+        }
+
+        // Fallback to wallet address (less secure but still works)
+        headers['x-wallet-address'] = user.walletAddress
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
           method: 'POST',
-          headers: {
-            'x-wallet-address': user.walletAddress
-          },
+          headers,
           body: formData,
           credentials: 'include'
         })
