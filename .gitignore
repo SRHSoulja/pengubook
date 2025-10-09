@@ -54,3 +54,4 @@ tsconfig.tsbuildinfo
 
 # TypeScript
 *.tsbuildinfobuild-output.log
+/data/reaction-emojis.json
