@@ -4,7 +4,13 @@ import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
 import { SiweMessage } from 'siwe'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+// CRITICAL: JWT_SECRET must be set in production
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  console.error('FATAL: JWT_SECRET environment variable must be set and at least 32 characters long')
+  console.error('Generate one with: openssl rand -base64 64')
+  process.exit(1)
+}
 
 export default async function authRoutes(app: FastifyInstance) {
 

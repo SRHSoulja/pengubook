@@ -42,8 +42,11 @@ async function start() {
     // Multipart support for file uploads
     await app.register(multipart, {
       limits: {
-        fileSize: 100 * 1024 * 1024, // 100MB - no Vercel limits!
-        files: 5
+        fileSize: 10 * 1024 * 1024, // 10MB - reasonable limit for images/short videos
+        files: 1, // Single file per request
+        parts: 10, // Limit form parts
+        fieldSize: 1024, // 1KB for text fields
+        fields: 5 // Max form fields
       }
     })
 

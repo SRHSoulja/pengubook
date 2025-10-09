@@ -171,15 +171,15 @@ export default async function uploadRoutes(app: FastifyInstance) {
           })
         }
       } catch (moderationError) {
-        console.error('[Upload] Moderation error:', moderationError)
-        // Continue with upload but mark as pending review
-        moderationData = {
-          status: 'pending',
-          kind: 'aws_rekognition',
-          isNSFW: false,
-          confidence: 0,
-          contentWarnings: []
-        }
+        console.error('[Upload] CRITICAL: Content moderation failed', moderationError)
+
+        // FAIL CLOSED - Delete uploaded file and reject request
+        await cloudinary.uploader.destroy(uploadResult.public_id)
+
+        return reply.status(503).send({
+          error: 'Content moderation service temporarily unavailable. Please try again later.',
+          code: 'MODERATION_UNAVAILABLE'
+        })
       }
 
       // Track upload
@@ -214,6 +214,22 @@ export default async function uploadRoutes(app: FastifyInstance) {
     const { publicId } = request.body as any
 
     try {
+      // Validate publicId format
+      if (!publicId || typeof publicId !== 'string') {
+        return reply.status(400).send({ error: 'Invalid publicId' })
+      }
+
+      // Enforce allowed folder structure (whitelist pattern)
+      const allowedPattern = /^pebloq\/posts\/(images|videos)\/[a-zA-Z0-9_-]+$/
+      if (!allowedPattern.test(publicId)) {
+        return reply.status(400).send({ error: 'Invalid publicId format' })
+      }
+
+      // Prevent path traversal
+      if (publicId.includes('..') || publicId.includes('//')) {
+        return reply.status(400).send({ error: 'Path traversal detected' })
+      }
+
       // Verify ownership
       const upload = await prisma.upload.findFirst({
         where: { publicId }
@@ -223,8 +239,11 @@ export default async function uploadRoutes(app: FastifyInstance) {
         return reply.status(403).send({ error: 'Forbidden' })
       }
 
-      // Delete from Cloudinary
-      await cloudinary.uploader.destroy(publicId)
+      // Delete from Cloudinary first (fail fast if Cloudinary fails)
+      const result = await cloudinary.uploader.destroy(publicId)
+      if (result.result !== 'ok' && result.result !== 'not found') {
+        throw new Error('Cloudinary deletion failed')
+      }
 
       // Delete from DB
       await prisma.upload.delete({
