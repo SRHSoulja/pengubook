@@ -53,8 +53,7 @@ export async function withAuth(request: FastifyRequest, reply: FastifyReply) {
 
       console.log('[Auth] JWT authentication successful for user:', user.id)
       // Attach user to request
-      (request as any).user = user
-      return
+      ;(request as any).user = user
     }
 
     // OPTION 2: Wallet Address Authentication (for Vercel frontend compatibility)
@@ -79,13 +78,14 @@ export async function withAuth(request: FastifyRequest, reply: FastifyReply) {
 
       console.log('[Auth] Wallet authentication successful for user:', user.id)
       // Attach user to request
-      (request as any).user = user
-      return
+      ;(request as any).user = user
     }
 
     // No authentication provided
-    console.log('[Auth] No authentication provided')
-    return reply.status(401).send({ error: 'Unauthorized: No token or wallet address provided' })
+    if (!(request as any).user) {
+      console.log('[Auth] No authentication provided')
+      return reply.status(401).send({ error: 'Unauthorized: No token or wallet address provided' })
+    }
   } catch (error) {
     console.log('[Auth] Error:', error)
     return reply.status(401).send({ error: 'Unauthorized: Invalid credentials' })
