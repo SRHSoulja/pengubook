@@ -48,6 +48,12 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
     const files = e.target.files
     if (!files || files.length === 0) return
 
+    // Check wallet connection first
+    if (!walletAddress) {
+      error("Please connect your wallet before uploading")
+      return
+    }
+
     setIsUploading(true)
     setUploadProgress('Uploading...')
 
