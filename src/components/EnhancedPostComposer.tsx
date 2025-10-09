@@ -428,7 +428,10 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
               <span className="text-lg sm:text-xl">😀</span>
             </button>
             {showEmojiPicker && (
-              <div className="fixed sm:absolute bottom-0 left-0 right-0 sm:bottom-auto sm:top-full sm:left-auto sm:right-0 sm:mt-2 z-[9999] bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl border border-white/10">
+              <div
+                className="fixed sm:absolute bottom-0 left-0 right-0 sm:bottom-auto sm:top-full sm:left-auto sm:right-0 sm:mt-2 bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl border border-white/10"
+                style={{ zIndex: 10000 }}
+              >
                 <EmojiPicker
                   onEmojiClick={handleEmojiSelect}
                   theme={Theme.DARK}
