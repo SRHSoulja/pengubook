@@ -72,7 +72,8 @@
       "Bash(perl:*)",
       "Read(//mnt/**)",
       "Read(//WSL.LOCALHOST/UBUNTU/home/arson/PenguBook/src/lib/**)",
-      "Read(//WSL.LOCALHOST/UBUNTU/home/arson/PenguBook/src/lib/utils/**)"
+      "Read(//WSL.LOCALHOST/UBUNTU/home/arson/PenguBook/src/lib/utils/**)",
+      "Bash(git ls-tree:*)"
     ],
     "deny": [],
     "ask": []

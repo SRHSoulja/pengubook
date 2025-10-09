@@ -37,6 +37,14 @@ function extractUrlsFromContent(content: string): string[] {
   return matches || []
 }
 
+// Helper function to decode HTML entities
+function decodeHtmlEntities(text: string): string {
+  if (typeof window === 'undefined') return text
+  const textarea = document.createElement('textarea')
+  textarea.innerHTML = text
+  return textarea.value
+}
+
 // Helper function to render text with clickable hashtags
 function renderTextWithHashtags(text: string): JSX.Element[] {
   const hashtagRegex = /#[\w]+/g
@@ -85,12 +93,15 @@ function renderTextWithHashtags(text: string): JSX.Element[] {
 }
 
 function renderContentWithEmbeds(content: string): JSX.Element {
+  // Decode HTML entities first (e.g., &lt;3 becomes <3)
+  const decodedContent = decodeHtmlEntities(content)
+
   // Client-side only debug - UPDATED
   if (typeof window !== 'undefined') {
-    console.log('🎬 CLIENT-SIDE: RENDER CONTENT WITH EMBEDS CALLED:', content)
+    console.log('🎬 CLIENT-SIDE: RENDER CONTENT WITH EMBEDS CALLED:', decodedContent)
   }
 
-  const urls = extractUrlsFromContent(content)
+  const urls = extractUrlsFromContent(decodedContent)
 
   if (typeof window !== 'undefined') {
     console.log('🔗 CLIENT-SIDE: URLs extracted:', urls)
@@ -101,13 +112,13 @@ function renderContentWithEmbeds(content: string): JSX.Element {
   if (mediaUrls.length === 0) {
     return (
       <p className="text-white text-lg leading-relaxed whitespace-pre-wrap">
-        {renderTextWithHashtags(content)}
+        {renderTextWithHashtags(decodedContent)}
       </p>
     )
   }
 
   // Split content and embed media
-  let remainingContent = content
+  let remainingContent = decodedContent
   const elements: JSX.Element[] = []
 
   mediaUrls.forEach((url, index) => {
