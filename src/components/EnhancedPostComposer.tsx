@@ -265,24 +265,47 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
         </p>
       )}
 
+      {/* Upload Progress Indicator */}
+      {isUploading && (
+        <div className="mt-4 bg-pengu-green/10 border border-pengu-green/30 rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 border-2 border-pengu-green border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-sm text-pengu-green font-medium">Uploading to Railway API...</span>
+          </div>
+        </div>
+      )}
+
       {/* Media Preview */}
       {mediaUrls.length > 0 && (
         <div className="grid grid-cols-2 gap-2 mt-4">
-          {mediaUrls.map((url, index) => (
-            <div key={index} className="relative group">
-              <img
-                src={url}
-                alt={`Media ${index + 1}`}
-                className="w-full h-32 object-cover rounded-lg"
-              />
-              <button
-                onClick={() => handleRemoveMedia(index)}
-                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
+          {mediaUrls.map((url, index) => {
+            const isVideo = url.includes('.mp4') || url.includes('.mov') || url.includes('.webm') || url.includes('video')
+            return (
+              <div key={index} className="relative group">
+                {isVideo ? (
+                  <video
+                    src={url}
+                    className="w-full h-32 object-cover rounded-lg"
+                    controls
+                    muted
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={url}
+                    alt={`Media ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-lg"
+                  />
+                )}
+                <button
+                  onClick={() => handleRemoveMedia(index)}
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  ✕
+                </button>
+              </div>
+            )
+          })}
         </div>
       )}
 
