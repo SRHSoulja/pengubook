@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 
 interface GiphyGif {
@@ -97,7 +98,7 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
 
   if (!isOpen) return null
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center sm:p-4" style={{ zIndex: 10000 }}>
       <div className="bg-gray-900 w-full h-full sm:h-auto sm:rounded-2xl border-0 sm:border border-white/20 sm:max-w-5xl sm:max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
         {/* Header - Compact on mobile */}
@@ -223,4 +224,7 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
       </div>
     </div>
   )
+
+  // Render modal at document body level to escape parent z-index stacking
+  return typeof window !== 'undefined' ? createPortal(modalContent, document.body) : null
 }
