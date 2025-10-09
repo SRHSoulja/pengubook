@@ -60,6 +60,9 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         setUploadProgress(`Uploading ${file.name}...`)
 
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || ''
+        const walletAddress = client?.account?.address || ''
+        console.log('[Upload] Wallet address:', walletAddress)
+        console.log('[Upload] API URL:', apiUrl)
         const response = await fetch(`${apiUrl}/upload`, {
           method: 'POST',
           headers: {
@@ -70,6 +73,7 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         })
 
         const result = await response.json()
+        console.log('[Upload] Response:', result)
 
         if (result.success) {
           const uploadedFile: UploadedFile = {
