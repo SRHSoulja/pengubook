@@ -336,7 +336,7 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
         <div className="mt-3 sm:mt-4 bg-pengu-green/10 border border-pengu-green/30 rounded-lg p-3 sm:p-4">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-pengu-green border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
-            <span className="text-xs sm:text-sm text-pengu-green font-medium">Uploading to Railway API...</span>
+            <span className="text-xs sm:text-sm text-pengu-green font-medium">Uploading files...</span>
           </div>
         </div>
       )}
@@ -428,12 +428,12 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
               <span className="text-lg sm:text-xl">😀</span>
             </button>
             {showEmojiPicker && (
-              <div className="absolute bottom-full left-0 mb-2 z-50">
+              <div className="fixed sm:absolute bottom-0 left-0 right-0 sm:bottom-auto sm:top-full sm:left-auto sm:right-0 sm:mt-2 z-50 bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl">
                 <EmojiPicker
                   onEmojiClick={handleEmojiSelect}
                   theme={Theme.DARK}
-                  width={280}
-                  height={350}
+                  width="100%"
+                  height={400}
                   searchPlaceHolder="Search emoji..."
                   previewConfig={{ showPreview: false }}
                 />
