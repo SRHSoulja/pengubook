@@ -62,8 +62,11 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || ''
         const response = await fetch(`${apiUrl}/upload`, {
           method: 'POST',
+          headers: {
+            'x-wallet-address': client?.account?.address || ''
+          },
           body: formData,
-          credentials: 'include' // Required for withAuth middleware
+          credentials: 'include'
         })
 
         const result = await response.json()
