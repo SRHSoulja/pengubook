@@ -98,7 +98,7 @@ function processRekognitionResult(result: any, minConfidence: number): Moderatio
   )
 
   // Determine if content is NSFW
-  const hasNSFWContent = highConfidenceLabels.some((label) => {
+  const hasNSFWContent = highConfidenceLabels.some((label: ModerationLabel) => {
     const name = label.Name?.toLowerCase() || ''
     return (
       name.includes('explicit') ||
