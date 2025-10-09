@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useAuth } from '@/providers/AuthProvider'
 import { useToast } from '@/components/ui/Toast'
 import GiphyPicker from '@/components/GiphyPicker'
@@ -417,7 +418,7 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
             <span className="text-lg sm:text-xl">🎭</span>
           </button>
           {/* Emoji Picker */}
-          <div className="relative" ref={emojiPickerRef}>
+          <div className="relative">
             <button
               type="button"
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -427,21 +428,6 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
             >
               <span className="text-lg sm:text-xl">😀</span>
             </button>
-            {showEmojiPicker && (
-              <div
-                className="fixed sm:absolute bottom-0 left-0 right-0 sm:bottom-auto sm:top-full sm:left-auto sm:right-0 sm:mt-2 bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl border border-white/10"
-                style={{ zIndex: 10000 }}
-              >
-                <EmojiPicker
-                  onEmojiClick={handleEmojiSelect}
-                  theme={Theme.DARK}
-                  width="100%"
-                  height={400}
-                  searchPlaceHolder="Search emoji..."
-                  previewConfig={{ showPreview: false }}
-                />
-              </div>
-            )}
           </div>
         </div>
 
@@ -473,6 +459,30 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
         <p className="text-[10px] sm:text-xs text-gray-500 mt-2">
           Draft auto-saved • {new Date().toLocaleTimeString()}
         </p>
+      )}
+
+      {/* Emoji Picker Portal - renders at body level */}
+      {showEmojiPicker && typeof window !== 'undefined' && createPortal(
+        <div ref={emojiPickerRef}>
+          <div
+            className="fixed inset-0 bg-transparent z-[9998]"
+            onClick={() => setShowEmojiPicker(false)}
+          />
+          <div
+            className="fixed bottom-0 left-0 right-0 sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl border border-white/10"
+            style={{ zIndex: 10000 }}
+          >
+            <EmojiPicker
+              onEmojiClick={handleEmojiSelect}
+              theme={Theme.DARK}
+              width={typeof window !== 'undefined' && window.innerWidth < 640 ? '100%' : 350}
+              height={400}
+              searchPlaceHolder="Search emoji..."
+              previewConfig={{ showPreview: false }}
+            />
+          </div>
+        </div>,
+        document.body
       )}
 
       {/* Giphy Picker */}
