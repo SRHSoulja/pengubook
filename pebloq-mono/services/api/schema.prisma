@@ -1,0 +1,963 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String               @id @default(cuid())
+  walletAddress         String?              @unique
+  email                 String?              @unique
+  name                  String?
+  image                 String?
+  username              String?              @unique
+  displayName           String?
+  bio                   String?
+  avatar                String?
+  avatarSource          String               @default("default") // "default", "discord", "twitter"
+  discordId             String?              @unique
+  discordName           String?
+  discordAvatar         String?
+  twitterId             String?              @unique
+  twitterHandle         String?
+  twitterAvatar         String?
+  isAdmin               Boolean              @default(false)
+  isBanned              Boolean              @default(false)
+  isOnline              Boolean              @default(false)
+  lastSeen              DateTime             @default(now())
+  level                 Int                  @default(1)
+  xp                    Int                  @default(0)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  publicKey             String?
+  activities            Activity[]
+  adInteractions        AdInteraction[]      @relation("AdInteractions")
+  adsCreated            Advertisement[]      @relation("AdCreator")
+  comments              Comment[]
+  communityMembers      CommunityMember[]
+  moderatedCommunities  CommunityModerator[]
+  followers             Follow[]             @relation("UserFollowers")
+  following             Follow[]             @relation("UserFollowing")
+  friendsInitiated      Friendship[]         @relation("FriendshipInitiator")
+  friendsReceived       Friendship[]         @relation("FriendshipReceiver")
+  likes                 Like[]
+  messagesSent          Message[]            @relation("MessageSender")
+  messageReadReceipts   MessageReadReceipt[] @relation("MessageReadReceipts")
+  messageReactions      MessageReaction[]    @relation("MessageReactions")
+  notificationsSent     Notification[]       @relation("NotificationFrom")
+  notificationsReceived Notification[]       @relation("NotificationTo")
+  posts                 Post[]
+  profile               Profile?
+  reactions             Reaction[]
+  shares                Share[]
+  streaks               Streak[]
+  tipsGiven             Tip[]                @relation("TipFrom")
+  tipsReceived          Tip[]                @relation("TipTo")
+  userAchievements      UserAchievement[]
+  postEdits             PostEdit[]           @relation("PostEdits")
+  accounts              Account[]
+  sessions              Session[]
+  blocksInitiated       Block[]              @relation("UserBlocks")
+  blocksReceived        Block[]              @relation("UserBlocked")
+  bookmarks             Bookmark[]
+  reportsSubmitted      Report[]             @relation("ReportSubmitter")
+  reportsReceived       Report[]             @relation("ReportTarget")
+  mutedPhrases          MutedPhrase[]
+  hiddenTokens          HiddenToken[]
+  contactSubmissions    ContactSubmission[]
+  projectApplications   ProjectApplication[]
+  uploads               Upload[]
+}
+
+model Profile {
+  id                  String  @id @default(cuid())
+  userId              String  @unique
+  socialLinks         String  @default("[]")
+  interests           String  @default("[]")
+  location            String?
+  website             String?
+  company             String?
+  timezone            String?
+  languages           String  @default("[]")
+  skills              String  @default("[]")
+  tipCount            Int     @default(0)
+  totalTipsReceived   Float   @default(0)
+  followersCount      Int     @default(0)
+  followingCount      Int     @default(0)
+  postsCount          Int     @default(0)
+  likesReceived       Int     @default(0)
+  isPrivate           Boolean @default(false)
+  showActivity          Boolean @default(true)
+  showTips              Boolean @default(true)
+  allowDirectMessages   Boolean @default(true)
+  dmPrivacyLevel        String  @default("ALL") // ALL, FRIENDS_ONLY, NONE
+  showReadReceipts      Boolean @default(true) // Show read receipts to others
+  showTypingIndicator   Boolean @default(true) // Show typing indicator to others
+  showOnlineStatus      Boolean @default(true) // Show online/offline status
+  showDiscord           Boolean @default(true)
+  showTwitter           Boolean @default(true)
+  showNSFW              Boolean @default(false) // Auto-show ALL NSFW content
+  allowedNSFWCategories String  @default("[]") @db.Text // JSON array of allowed NSFW labels (only FLAG/ALLOW categories)
+  // SECURITY: Granular privacy controls for PII
+  showLocation          Boolean @default(true)  // Hide/show location field
+  showTimezone          Boolean @default(false) // Hide/show timezone (location inference risk)
+  showInterests         Boolean @default(true)  // Hide/show interests list
+  showSocialLinks       Boolean @default(true)  // Hide/show website and social media
+  showBio               Boolean @default(true)  // Hide/show bio text
+  featuredCommunityId   String?
+  theme                 String  @default("default")
+  bannerImage           String?
+  profileVerified       Boolean @default(false)
+  isProject             Boolean @default(false) // Is this a token/NFT project account
+  projectType           String? // 'token', 'nft', 'defi', 'game', etc.
+  projectWebsite        String? // Official project website
+  projectTwitter        String? // Official project Twitter
+  projectDiscord        String? // Official project Discord
+  contractAddress       String? // Token/NFT contract address for verification
+  pinnedPostId          String?
+  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pinnedPost            Post?   @relation("PinnedPost", fields: [pinnedPostId], references: [id], onDelete: SetNull)
+}
+
+model Token {
+  id              String  @id @default(cuid())
+  name            String
+  symbol          String  @unique
+  contractAddress String  @unique
+  decimals        Int
+  isEnabled       Boolean @default(true)
+  logoUrl         String?
+  tips            Tip[]
+}
+
+model Tip {
+  id              String   @id @default(cuid())
+  fromUserId      String
+  toUserId        String
+  tokenId         String
+  amount          String
+  transactionHash String   @unique
+  status          String   @default("PENDING")
+  message         String?  // Public note/message attached to the tip
+  isPublic        Boolean  @default(true) // Whether the tip message is visible on profile
+  usdValueAtTime  String?  // USD value of tip at time of receipt (for tax records)
+  createdAt       DateTime @default(now())
+  fromUser        User     @relation("TipFrom", fields: [fromUserId], references: [id])
+  toUser          User     @relation("TipTo", fields: [toUserId], references: [id])
+  token           Token    @relation(fields: [tokenId], references: [id])
+
+  @@index([status])
+  @@index([fromUserId, status])
+  @@index([toUserId, status])
+}
+
+model Post {
+  id               String     @id @default(cuid())
+  authorId         String
+  content          String
+  contentType      String     @default("TEXT")
+  mediaUrls        String     @default("[]")
+  visibility       String     @default("PUBLIC")
+  isPromoted       Boolean    @default(false)
+  isNSFW           Boolean    @default(false)
+  moderationStatus String?    // "approved", "rejected", "pending", "flagged"
+  moderationData   String?    @db.Text // JSON string with moderation details
+  contentWarnings  String     @default("[]") // Array of warning tags: ["Explicit Nudity", "Violence"]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  comments         Comment[]
+  feedItems        FeedItem[]
+  likes            Like[]
+  author           User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  reactions        Reaction[]
+  shares           Share[]
+  edits            PostEdit[]
+  bookmarks        Bookmark[]
+  reports          Report[]
+  hashtags         PostHashtag[]
+  pinnedByProfiles Profile[]  @relation("PinnedPost")
+
+  @@index([authorId])
+  @@index([createdAt])
+  @@index([isPromoted])
+  @@index([isNSFW])
+  @@index([moderationStatus])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  reports   Report[]
+
+  @@index([postId])
+  @@index([createdAt])
+}
+
+model Share {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+model Reaction {
+  id           String   @id @default(cuid())
+  userId       String
+  postId       String
+  reactionType String
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post         Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId, reactionType])
+  @@index([postId])
+  @@index([userId])
+  @@index([reactionType])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model FeedItem {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String?
+  itemType  String   @default("POST")
+  priority  Int      @default(0)
+  createdAt DateTime @default(now())
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([priority])
+}
+
+model Engagement {
+  id         String   @id @default(cuid())
+  userId     String
+  postId     String
+  actionType String
+  duration   Int?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([postId])
+  @@index([actionType])
+  @@index([createdAt])
+}
+
+model Friendship {
+  id          String   @id @default(cuid())
+  initiatorId String
+  receiverId  String
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  initiator   User     @relation("FriendshipInitiator", fields: [initiatorId], references: [id], onDelete: Cascade)
+  receiver    User     @relation("FriendshipReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([initiatorId, receiverId])
+  @@index([initiatorId])
+  @@index([receiverId])
+}
+
+model Activity {
+  id           String   @id @default(cuid())
+  userId       String
+  activityType String
+  content      String?
+  targetId     String?
+  targetType   String?
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Conversation {
+  id               String    @id @default(cuid())
+  participants     String
+  isGroup          Boolean   @default(false)
+  groupName        String?
+  groupAvatar      String?
+  groupDescription String?
+  createdBy        String?
+  adminIds         String    @default("[]")
+  lastMessage      String?
+  lastMessageAt    DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  messages         Message[]
+
+  @@index([lastMessageAt])
+  @@index([isGroup])
+  @@index([createdBy])
+}
+
+model Message {
+  id             String               @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  messageType    String               @default("TEXT")
+  mediaUrls      String               @default("[]")
+  isRead         Boolean              @default(false)
+  isEncrypted    Boolean              @default(false)
+  encryptedData  String?
+  isEdited       Boolean              @default(false)
+  editedAt       DateTime?
+  isDeleted      Boolean              @default(false)
+  deletedAt      DateTime?
+  deletedBy      String?              // User ID who deleted (sender or admin)
+  expiresAt      DateTime?            // For self-destructing messages
+  createdAt      DateTime             @default(now())
+  sender         User                 @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  conversation   Conversation         @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  readReceipts   MessageReadReceipt[]
+  reactions      MessageReaction[]
+  reports        Report[]
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@index([isRead])
+  @@index([isEncrypted])
+}
+
+model MessageReadReceipt {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+  user      User     @relation("MessageReadReceipts", fields: [userId], references: [id], onDelete: Cascade)
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+  @@index([readAt])
+}
+
+model MessageReaction {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+  user      User     @relation("MessageReactions", fields: [userId], references: [id], onDelete: Cascade)
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Advertisement {
+  id             String          @id @default(cuid())
+  creatorId      String
+  title          String
+  description    String
+  imageUrl       String?
+  linkUrl        String?
+  targetAudience String          @default("ALL")
+  budget         Float           @default(0)
+  costPerClick   Float           @default(0.01)
+  costPerView    Float           @default(0.001)
+  isActive       Boolean         @default(true)
+  startDate      DateTime        @default(now())
+  endDate        DateTime?
+  totalViews     Int             @default(0)
+  totalClicks    Int             @default(0)
+  totalSpent     Float           @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  interactions   AdInteraction[]
+  creator        User            @relation("AdCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@index([creatorId])
+  @@index([isActive])
+  @@index([startDate, endDate])
+}
+
+model AdInteraction {
+  id              String        @id @default(cuid())
+  adId            String
+  userId          String?
+  interactionType String
+  createdAt       DateTime      @default(now())
+  user            User?         @relation("AdInteractions", fields: [userId], references: [id])
+  ad              Advertisement @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  @@index([adId])
+  @@index([userId])
+  @@index([interactionType])
+  @@index([createdAt])
+}
+
+model Community {
+  id                   String               @id @default(cuid())
+  name                 String               @unique
+  displayName          String
+  description          String
+  avatar               String?
+  banner               String?
+  category             String
+  tags                 String               @default("[]")
+  visibility           String               @default("PUBLIC")
+  rules                String?
+  isOfficial           Boolean              @default(false)
+  creatorId            String
+  membersCount         Int                  @default(0)
+  postsCount           Int                  @default(0)
+  isTokenGated         Boolean              @default(false)
+  tokenGateType        String?
+  tokenContractAddress String?
+  tokenMinAmount       String?
+  tokenIds             String?              @default("[]")
+  tokenSymbol          String?
+  tokenDecimals        Int?
+  customIcons          String?              @default("[]") // JSON array of up to 5 custom icons (emojis or URLs)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  members              CommunityMember[]
+  moderators           CommunityModerator[]
+
+  @@index([name])
+  @@index([category])
+  @@index([creatorId])
+  @@index([isTokenGated])
+}
+
+model CommunityMember {
+  id          String    @id @default(cuid())
+  userId      String
+  communityId String
+  role        String    @default("MEMBER") // MEMBER, MODERATOR, CREATOR
+  customTitle String?   // Custom title/role name set by creator/mods
+  customIcon  String?   // Custom icon (emoji or URL) assigned by creator/mods
+  status      String    @default("ACTIVE") // ACTIVE, BANNED, MUTED
+  joinedAt    DateTime  @default(now())
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, communityId])
+  @@index([communityId])
+  @@index([role])
+  @@index([status])
+}
+
+model CommunityModerator {
+  id          String    @id @default(cuid())
+  userId      String
+  communityId String
+  permissions String    @default("[]") // JSON array of permission strings
+  assignedBy  String?   // User ID who assigned this mod
+  assignedAt  DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, communityId])
+  @@index([communityId])
+  @@index([userId])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  title       String
+  description String
+  icon        String   // Emoji or icon identifier
+  category    String   // ENGAGEMENT, SOCIAL, CONTENT, MILESTONE, SPECIAL
+  rarity      String   @default("COMMON") // COMMON, RARE, EPIC, LEGENDARY
+  requirement Int      // Threshold value for achievement
+  xpReward    Int      @default(10) // XP awarded when achievement is unlocked
+  isActive    Boolean  @default(true)
+
+  // Data-driven achievement checking
+  triggerType String?  // post, like, follow, tip, profile, streak, login_days, etc.
+  metricType  String?  // post_count, follower_count, likes_received, tips_given, login_streak, etc.
+
+  createdAt   DateTime @default(now())
+  userAchievements UserAchievement[]
+
+  @@index([category])
+  @@index([rarity])
+  @@index([isActive])
+  @@index([triggerType])
+  @@index([metricType])
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime    @default(now())
+  progress      Int         @default(100)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+  @@index([unlockedAt])
+}
+
+model Streak {
+  id           String   @id @default(cuid())
+  userId       String
+  streakType   String
+  currentCount Int      @default(0)
+  bestCount    Int      @default(0)
+  lastDate     DateTime @default(now())
+  isActive     Boolean  @default(true)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, streakType])
+  @@index([userId])
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  fromUserId String?
+  toUserId   String
+  type       String
+  title      String
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  fromUser   User?    @relation("NotificationFrom", fields: [fromUserId], references: [id])
+  toUser     User     @relation("NotificationTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([toUserId])
+  @@index([createdAt])
+}
+
+model PostEdit {
+  id              String   @id @default(cuid())
+  postId          String
+  previousContent String
+  newContent      String
+  editedAt        DateTime @default(now())
+  editedBy        String
+  post            Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  editor          User     @relation("PostEdits", fields: [editedBy], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([editedAt])
+}
+
+// NextAuth.js models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RevokedSession {
+  id            String   @id @default(cuid())
+  sessionToken  String   @unique // JWT token ID or hash
+  userId        String
+  revokedAt     DateTime @default(now())
+  reason        String?  // "logout", "security", "admin_action"
+  expiresAt     DateTime // When we can safely delete this record
+
+  @@index([sessionToken])
+  @@index([userId])
+  @@index([expiresAt]) // For cleanup of old revocations
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  blocker   User     @relation("UserBlocks", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("UserBlocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@index([createdAt])
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  reporterId  String
+  targetId    String?  // User being reported (for user reports)
+  postId      String?  // Post being reported (for content reports)
+  commentId   String?  // Comment being reported
+  messageId   String?  // Message being reported
+  reason      String   // SPAM, HARASSMENT, INAPPROPRIATE_CONTENT, COPYRIGHT, etc.
+  description String?  // Additional details from reporter
+  status      String   @default("PENDING") // PENDING, INVESTIGATING, RESOLVED, DISMISSED
+  resolution  String?  // Admin notes on how it was resolved
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  reporter    User     @relation("ReportSubmitter", fields: [reporterId], references: [id], onDelete: Cascade)
+  target      User?    @relation("ReportTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  post        Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment     Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  message     Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId])
+  @@index([targetId])
+  @@index([postId])
+  @@index([commentId])
+  @@index([messageId])
+  @@index([status])
+  @@index([reason])
+  @@index([createdAt])
+  // Prevent duplicate reports - user can only report each unique item once
+  @@unique([reporterId, targetId, postId, commentId, messageId])
+}
+
+model MutedPhrase {
+  id          String   @id @default(cuid())
+  userId      String
+  phrase      String   // The exact phrase to mute (case-insensitive)
+  isRegex     Boolean  @default(false) // Whether this is a regex pattern
+  muteType    String   @default("HIDE") // HIDE, WARN
+  scope       String   @default("ALL") // ALL, POSTS, COMMENTS
+  expiresAt   DateTime? // Optional expiration date
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([phrase])
+  @@index([createdAt])
+}
+
+model HiddenToken {
+  id             String   @id @default(cuid())
+  userId         String
+  tokenAddress   String   // Contract address of the token
+  symbol         String?  // Token symbol for display
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tokenAddress])
+  @@index([userId])
+  @@index([tokenAddress])
+}
+
+model AuthNonce {
+  id            String   @id @default(cuid())
+  nonce         String   @unique
+  walletAddress String?  // Set when nonce is used for verification
+  ipAddress     String
+  userAgent     String
+  used          Boolean  @default(false)
+  usedAt        DateTime?
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([nonce])
+  @@index([ipAddress, createdAt])
+  @@index([expiresAt])
+  @@index([used, expiresAt])
+  @@index([walletAddress])
+}
+
+model AuthAttempt {
+  id            String   @id @default(cuid())
+  walletAddress String
+  ipAddress     String
+  userAgent     String?
+  success       Boolean
+  failureReason String?
+  metadata      String?  // JSON string for additional context
+  createdAt     DateTime @default(now())
+
+  @@index([walletAddress, createdAt])
+  @@index([ipAddress, createdAt])
+  @@index([success, createdAt])
+}
+
+model BlacklistedToken {
+  id             String   @id @default(cuid())
+  tokenAddress   String   @unique // Contract address of the blacklisted token
+  symbol         String?  // Token symbol
+  name           String?  // Token name
+  reason         String   // Why it was blacklisted (SCAM, SPAM, etc.)
+  reportCount    Int      @default(1) // Number of user reports
+  blacklistedAt  DateTime @default(now())
+  blacklistedBy  String?  // Admin user ID who blacklisted it
+
+  @@index([tokenAddress])
+  @@index([blacklistedAt])
+}
+
+model TokenReport {
+  id             String   @id @default(cuid())
+  reporterId     String
+  tokenAddress   String   // Contract address of the reported token
+  symbol         String?  // Token symbol
+  name           String?  // Token name
+  reason         String   // SCAM, SPAM, PHISHING, etc.
+  description    String?  // Additional details
+  status         String   @default("PENDING") // PENDING, REVIEWED, BLACKLISTED, DISMISSED
+  createdAt      DateTime @default(now())
+  reviewedAt     DateTime?
+  reviewedBy     String?  // Admin user ID
+
+  @@index([reporterId])
+  @@index([tokenAddress])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model VerifiedToken {
+  id             String   @id @default(cuid())
+  tokenAddress   String   @unique
+  symbol         String?
+  name           String?
+  verifiedAt     DateTime @default(now())
+  verifiedBy     String?  // Admin user ID
+
+  @@index([tokenAddress])
+  @@index([verifiedAt])
+}
+
+model Hashtag {
+  id        String   @id @default(cuid())
+  tag       String   @unique // The hashtag without the # symbol (e.g., "crypto")
+  usageCount Int     @default(1) // Number of times this hashtag has been used
+  lastUsed  DateTime @default(now()) // Last time this hashtag was used
+  isBlocked Boolean  @default(false) // Admin can block inappropriate hashtags
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     PostHashtag[]
+
+  @@index([tag])
+  @@index([usageCount])
+  @@index([lastUsed])
+  @@index([isBlocked])
+}
+
+model PostHashtag {
+  id        String   @id @default(cuid())
+  postId    String
+  hashtagId String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  hashtag   Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, hashtagId])
+  @@index([postId])
+  @@index([hashtagId])
+  @@index([createdAt])
+}
+
+model DiscoveredToken {
+  id             String   @id @default(cuid())
+  tokenAddress   String   @unique
+  symbol         String?
+  name           String?
+  decimals       Int      @default(18)
+  firstSeenAt    DateTime @default(now())
+  lastSeenAt     DateTime @default(now())
+  seenCount      Int      @default(1)
+
+  @@index([tokenAddress])
+  @@index([lastSeenAt])
+}
+
+model XPLevel {
+  id          String   @id @default(cuid())
+  level       Int      @unique
+  xpRequired  Int      // Total XP required to reach this level
+  title       String   // Level title (e.g., "Novice Penguin", "Master Explorer")
+  icon        String   // Emoji icon for this level
+  perks       String   @default("[]") // JSON array of perk descriptions
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([level])
+  @@index([xpRequired])
+}
+
+model ModerationSettings {
+  id                String   @id @default(cuid())
+  labelName         String   @unique // AWS label name (e.g., "Explicit Nudity")
+  action            String   @default("FLAG") // "ALLOW", "FLAG", "REJECT"
+  minConfidence     Int      @default(60) // Minimum confidence to trigger (0-100)
+  requiresReview    Boolean  @default(false) // Requires admin manual review
+  isEnabled         Boolean  @default(true) // Can be toggled on/off
+  displayName       String? // User-friendly display name (e.g., "Explicit Content")
+  description       String? // Description for admin panel
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([labelName])
+  @@index([action])
+  @@index([isEnabled])
+}
+
+model ModerationAuditLog {
+  id                String   @id @default(cuid())
+  postId            String   // Post that was moderated
+  action            String   // "approve", "reject"
+  adminId           String   // Admin who took action
+  previousStatus    String?  // Status before action
+  newStatus         String   // Status after action
+  reason            String?  // Rejection reason (if applicable)
+  createdAt         DateTime @default(now())
+
+  @@index([postId])
+  @@index([adminId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  key       String   @unique  // IP address or user ID
+  count     Int      @default(1)
+  resetTime BigInt   // Timestamp when count resets
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key, resetTime])
+  @@index([resetTime]) // For cleanup queries
+}
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  userId    String?  // Optional - can be anonymous
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  type      String   // 'bug', 'feature', 'support', 'other'
+  status    String   @default("PENDING") // 'PENDING', 'REVIEWED', 'RESOLVED', 'CLOSED'
+  adminNotes String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model ProjectApplication {
+  id                String   @id @default(cuid())
+  userId            String
+  projectName       String
+  projectType       String   // 'token', 'nft', 'defi', 'game', 'dao', 'infrastructure'
+  contractAddress   String
+  officialWebsite   String?
+  officialTwitter   String?
+  officialDiscord   String?
+  description       String   @db.Text
+  teamInfo          String?  @db.Text
+  proofOfOwnership  String   @db.Text // How they prove they own/represent the project
+  status            String   @default("PENDING") // 'PENDING', 'APPROVED', 'REJECTED'
+  adminNotes        String?  @db.Text
+  reviewedBy        String?  // Admin user ID who reviewed
+  reviewedAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([userId])
+}
+
+// SECURITY: Track all user uploads for quota enforcement and cost control
+model Upload {
+  id        String   @id @default(cuid())
+  userId    String
+  publicId  String   @unique // Cloudinary public_id for deletion
+  url       String   // Full Cloudinary URL
+  type      String   // 'image' | 'video' | 'document'
+  size      Int      // File size in bytes
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt]) // Query user uploads by date for quota checks
+  @@index([publicId]) // Fast lookup for deletion
+  @@map("uploads")
+}
