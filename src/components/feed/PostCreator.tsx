@@ -1,4 +1,7 @@
 'use client'
+// Build cache bust: forces new chunk hash
+const BUILD_VERSION = '2025-01-09-FINAL'
+
 
 import { useState, useRef } from 'react'
 import { PostType, Visibility, PostCreateRequest } from '@/types'
