@@ -92,7 +92,7 @@ export const GET = withRateLimit(100, 60 * 1000)(withAuth(async (request: NextRe
       userId: user.id,
       page,
       totalBookmarks
-    }, 'Bookmarks')
+    }, { component: 'Bookmarks' })
 
     return NextResponse.json({
       success: true,
@@ -180,7 +180,7 @@ export const POST = withRateLimit(50, 60 * 1000)(withAuth(async (request: NextRe
       userId: user.id,
       postId,
       action
-    }, 'Bookmarks')
+    }, { component: 'Bookmarks' })
 
     return NextResponse.json({
       success: true,

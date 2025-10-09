@@ -388,7 +388,7 @@ export async function POST(request: NextRequest) {
         })
 
         // Set secure, signed, HTTP-only cookie
-        setSessionCookie(response, sessionToken)
+        await setSessionCookie(response, sessionToken)
 
         return response
       } catch (error: any) {

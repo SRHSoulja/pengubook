@@ -150,7 +150,7 @@ export const POST = withRateLimit(10, 60 * 1000)(withAdminAuth(async (request: N
     logger.info(`Token added: ${newToken.symbol}`, {
       tokenId: newToken.id,
       addedBy: user.id
-    }, 'TokenManagement')
+    }, { component: 'TokenManagement' })
 
     return NextResponse.json({
       success: true,

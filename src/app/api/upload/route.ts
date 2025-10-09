@@ -14,6 +14,9 @@ cloudinary.config({
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+// Increase max duration for video uploads (App Router)
+export const maxDuration = 60 // 60 seconds
+
 // SECURITY: Daily upload quota per user
 const DAILY_UPLOAD_LIMIT = 50
 
@@ -75,14 +78,14 @@ export const POST = withRateLimit(20, 3600000)( // 20 uploads per hour
       }
 
       // Validate file size (server-side enforcement)
-      const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB for images
-      const MAX_VIDEO_SIZE = 50 * 1024 * 1024 // 50MB for videos
-      const maxSize = fileType === 'video' ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE
+      // Vercel has 4.5MB body limit, we enforce 3.5MB to account for request overhead
+      const MAX_FILE_SIZE = 3.5 * 1024 * 1024 // 3.5MB for both images and videos (Vercel limit with overhead)
+      const maxSize = MAX_FILE_SIZE
 
       if (file.size > maxSize) {
         return NextResponse.json(
-          { error: `File too large. Max size: ${fileType === 'video' ? '50MB' : '10MB'}` },
-          { status: 400 }
+          { error: 'File too large. Max size: 3.5MB (Vercel hosting limit)' },
+          { status: 413 }
         )
       }
 

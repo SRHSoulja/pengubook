@@ -117,7 +117,11 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const secret = new TextEncoder().encode(SESSION_SECRET)
-const SESSION_DURATION = 60 * 60 * 24 // 24 hours
+
+// SECURITY: Differentiated session durations
+// Admin sessions expire faster to limit exposure window for privileged accounts
+const ADMIN_SESSION_DURATION = 60 * 60 * 12 // 12 hours for admin users
+const REGULAR_SESSION_DURATION = 60 * 60 * 24 // 24 hours for regular users
 
 export interface SessionData {
   walletAddress: string
@@ -125,26 +129,44 @@ export interface SessionData {
   isAdmin: boolean
   timestamp: number
   jti?: string // JWT ID for revocation tracking
+  expiresAt?: number // Explicit expiration timestamp
 }
 
 /**
  * Create a signed and encrypted session token
+ * SECURITY: Admin sessions expire in 12 hours, regular users in 24 hours
  */
-export async function createSession(data: Omit<SessionData, 'timestamp' | 'jti'>): Promise<string> {
+export async function createSession(data: Omit<SessionData, 'timestamp' | 'jti' | 'expiresAt'>): Promise<string> {
   // Generate unique JWT ID for revocation tracking
   const { randomBytes } = await import('crypto')
   const jti = randomBytes(16).toString('hex')
 
+  // Calculate expiration based on admin status
+  const duration = data.isAdmin ? ADMIN_SESSION_DURATION : REGULAR_SESSION_DURATION
+  const expiresAt = Date.now() + (duration * 1000)
+
   const sessionData: SessionData = {
     ...data,
     timestamp: Date.now(),
+    expiresAt,
     jti
+  }
+
+  // Log admin session creation for security monitoring
+  if (data.isAdmin) {
+    const { logSecurity } = await import('@/lib/logger')
+    logSecurity.suspiciousActivity(
+      'Admin session created (12h expiration)',
+      data.userId,
+      undefined,
+      { walletAddress: data.walletAddress, jti: jti.slice(0, 8) + '...' }
+    )
   }
 
   const token = await new SignJWT(sessionData as unknown as Record<string, unknown>)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('24h')
+    .setExpirationTime(data.isAdmin ? '12h' : '24h')
     .sign(secret)
 
   return token
@@ -153,14 +175,35 @@ export async function createSession(data: Omit<SessionData, 'timestamp' | 'jti'>
 /**
  * Verify and decode a session token
  * Returns null if invalid, expired, or revoked
+ * SECURITY: Enforces 12h expiration for admin sessions, 24h for regular users
  */
 export async function verifySession(token: string): Promise<SessionData | null> {
   try {
     const { payload } = await jwtVerify(token, secret)
 
-    // Verify the session hasn't expired
+    // Extract session data
+    const isAdmin = payload.isAdmin as boolean
+    const expiresAt = payload.expiresAt as number
+    const userId = payload.userId as string
+
+    // SECURITY: Check explicit expiration timestamp
+    if (expiresAt && Date.now() > expiresAt) {
+      if (isAdmin) {
+        const { logSecurity } = await import('@/lib/logger')
+        logSecurity.suspiciousActivity(
+          'Admin session expired (12h limit enforced)',
+          userId,
+          undefined,
+          { expiresAt: new Date(expiresAt).toISOString() }
+        )
+      }
+      return null
+    }
+
+    // Fallback: Verify the session hasn't exceeded duration (legacy check)
     const sessionAge = Date.now() - (payload.timestamp as number || 0)
-    if (sessionAge > SESSION_DURATION * 1000) {
+    const maxDuration = isAdmin ? ADMIN_SESSION_DURATION : REGULAR_SESSION_DURATION
+    if (sessionAge > maxDuration * 1000) {
       return null
     }
 
@@ -180,7 +223,7 @@ export async function verifySession(token: string): Promise<SessionData | null> 
         }
       } catch (error) {
         // Skip revocation check in Edge Runtime (middleware)
-        // Revoked sessions will still expire after 24h
+        // Revoked sessions will still expire after 12h/24h
         console.warn('[Session] Skipping revocation check (Edge Runtime)')
       }
     }
@@ -194,8 +237,9 @@ export async function verifySession(token: string): Promise<SessionData | null> 
 
 /**
  * Set a secure session cookie on the response
+ * SECURITY: Cookie max-age matches session expiration (12h admin, 24h regular)
  */
-export function setSessionCookie(response: NextResponse, token: string) {
+export async function setSessionCookie(response: NextResponse, token: string) {
   const isProduction = process.env.NODE_ENV === 'production'
 
   // Warn about insecure development setup
@@ -204,11 +248,21 @@ export function setSessionCookie(response: NextResponse, token: string) {
     console.warn('Production MUST use HTTPS to prevent session hijacking.')
   }
 
+  // Decode token to determine expiration (without full verification)
+  let maxAge = REGULAR_SESSION_DURATION // Default to 24h
+  try {
+    const { payload } = await jwtVerify(token, secret)
+    const isAdmin = payload.isAdmin as boolean
+    maxAge = isAdmin ? ADMIN_SESSION_DURATION : REGULAR_SESSION_DURATION
+  } catch (error) {
+    console.warn('[Session] Could not decode token for cookie max-age, using default 24h')
+  }
+
   response.cookies.set('pengubook-session', token, {
     httpOnly: true,                // Cannot be accessed by JavaScript
     secure: isProduction,          // HTTPS only in production
     sameSite: 'lax',              // CSRF protection
-    maxAge: SESSION_DURATION,     // 24 hours
+    maxAge,                        // 12h for admin, 24h for regular
     path: '/'
   })
 }
@@ -245,6 +299,10 @@ export async function revokeSession(token: string, reason: string = 'logout'): P
 
     const { prisma } = await import('@/lib/prisma')
 
+    // Determine session duration for revocation record expiry
+    const isAdmin = payload.isAdmin as boolean
+    const sessionDuration = isAdmin ? ADMIN_SESSION_DURATION : REGULAR_SESSION_DURATION
+
     // Add to revoked sessions list
     await prisma.revokedSession.create({
       data: {
@@ -252,7 +310,7 @@ export async function revokeSession(token: string, reason: string = 'logout'): P
         userId,
         reason,
         // Keep revocation record for 48 hours after token expiration
-        expiresAt: new Date(Date.now() + (SESSION_DURATION + 48 * 60 * 60) * 1000)
+        expiresAt: new Date(Date.now() + (sessionDuration + 48 * 60 * 60) * 1000)
       }
     })
 

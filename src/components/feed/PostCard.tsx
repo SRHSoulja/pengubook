@@ -574,27 +574,27 @@ via @PeBloq`
 
       {/* Post Actions */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pt-4 border-t border-white/10">
-        <div className="flex flex-wrap items-center gap-2 md:gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/posts/${post.id}`}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 transition-colors min-h-[44px]"
           >
-            <span>💬</span>
-            <span>{commentsCount}</span>
+            <span className="text-xl">💬</span>
+            <span className="text-sm">{commentsCount}</span>
           </Link>
 
           {/* Share button with dropdown */}
           <div className="relative" ref={shareMenuRef}>
             <button
               onClick={() => setShowShareMenu(!showShareMenu)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors min-h-[44px] ${
                 isShared
                   ? 'bg-green-500/20 text-green-300'
                   : 'bg-white/10 text-gray-300 hover:bg-white/20'
               }`}
             >
-              <span>🔄</span>
-              <span>{sharesCount}</span>
+              <span className="text-xl">🔄</span>
+              <span className="text-sm">{sharesCount}</span>
             </button>
 
             {/* Share dropdown menu */}
@@ -692,14 +692,15 @@ via @PeBloq`
                 console.error('Failed to toggle bookmark:', error)
               }
             }}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors min-h-[44px] ${
               isBookmarked
                 ? 'bg-yellow-500/20 text-yellow-300'
                 : 'bg-white/10 text-gray-300 hover:bg-white/20'
             }`}
             title={isBookmarked ? 'Remove bookmark' : 'Bookmark post'}
           >
-            <span>🔖</span>
+            <span className="text-xl">🔖</span>
+            <span className="hidden sm:inline">{isBookmarked ? 'Saved' : 'Save'}</span>
           </button>
 
           {/* Report button */}
@@ -744,10 +745,10 @@ via @PeBloq`
                   error('Failed to submit report')
                 }
               }}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-red-500/20 hover:text-red-300 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-red-500/20 hover:text-red-300 transition-colors min-h-[44px]"
               title="Report post"
             >
-              <span>⚠️</span>
+              <span className="text-xl">⚠️</span>
             </button>
           )}
         </div>
