@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { PostType, Visibility, PostCreateRequest } from '@/types'
-import { useAbstractClient } from '@abstract-foundation/agw-react'
+import { useAuth } from '@/providers/AuthProvider'
 import GiphyPicker from '@/components/GiphyPicker'
 import Button, { IconButton } from '@/components/ui/Button'
 import dynamic from 'next/dynamic'
@@ -28,7 +28,7 @@ interface UploadedFile {
 }
 
 export default function PostCreator({ onPostCreated, className = '' }: PostCreatorProps) {
-  const { data: client } = useAbstractClient()
+  const { walletAddress } = useAuth()
   const { success, error } = useToast()
   const [content, setContent] = useState('')
   const [contentType, setContentType] = useState<PostType>('TEXT')
@@ -60,13 +60,12 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         setUploadProgress(`Uploading ${file.name}...`)
 
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || ''
-        const walletAddress = client?.account?.address || ''
         console.log('[Upload] Wallet address:', walletAddress)
         console.log('[Upload] API URL:', apiUrl)
         const response = await fetch(`${apiUrl}/upload`, {
           method: 'POST',
           headers: {
-            'x-wallet-address': client?.account?.address || ''
+            'x-wallet-address': walletAddress || ''
           },
           body: formData,
           credentials: 'include'
@@ -118,7 +117,7 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!content.trim() || !client?.account?.address || isSubmitting) return
+    if (!content.trim() || !walletAddress || isSubmitting) return
 
     setIsSubmitting(true)
 
@@ -140,7 +139,7 @@ export default function PostCreator({ onPostCreated, className = '' }: PostCreat
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-wallet-address': client.account.address
+          'x-wallet-address': walletAddress || ''
         },
         body: JSON.stringify(postData)
       })
