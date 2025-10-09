@@ -98,7 +98,7 @@ export default function GiphyPicker({ onSelect, onClose, isOpen }: GiphyPickerPr
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-2 sm:p-4">
       <div className="bg-gray-900 rounded-xl sm:rounded-2xl border border-white/20 w-full max-w-5xl h-[95vh] sm:max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
         {/* Header - Compact on mobile */}
         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-white/20 bg-gradient-to-r from-gray-900 to-gray-800 shrink-0">
