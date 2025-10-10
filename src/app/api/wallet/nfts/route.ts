@@ -207,8 +207,10 @@ async function getNFTCollectionsFromLogs(address: string): Promise<Map<string, S
 
     if (incomingData.result && Array.isArray(incomingData.result)) {
       for (const log of incomingData.result) {
-        // The third topic is the tokenId for ERC721
-        if (log.topics && log.topics.length >= 3 && log.address) {
+        // ERC721/ERC1155 Transfer events have 4 topics (signature, from, to, tokenId)
+        // ERC20 Transfer events only have 3 topics (signature, from, to)
+        // Filter for NFTs by checking for 4 topics
+        if (log.topics && log.topics.length === 4 && log.address && log.topics[3]) {
           const contractAddress = log.address.toLowerCase()
           const tokenId = BigInt(log.topics[3]).toString()
 
@@ -245,7 +247,8 @@ async function getNFTCollectionsFromLogs(address: string): Promise<Map<string, S
 
     if (outgoingData.result && Array.isArray(outgoingData.result)) {
       for (const log of outgoingData.result) {
-        if (log.topics && log.topics.length >= 3 && log.address) {
+        // Only process NFT transfers (4 topics), skip ERC20 transfers (3 topics)
+        if (log.topics && log.topics.length === 4 && log.address && log.topics[3]) {
           const contractAddress = log.address.toLowerCase()
           const tokenId = BigInt(log.topics[3]).toString()
 
