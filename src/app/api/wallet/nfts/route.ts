@@ -53,6 +53,7 @@ interface NFTCollection {
   name?: string
   symbol?: string
   tokenType: 'ERC721' | 'ERC1155'
+  logoUrl?: string
   nfts: NFT[]
   totalCount: number
   isBlacklisted: boolean
