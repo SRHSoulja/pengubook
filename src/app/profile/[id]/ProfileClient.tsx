@@ -7,6 +7,7 @@ import FollowButton from '@/components/FollowButton'
 import FriendButton from '@/components/FriendButton'
 import UserActions from '@/components/UserActions'
 import WalletBalance from '@/components/WalletBalance'
+import NFTCollections from '@/components/NFTCollections'
 import Navbar from '@/components/Navbar'
 import SocialFeed from '@/components/SocialFeed'
 import Link from 'next/link'
@@ -132,6 +133,7 @@ export default function ProfileClient({ params }: ProfilePageProps) {
   const [editContent, setEditContent] = useState('')
   const [deleting, setDeleting] = useState<string | null>(null)
   const [walletBalanceCollapsed, setWalletBalanceCollapsed] = useState(true)
+  const [nftCollectionsCollapsed, setNftCollectionsCollapsed] = useState(true)
   const [viewingHistory, setViewingHistory] = useState<string | null>(null)
   const [editHistory, setEditHistory] = useState<PostEdit[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
@@ -674,6 +676,28 @@ export default function ProfileClient({ params }: ProfilePageProps) {
               </div>
               {!walletBalanceCollapsed && (
                 <WalletBalance
+                  walletAddress={profile.walletAddress}
+                  userId={profile.id}
+                  isOwnProfile={currentUser?.id === profile.id}
+                />
+              )}
+            </div>
+          )}
+
+          {/* NFT Collections */}
+          {profile.walletAddress && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-white">🖼️ NFT Collections</h3>
+                <button
+                  onClick={() => setNftCollectionsCollapsed(!nftCollectionsCollapsed)}
+                  className="text-cyan-400 hover:text-cyan-300 transition-colors text-sm font-medium"
+                >
+                  {nftCollectionsCollapsed ? '▼ Expand' : '▲ Collapse'}
+                </button>
+              </div>
+              {!nftCollectionsCollapsed && (
+                <NFTCollections
                   walletAddress={profile.walletAddress}
                   userId={profile.id}
                   isOwnProfile={currentUser?.id === profile.id}

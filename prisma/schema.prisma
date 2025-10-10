@@ -67,6 +67,8 @@ model User {
   reportsReceived       Report[]             @relation("ReportTarget")
   mutedPhrases          MutedPhrase[]
   hiddenTokens          HiddenToken[]
+  hiddenNFTs            HiddenNFT[]
+  reportedNFTs          ReportedNFT[]         @relation("NFTReporter")
   contactSubmissions    ContactSubmission[]
   projectApplications   ProjectApplication[]
   uploads               Upload[]
@@ -718,6 +720,65 @@ model HiddenToken {
   @@unique([userId, tokenAddress])
   @@index([userId])
   @@index([tokenAddress])
+}
+
+model NFTCollection {
+  id                String   @id @default(cuid())
+  contractAddress   String   @unique
+  name              String?
+  symbol            String?
+  tokenType         String   // ERC721 or ERC1155
+  logoUrl           String?
+  bannerUrl         String?
+  description       String?
+  externalUrl       String?
+  isVerified        Boolean  @default(false)
+  isBlacklisted     Boolean  @default(false)
+  blacklistReason   String?
+  totalReports      Int      @default(0)
+  floorPrice        String?  // Store as string to handle decimals
+  totalSupply       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  hiddenNFTs        HiddenNFT[]
+  reportedNFTs      ReportedNFT[]
+
+  @@index([contractAddress])
+  @@index([isVerified])
+  @@index([isBlacklisted])
+}
+
+model HiddenNFT {
+  id                String        @id @default(cuid())
+  userId            String
+  contractAddress   String
+  tokenId           String?       // null means hide entire collection
+  createdAt         DateTime      @default(now())
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collection        NFTCollection @relation(fields: [contractAddress], references: [contractAddress], onDelete: Cascade)
+
+  @@unique([userId, contractAddress, tokenId])
+  @@index([userId])
+  @@index([contractAddress])
+}
+
+model ReportedNFT {
+  id                String        @id @default(cuid())
+  reporterId        String
+  contractAddress   String
+  reason            String        // SCAM, OFFENSIVE, SPAM, etc.
+  description       String?
+  status            String        @default("PENDING") // PENDING, REVIEWED, BLACKLISTED, DISMISSED
+  reviewedBy        String?
+  reviewedAt        DateTime?
+  createdAt         DateTime      @default(now())
+  reporter          User          @relation("NFTReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  collection        NFTCollection @relation(fields: [contractAddress], references: [contractAddress], onDelete: Cascade)
+
+  @@index([reporterId])
+  @@index([contractAddress])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model AuthNonce {
