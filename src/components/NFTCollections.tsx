@@ -208,7 +208,8 @@ const NFTCollections = React.memo(function NFTCollections({
     if (!user?.id || selectedForUnhide.size === 0) return
 
     try {
-      for (const key of selectedForUnhide) {
+      const keys = Array.from(selectedForUnhide)
+      for (const key of keys) {
         const [contractAddress, tokenId] = key.split(':')
         await fetch(`/api/nfts/hidden?address=${contractAddress}&tokenId=${tokenId || ''}&userId=${user.id}`, {
           method: 'DELETE'

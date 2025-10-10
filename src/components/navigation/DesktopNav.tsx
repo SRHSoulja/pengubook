@@ -118,7 +118,7 @@ export default function DesktopNav() {
               <button
                 key={item.href}
                 onClick={() => {
-                  if (item.paths.includes(pathname) || pathname?.startsWith(item.href + '/')) return
+                  if (item.paths.includes(pathname || '') || pathname?.startsWith(item.href + '/')) return
                   typeof window !== 'undefined' && sessionStorage.setItem('nav-icon', JSON.stringify({ icon: `https://gmgnrepeat.com/icons/${item.icon}`, alt: item.label }))
                   router.push(item.href)
                 }}

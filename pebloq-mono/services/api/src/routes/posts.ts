@@ -45,7 +45,7 @@ export default async function postsRoutes(app: FastifyInstance) {
       const nextCursor = hasMore ? posts[posts.length - 1].id : null
 
       return reply.send({
-        posts: result.map(post => ({
+        posts: result.map((post: any) => ({
           ...post,
           mediaUrls: JSON.parse(post.mediaUrls || '[]')
         })),

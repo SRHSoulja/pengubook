@@ -258,11 +258,13 @@ async function getNFTCollectionsFromLogs(address: string): Promise<Map<string, S
     }
 
     // Remove empty collections
-    for (const [contractAddress, tokenIds] of nftsByCollection.entries()) {
+    const emptyCollections: string[] = []
+    nftsByCollection.forEach((tokenIds, contractAddress) => {
       if (tokenIds.size === 0) {
-        nftsByCollection.delete(contractAddress)
+        emptyCollections.push(contractAddress)
       }
-    }
+    })
+    emptyCollections.forEach(addr => nftsByCollection.delete(addr))
 
     console.log(`[NFT Discovery] Found ${nftsByCollection.size} collections with NFTs`)
     return nftsByCollection
@@ -380,7 +382,9 @@ export async function GET(request: NextRequest) {
     let totalNFTs = 0
 
     // Process each collection
-    for (const [contractAddress, tokenIds] of nftsByCollection.entries()) {
+    for (const contractAddress of Array.from(nftsByCollection.keys())) {
+      const tokenIds = nftsByCollection.get(contractAddress)!
+
       // Skip blacklisted collections
       if (blacklistSet.has(contractAddress)) {
         console.log(`[NFT Discovery] Skipping blacklisted collection: ${contractAddress}`)
@@ -412,10 +416,10 @@ export async function GET(request: NextRequest) {
 
       // Build NFT list for this collection
       const nfts: NFT[] = []
-      for (const tokenId of tokenIds) {
+      Array.from(tokenIds).forEach((tokenId) => {
         // Skip individually hidden NFTs
         if (hiddenSet.has(`${contractAddress}:${tokenId}`)) {
-          continue
+          return
         }
 
         nfts.push({
@@ -425,7 +429,7 @@ export async function GET(request: NextRequest) {
           symbol: collectionData.symbol || undefined,
           collectionName: collectionData.name || undefined
         })
-      }
+      })
 
       if (nfts.length > 0) {
         collections.push({
