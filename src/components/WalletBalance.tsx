@@ -179,7 +179,9 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
 
   const handleReportToken = (token: TokenBalance, event: React.MouseEvent) => {
     setSelectedToken(token)
-    setClickPosition({ x: event.clientX, y: event.clientY })
+    // Calculate position accounting for scroll
+    const scrollY = window.scrollY || window.pageYOffset
+    setClickPosition({ x: event.clientX, y: event.clientY + scrollY })
     setShowReportModal(true)
   }
 
@@ -520,7 +522,7 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
           <div
             className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-white/10 my-4"
             style={{
-              marginTop: clickPosition ? `${Math.max(clickPosition.y - 100, 20)}px` : '20vh'
+              marginTop: clickPosition ? `${Math.max(clickPosition.y - 50, 20)}px` : '20vh'
             }}
             onClick={(e) => e.stopPropagation()}
           >
