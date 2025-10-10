@@ -69,7 +69,7 @@ const NFTCollections = React.memo(function NFTCollections({
       if (user?.id) {
         const stored = localStorage.getItem(`collapsed-nfts-${user.id}`)
         if (stored) {
-          const userPreferences = new Set(JSON.parse(stored))
+          const userPreferences = new Set<string>(JSON.parse(stored))
           setCollapsedCollections(userPreferences)
         } else {
           setCollapsedCollections(allCollapsed)
