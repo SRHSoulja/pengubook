@@ -155,7 +155,7 @@ export default function NotificationCenter() {
 
       {/* Notification Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] glass-card-strong rounded-2xl shadow-2xl border border-white/20 overflow-hidden z-[70]">
+        <div className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-gray-900/95 backdrop-blur-xl border border-pengu-green/30 rounded-xl shadow-2xl overflow-hidden z-[70]">
           {/* Header */}
           <div className="p-4 border-b border-white/10 flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">Notifications</h3>

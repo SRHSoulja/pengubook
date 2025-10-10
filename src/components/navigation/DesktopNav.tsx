@@ -249,7 +249,7 @@ export default function DesktopNav() {
               </button>
 
               {showUserMenu && (
-                <div className="absolute top-full right-0 mt-2 w-56 glass-card border border-white/20 rounded-xl shadow-2xl overflow-hidden z-[100]">
+                <div className="absolute top-full right-0 mt-2 w-56 bg-gray-900/95 backdrop-blur-xl border border-pengu-green/30 rounded-xl shadow-2xl overflow-hidden z-[100]">
                   <div className="px-4 py-3 border-b border-white/10">
                     <p className="text-white font-semibold truncate">{user.displayName}</p>
                     <p className="text-gray-300 text-xs">Level {user.level}</p>
