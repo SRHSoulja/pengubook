@@ -250,7 +250,7 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
                 sizes="(max-width: 768px) 768px, 1600px"
               />
               {/* Gradient overlay exactly like actual profile */}
-              <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none" />
             </>
           ) : (
             <div className="flex items-center justify-center h-full">
