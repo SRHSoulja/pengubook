@@ -24,6 +24,7 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
   const [content, setContent] = useState('')
   const [isPosting, setIsPosting] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [mediaUrls, setMediaUrls] = useState<string[]>([])
   const [showGiphyPicker, setShowGiphyPicker] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
@@ -93,10 +94,13 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
     }
 
     setIsUploading(true)
+    setUploadProgress(0)
     try {
       const uploadedUrls: string[] = []
+      const totalFiles = files.length
 
-      for (const file of Array.from(files)) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
         const formData = new FormData()
         formData.append('file', file)
         formData.append('type', 'post-media')
@@ -132,6 +136,10 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
         if (result.success) {
           uploadedUrls.push(result.url)
         }
+
+        // Update progress
+        const progress = Math.round(((i + 1) / totalFiles) * 100)
+        setUploadProgress(progress)
       }
 
       setMediaUrls(prev => [...prev, ...uploadedUrls])
@@ -415,6 +423,19 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
           >
             <span className="text-lg sm:text-xl">📸</span>
           </button>
+
+          {/* Upload Progress */}
+          {isUploading && (
+            <div className="flex items-center gap-2 px-3">
+              <div className="w-32 bg-white/10 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-pengu-green h-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+              <span className="text-sm text-gray-400">{uploadProgress}%</span>
+            </div>
+          )}
           {/* GIF Picker */}
           <button
             type="button"
