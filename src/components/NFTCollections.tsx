@@ -56,16 +56,29 @@ const NFTCollections = React.memo(function NFTCollections({
   const [selectedForUnhide, setSelectedForUnhide] = useState<Set<string>>(new Set())
   const [clickPosition, setClickPosition] = useState<{ x: number; y: number } | null>(null)
   const [collapsedCollections, setCollapsedCollections] = useState<Set<string>>(new Set())
+  const [loadingMetadata, setLoadingMetadata] = useState<Set<string>>(new Set())
+  const [nftMetadata, setNftMetadata] = useState<Map<string, any>>(new Map())
 
-  // Load collapsed state from localStorage
+  // Initialize all collections as collapsed by default
   useEffect(() => {
-    if (user?.id) {
-      const stored = localStorage.getItem(`collapsed-nfts-${user.id}`)
-      if (stored) {
-        setCollapsedCollections(new Set(JSON.parse(stored)))
+    if (collections.length > 0) {
+      // Start with all collections collapsed
+      const allCollapsed = new Set(collections.map(c => c.contractAddress))
+
+      // Load user preferences from localStorage
+      if (user?.id) {
+        const stored = localStorage.getItem(`collapsed-nfts-${user.id}`)
+        if (stored) {
+          const userPreferences = new Set(JSON.parse(stored))
+          setCollapsedCollections(userPreferences)
+        } else {
+          setCollapsedCollections(allCollapsed)
+        }
+      } else {
+        setCollapsedCollections(allCollapsed)
       }
     }
-  }, [user?.id])
+  }, [collections, user?.id])
 
   useEffect(() => {
     let cancelled = false
@@ -114,10 +127,44 @@ const NFTCollections = React.memo(function NFTCollections({
     }
   }, [walletAddress, userId])
 
+  const fetchCollectionMetadata = async (contractAddress: string, tokenIds: string[]) => {
+    if (loadingMetadata.has(contractAddress)) return // Already loading
+    if (nftMetadata.has(contractAddress)) return // Already loaded
+
+    setLoadingMetadata(new Set(loadingMetadata).add(contractAddress))
+
+    try {
+      const response = await fetch(
+        `/api/nfts/collection/${contractAddress}?tokenIds=${tokenIds.slice(0, 20).join(',')}`
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        const newMetadata = new Map(nftMetadata)
+        newMetadata.set(contractAddress, data.nfts || [])
+        setNftMetadata(newMetadata)
+      }
+    } catch (error) {
+      console.error('Error fetching collection metadata:', error)
+    } finally {
+      const newLoading = new Set(loadingMetadata)
+      newLoading.delete(contractAddress)
+      setLoadingMetadata(newLoading)
+    }
+  }
+
   const toggleCollapse = (contractAddress: string) => {
     const newCollapsed = new Set(collapsedCollections)
-    if (newCollapsed.has(contractAddress)) {
+    const wasCollapsed = newCollapsed.has(contractAddress)
+
+    if (wasCollapsed) {
       newCollapsed.delete(contractAddress)
+      // Fetch metadata when expanding
+      const collection = collections.find(c => c.contractAddress === contractAddress)
+      if (collection) {
+        const tokenIds = collection.nfts.map(nft => nft.tokenId)
+        fetchCollectionMetadata(contractAddress, tokenIds)
+      }
     } else {
       newCollapsed.add(contractAddress)
     }
@@ -459,23 +506,42 @@ const NFTCollections = React.memo(function NFTCollections({
 
                   {!isCollapsed && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-                      {collection.nfts.slice(0, 10).map((nft) => (
-                        <div
-                          key={`${nft.contractAddress}-${nft.tokenId}`}
-                          className="group relative"
-                        >
-                          <div className="aspect-square rounded-lg overflow-hidden bg-gray-900">
-                            <NFTMediaDisplay
-                              imageUrl={nft.imageUrl}
-                              animationUrl={nft.animationUrl}
-                              mediaType={nft.mediaType}
-                              name={nft.name}
-                              className="w-full h-full"
+                      {loadingMetadata.has(collection.contractAddress) ? (
+                        <div className="col-span-full text-center py-8 text-gray-400">
+                          Loading NFT metadata...
+                        </div>
+                      ) : (
+                        collection.nfts.slice(0, 20).map((nft) => {
+                          // Look up metadata from Map
+                          const collectionMetadata = nftMetadata.get(collection.contractAddress) || []
+                          const nftWithMetadata = collectionMetadata.find((m: any) => m.tokenId === nft.tokenId)
+
+                          // Merge base NFT with fetched metadata
+                          const displayNft = {
+                            ...nft,
+                            name: nftWithMetadata?.name || nft.name,
+                            imageUrl: nftWithMetadata?.imageUrl || nft.imageUrl,
+                            animationUrl: nftWithMetadata?.animationUrl || nft.animationUrl,
+                            mediaType: nftWithMetadata?.mediaType || nft.mediaType
+                          }
+
+                          return (
+                            <div
+                              key={`${nft.contractAddress}-${nft.tokenId}`}
+                              className="group relative"
+                            >
+                              <div className="aspect-square rounded-lg overflow-hidden bg-gray-900">
+                                <NFTMediaDisplay
+                                  imageUrl={displayNft.imageUrl}
+                                  animationUrl={displayNft.animationUrl}
+                                  mediaType={displayNft.mediaType}
+                                  name={displayNft.name}
+                                  className="w-full h-full"
                             />
                           </div>
                           <div className="mt-2">
                             <p className="text-white text-sm truncate">
-                              {nft.name || `#${nft.tokenId}`}
+                              {displayNft.name || `#${nft.tokenId}`}
                             </p>
                           </div>
                           {isOwnProfile && (
@@ -487,7 +553,9 @@ const NFTCollections = React.memo(function NFTCollections({
                             </button>
                           )}
                         </div>
-                      ))}
+                          )
+                        })
+                      )}
                     </div>
                   )}
                 </div>
