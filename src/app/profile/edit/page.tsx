@@ -144,9 +144,17 @@ export default function ProfileEditPage() {
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           {/* Profile Completion Widget */}
           <ProfileCompletionWidget />
+
+          {/* Banner Image Upload - Full width like profile */}
+          <div className="-mx-4 sm:mx-0 mb-6">
+            <BannerUploader
+              currentBanner={formData.bannerImage}
+              onBannerChange={(url) => setFormData({...formData, bannerImage: url})}
+            />
+          </div>
 
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-2xl p-8">
             <div className="flex items-center justify-between mb-8">
@@ -163,11 +171,6 @@ export default function ProfileEditPage() {
             </div>
 
             <div className="space-y-6">
-              {/* Banner Image Upload */}
-              <BannerUploader
-                currentBanner={formData.bannerImage}
-                onBannerChange={(url) => setFormData({...formData, bannerImage: url})}
-              />
 
               {/* Web3 Username (Read-Only) */}
               <div>
