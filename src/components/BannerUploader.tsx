@@ -233,17 +233,24 @@ export default function BannerUploader({ currentBanner, onBannerChange }: Banner
         </label>
 
         <div className="relative">
-        {/* Banner Preview - Matches actual profile display */}
-        <div className="w-full h-48 md:h-64 rounded-xl overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 relative group">
+        {/* Banner Preview - Exactly matches actual profile display */}
+        <div className="w-full h-48 md:h-64 rounded-t-2xl overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 relative group">
           {preview ? (
             <>
               <img
-                src={preview}
+                src={preview.includes('cloudinary.com')
+                  ? preview.replace('/upload/', '/upload/w_1600,f_auto,q_auto/')
+                  : preview}
                 alt="Banner preview"
                 className="w-full h-full object-cover object-center md:object-top"
+                loading="lazy"
+                srcSet={preview.includes('cloudinary.com')
+                  ? `${preview.replace('/upload/', '/upload/w_768,f_auto,q_auto/')} 768w, ${preview.replace('/upload/', '/upload/w_1600,f_auto,q_auto/')} 1600w`
+                  : undefined}
+                sizes="(max-width: 768px) 768px, 1600px"
               />
-              {/* Gradient overlay like actual profile */}
-              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none" />
+              {/* Gradient overlay exactly like actual profile */}
+              <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
             </>
           ) : (
             <div className="flex items-center justify-center h-full">
