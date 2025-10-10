@@ -170,6 +170,174 @@ async function detectNFTType(contractAddress: string, provider: ethers.Provider)
   }
 }
 
+// Get NFT collections held by address using eth_getLogs
+async function getNFTCollectionsFromLogs(address: string): Promise<Map<string, Set<string>>> {
+  try {
+    // ERC721 Transfer event signature: Transfer(address,address,uint256)
+    const transferEventSignature = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+    const paddedAddress = '0x' + address.slice(2).padStart(64, '0').toLowerCase()
+
+    // Map of contract address -> Set of token IDs
+    const nftsByCollection = new Map<string, Set<string>>()
+
+    console.log('[NFT Discovery] Scanning for NFT transfers to:', address)
+
+    // Get INCOMING NFT transfers (NFTs received TO this address)
+    const incomingResponse = await fetch(ABSTRACT_RPC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'eth_getLogs',
+        params: [{
+          fromBlock: '0x0',
+          toBlock: 'latest',
+          topics: [
+            transferEventSignature,
+            null, // from (any address)
+            paddedAddress // to (our wallet)
+          ]
+        }]
+      })
+    })
+
+    const incomingData = await incomingResponse.json()
+    console.log(`[NFT Discovery] Incoming transfers: ${incomingData.result?.length || 0}`)
+
+    if (incomingData.result && Array.isArray(incomingData.result)) {
+      for (const log of incomingData.result) {
+        // The third topic is the tokenId for ERC721
+        if (log.topics && log.topics.length >= 3 && log.address) {
+          const contractAddress = log.address.toLowerCase()
+          const tokenId = BigInt(log.topics[3]).toString()
+
+          if (!nftsByCollection.has(contractAddress)) {
+            nftsByCollection.set(contractAddress, new Set())
+          }
+          nftsByCollection.get(contractAddress)!.add(tokenId)
+        }
+      }
+    }
+
+    // Get OUTGOING NFT transfers (NFTs sent FROM this address) to remove from our list
+    const outgoingResponse = await fetch(ABSTRACT_RPC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 2,
+        method: 'eth_getLogs',
+        params: [{
+          fromBlock: '0x0',
+          toBlock: 'latest',
+          topics: [
+            transferEventSignature,
+            paddedAddress, // from (our wallet)
+            null // to (any address)
+          ]
+        }]
+      })
+    })
+
+    const outgoingData = await outgoingResponse.json()
+    console.log(`[NFT Discovery] Outgoing transfers: ${outgoingData.result?.length || 0}`)
+
+    if (outgoingData.result && Array.isArray(outgoingData.result)) {
+      for (const log of outgoingData.result) {
+        if (log.topics && log.topics.length >= 3 && log.address) {
+          const contractAddress = log.address.toLowerCase()
+          const tokenId = BigInt(log.topics[3]).toString()
+
+          // Remove NFT from our collection if we sent it away
+          if (nftsByCollection.has(contractAddress)) {
+            nftsByCollection.get(contractAddress)!.delete(tokenId)
+          }
+        }
+      }
+    }
+
+    // Remove empty collections
+    for (const [contractAddress, tokenIds] of nftsByCollection.entries()) {
+      if (tokenIds.size === 0) {
+        nftsByCollection.delete(contractAddress)
+      }
+    }
+
+    console.log(`[NFT Discovery] Found ${nftsByCollection.size} collections with NFTs`)
+    return nftsByCollection
+
+  } catch (error) {
+    console.error('Error fetching NFT list from logs:', error)
+    return new Map()
+  }
+}
+
+// Get NFT collection metadata
+async function getCollectionMetadata(contractAddress: string): Promise<{ name: string; symbol: string; tokenType: 'ERC721' | 'ERC1155' }> {
+  try {
+    // name() function signature
+    const nameSignature = '0x06fdde03'
+    const nameResponse = await fetch(ABSTRACT_RPC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'eth_call',
+        params: [{ to: contractAddress, data: nameSignature }, 'latest']
+      })
+    })
+
+    // symbol() function signature
+    const symbolSignature = '0x95d89b41'
+    const symbolResponse = await fetch(ABSTRACT_RPC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 2,
+        method: 'eth_call',
+        params: [{ to: contractAddress, data: symbolSignature }, 'latest']
+      })
+    })
+
+    const [nameData, symbolData] = await Promise.all([nameResponse.json(), symbolResponse.json()])
+
+    // Decode string responses (remove 0x, skip first 64 bytes for offset/length, decode hex)
+    let name = 'Unknown Collection'
+    let symbol = 'UNKNOWN'
+
+    if (nameData.result && nameData.result !== '0x') {
+      try {
+        const hex = nameData.result.slice(2)
+        const decoded = Buffer.from(hex, 'hex').toString('utf8').replace(/\0/g, '').trim()
+        if (decoded) name = decoded
+      } catch (e) {
+        console.error('Error decoding name:', e)
+      }
+    }
+
+    if (symbolData.result && symbolData.result !== '0x') {
+      try {
+        const hex = symbolData.result.slice(2)
+        const decoded = Buffer.from(hex, 'hex').toString('utf8').replace(/\0/g, '').trim()
+        if (decoded) symbol = decoded
+      } catch (e) {
+        console.error('Error decoding symbol:', e)
+      }
+    }
+
+    // Detect token type (default to ERC721 if we found Transfer events with 3 topics)
+    const tokenType = await detectNFTType(contractAddress, new ethers.JsonRpcProvider(ABSTRACT_RPC_URL)) || 'ERC721'
+
+    return { name, symbol, tokenType }
+  } catch (error) {
+    console.error('Error getting collection metadata:', error)
+    return { name: 'Unknown Collection', symbol: 'UNKNOWN', tokenType: 'ERC721' }
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -184,8 +352,6 @@ export async function GET(request: NextRequest) {
     if (!ethers.isAddress(address)) {
       return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
     }
-
-    const provider = new ethers.JsonRpcProvider(ABSTRACT_RPC_URL)
 
     // Get hidden NFTs for this user
     const hiddenNFTs = userId ? await prisma.hiddenNFT.findMany({
@@ -207,24 +373,82 @@ export async function GET(request: NextRequest) {
       blacklistedCollections.map(c => c.contractAddress.toLowerCase())
     )
 
-    // For now, we'll return a placeholder response
-    // In production, you'd want to use an indexing service like Alchemy, Moralis, or The Graph
-    // to efficiently fetch NFTs owned by the wallet
+    // Scan blockchain for NFTs owned by this address
+    const nftsByCollection = await getNFTCollectionsFromLogs(address)
 
     const collections: NFTCollection[] = []
+    let totalNFTs = 0
 
-    // Get collection info from database
-    const knownCollections = await prisma.nFTCollection.findMany({
-      where: {
-        contractAddress: { in: [] } // We'll populate this with discovered contracts
+    // Process each collection
+    for (const [contractAddress, tokenIds] of nftsByCollection.entries()) {
+      // Skip blacklisted collections
+      if (blacklistSet.has(contractAddress)) {
+        console.log(`[NFT Discovery] Skipping blacklisted collection: ${contractAddress}`)
+        continue
       }
-    })
+
+      // Skip if entire collection is hidden
+      if (hiddenSet.has(`${contractAddress}:collection`)) {
+        console.log(`[NFT Discovery] Skipping hidden collection: ${contractAddress}`)
+        continue
+      }
+
+      // Get or create collection metadata
+      let collectionData = await prisma.nFTCollection.findUnique({
+        where: { contractAddress }
+      })
+
+      if (!collectionData) {
+        const metadata = await getCollectionMetadata(contractAddress)
+        collectionData = await prisma.nFTCollection.create({
+          data: {
+            contractAddress,
+            name: metadata.name,
+            symbol: metadata.symbol,
+            tokenType: metadata.tokenType
+          }
+        })
+      }
+
+      // Build NFT list for this collection
+      const nfts: NFT[] = []
+      for (const tokenId of tokenIds) {
+        // Skip individually hidden NFTs
+        if (hiddenSet.has(`${contractAddress}:${tokenId}`)) {
+          continue
+        }
+
+        nfts.push({
+          contractAddress,
+          tokenId,
+          tokenType: collectionData.tokenType as 'ERC721' | 'ERC1155',
+          symbol: collectionData.symbol || undefined,
+          collectionName: collectionData.name || undefined
+        })
+      }
+
+      if (nfts.length > 0) {
+        collections.push({
+          contractAddress,
+          name: collectionData.name || undefined,
+          symbol: collectionData.symbol || undefined,
+          tokenType: collectionData.tokenType as 'ERC721' | 'ERC1155',
+          nfts,
+          totalCount: nfts.length,
+          isBlacklisted: collectionData.isBlacklisted,
+          isVerified: collectionData.isVerified
+        })
+
+        totalNFTs += nfts.length
+      }
+    }
+
+    console.log(`[NFT Discovery] Returning ${collections.length} collections with ${totalNFTs} total NFTs`)
 
     return NextResponse.json({
       walletAddress: address,
       collections,
-      totalNFTs: 0,
-      message: 'NFT fetching requires integration with indexing service (Alchemy/Moralis/The Graph)'
+      totalNFTs
     })
 
   } catch (error) {
