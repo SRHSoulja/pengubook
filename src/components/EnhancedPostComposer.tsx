@@ -107,39 +107,54 @@ export default function EnhancedPostComposer({ onPost, onCancel }: EnhancedPostC
 
         console.log('[EnhancedPostComposer] Uploading to Railway with wallet:', user.walletAddress)
 
-        const headers: Record<string, string> = {}
+        // Use XMLHttpRequest for real-time progress tracking
+        const result = await new Promise<{ success: boolean; url: string }>((resolve, reject) => {
+          const xhr = new XMLHttpRequest()
 
-        // Prefer JWT token authentication (most secure)
-        if (sessionToken) {
-          headers['Authorization'] = `Bearer ${sessionToken}`
-        }
+          // Track upload progress in real-time
+          xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+              const fileProgress = (e.loaded / e.total) * 100
+              const overallProgress = ((i + fileProgress / 100) / totalFiles) * 100
+              setUploadProgress(Math.round(overallProgress))
+            }
+          })
 
-        // Fallback to wallet address (less secure but still works)
-        headers['x-wallet-address'] = user.walletAddress
+          xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                const response = JSON.parse(xhr.responseText)
+                resolve(response)
+              } catch (error) {
+                reject(new Error('Invalid response'))
+              }
+            } else {
+              try {
+                const errorData = JSON.parse(xhr.responseText)
+                reject(new Error(errorData.error || 'Upload failed'))
+              } catch {
+                reject(new Error('Upload failed'))
+              }
+            }
+          })
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
-          method: 'POST',
-          headers,
-          body: formData,
-          credentials: 'include'
+          xhr.addEventListener('error', () => reject(new Error('Network error')))
+
+          xhr.open('POST', `${process.env.NEXT_PUBLIC_API_URL}/upload`)
+
+          // Set headers
+          if (sessionToken) {
+            xhr.setRequestHeader('Authorization', `Bearer ${sessionToken}`)
+          }
+          xhr.setRequestHeader('x-wallet-address', user.walletAddress)
+
+          xhr.withCredentials = true
+          xhr.send(formData)
         })
 
-        console.log('[EnhancedPostComposer] Upload response:', response.status)
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          console.error('[EnhancedPostComposer] Upload failed:', errorData)
-          throw new Error(errorData.error || 'Upload failed')
-        }
-
-        const result = await response.json()
         if (result.success) {
           uploadedUrls.push(result.url)
         }
-
-        // Update progress
-        const progress = Math.round(((i + 1) / totalFiles) * 100)
-        setUploadProgress(progress)
       }
 
       setMediaUrls(prev => [...prev, ...uploadedUrls])
