@@ -278,6 +278,40 @@ async function getNFTCollectionsFromLogs(address: string): Promise<Map<string, S
   }
 }
 
+// Get tokenURI for a specific NFT
+async function getTokenURI(contractAddress: string, tokenId: string, tokenType: 'ERC721' | 'ERC1155'): Promise<string | null> {
+  try {
+    if (tokenType === 'ERC721') {
+      // tokenURI(uint256) function signature
+      const tokenURISignature = '0xc87b56dd'
+      const paddedTokenId = BigInt(tokenId).toString(16).padStart(64, '0')
+
+      const response = await fetch(ABSTRACT_RPC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'eth_call',
+          params: [{ to: contractAddress, data: tokenURISignature + paddedTokenId }, 'latest']
+        })
+      })
+
+      const data = await response.json()
+      if (data.result && data.result !== '0x') {
+        // Decode the string response
+        const hex = data.result.slice(2)
+        const uri = Buffer.from(hex, 'hex').toString('utf8').replace(/\0/g, '').trim()
+        return uri
+      }
+    }
+    return null
+  } catch (error) {
+    console.error('Error getting tokenURI:', error)
+    return null
+  }
+}
+
 // Get NFT collection metadata
 async function getCollectionMetadata(contractAddress: string): Promise<{ name: string; symbol: string; tokenType: 'ERC721' | 'ERC1155' }> {
   try {
@@ -419,20 +453,46 @@ export async function GET(request: NextRequest) {
 
       // Build NFT list for this collection
       const nfts: NFT[] = []
-      Array.from(tokenIds).forEach((tokenId) => {
+      const tokenIdArray = Array.from(tokenIds)
+      const METADATA_FETCH_LIMIT = 10 // Only fetch metadata for first 10 NFTs per collection
+
+      for (let i = 0; i < tokenIdArray.length; i++) {
+        const tokenId = tokenIdArray[i]
+
         // Skip individually hidden NFTs
         if (hiddenSet.has(`${contractAddress}:${tokenId}`)) {
-          return
+          continue
         }
 
-        nfts.push({
+        const nft: NFT = {
           contractAddress,
           tokenId,
           tokenType: collectionData.tokenType as 'ERC721' | 'ERC1155',
           symbol: collectionData.symbol || undefined,
           collectionName: collectionData.name || undefined
-        })
-      })
+        }
+
+        // Fetch metadata only for first N NFTs to avoid timeouts
+        if (i < METADATA_FETCH_LIMIT) {
+          try {
+            const tokenURI = await getTokenURI(contractAddress, tokenId, collectionData.tokenType as 'ERC721' | 'ERC1155')
+            if (tokenURI) {
+              const metadata = await fetchTokenMetadata(tokenURI)
+              if (metadata) {
+                nft.name = metadata.name
+                nft.imageUrl = metadata.image
+                nft.animationUrl = metadata.animation_url
+                nft.mediaType = metadata.media_type
+                nft.metadata = metadata
+              }
+            }
+          } catch (error) {
+            console.error(`Error fetching metadata for ${contractAddress}:${tokenId}`, error)
+          }
+        }
+
+        nfts.push(nft)
+      }
 
       if (nfts.length > 0) {
         collections.push({
