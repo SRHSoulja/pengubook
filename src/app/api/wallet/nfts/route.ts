@@ -451,55 +451,49 @@ export async function GET(request: NextRequest) {
         })
       }
 
-      // Build NFT list for this collection
+      // Build NFT list for this collection (just IDs, no metadata yet)
       const nfts: NFT[] = []
       const tokenIdArray = Array.from(tokenIds)
-      const METADATA_FETCH_LIMIT = 10 // Only fetch metadata for first 10 NFTs per collection
 
-      for (let i = 0; i < tokenIdArray.length; i++) {
-        const tokenId = tokenIdArray[i]
-
+      for (const tokenId of tokenIdArray) {
         // Skip individually hidden NFTs
         if (hiddenSet.has(`${contractAddress}:${tokenId}`)) {
           continue
         }
 
-        const nft: NFT = {
+        nfts.push({
           contractAddress,
           tokenId,
           tokenType: collectionData.tokenType as 'ERC721' | 'ERC1155',
           symbol: collectionData.symbol || undefined,
           collectionName: collectionData.name || undefined
-        }
-
-        // Fetch metadata only for first N NFTs to avoid timeouts
-        if (i < METADATA_FETCH_LIMIT) {
-          try {
-            const tokenURI = await getTokenURI(contractAddress, tokenId, collectionData.tokenType as 'ERC721' | 'ERC1155')
-            if (tokenURI) {
-              const metadata = await fetchTokenMetadata(tokenURI)
-              if (metadata) {
-                nft.name = metadata.name
-                nft.imageUrl = metadata.image
-                nft.animationUrl = metadata.animation_url
-                nft.mediaType = metadata.media_type
-                nft.metadata = metadata
-              }
-            }
-          } catch (error) {
-            console.error(`Error fetching metadata for ${contractAddress}:${tokenId}`, error)
-          }
-        }
-
-        nfts.push(nft)
+        })
       }
 
       if (nfts.length > 0) {
+        // Fetch metadata for first NFT as collection thumbnail
+        let collectionImage: string | undefined
+        if (nfts.length > 0) {
+          try {
+            const firstTokenId = nfts[0].tokenId
+            const tokenURI = await getTokenURI(contractAddress, firstTokenId, collectionData.tokenType as 'ERC721' | 'ERC1155')
+            if (tokenURI) {
+              const metadata = await fetchTokenMetadata(tokenURI)
+              if (metadata?.image) {
+                collectionImage = metadata.image
+              }
+            }
+          } catch (error) {
+            console.log(`Could not fetch thumbnail for collection ${contractAddress}`)
+          }
+        }
+
         collections.push({
           contractAddress,
           name: collectionData.name || undefined,
           symbol: collectionData.symbol || undefined,
           tokenType: collectionData.tokenType as 'ERC721' | 'ERC1155',
+          logoUrl: collectionImage, // First NFT image as collection thumbnail
           nfts,
           totalCount: nfts.length,
           isBlacklisted: collectionData.isBlacklisted,
