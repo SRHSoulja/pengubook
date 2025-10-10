@@ -49,6 +49,7 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
   const [loadingHidden, setLoadingHidden] = useState(false)
   const [selectedForUnhide, setSelectedForUnhide] = useState<Set<string>>(new Set())
   const [favoriteTokens, setFavoriteTokens] = useState<Set<string>>(new Set())
+  const [clickPosition, setClickPosition] = useState<{ x: number; y: number } | null>(null)
 
   console.log('[WalletBalance] Render - isOwnProfile:', isOwnProfile, 'user?.id:', user?.id)
 
@@ -176,8 +177,9 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
     })
   }
 
-  const handleReportToken = (token: TokenBalance) => {
+  const handleReportToken = (token: TokenBalance, event: React.MouseEvent) => {
     setSelectedToken(token)
+    setClickPosition({ x: event.clientX, y: event.clientY })
     setShowReportModal(true)
   }
 
@@ -458,7 +460,7 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleReportToken(token)}
+                        onClick={(e) => handleReportToken(token, e)}
                         className="p-2 bg-red-700/50 hover:bg-red-600 rounded text-red-300 hover:text-red-100 transition-colors"
                         title="Report scam token"
                       >
@@ -511,8 +513,17 @@ const WalletBalance = React.memo(function WalletBalance({ walletAddress, userId,
 
       {/* Report Modal */}
       {showReportModal && selectedToken && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-white/10">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 overflow-y-auto"
+          onClick={() => setShowReportModal(false)}
+        >
+          <div
+            className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-white/10 my-4"
+            style={{
+              marginTop: clickPosition ? `${Math.max(clickPosition.y - 100, 20)}px` : '20vh'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-lg font-semibold text-white mb-4">Report Scam Token</h3>
 
             <div className="mb-4 p-3 bg-black/20 rounded">
