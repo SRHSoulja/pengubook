@@ -2,10 +2,11 @@ import { FastifyRequest, FastifyReply } from 'fastify'
 import jwt from 'jsonwebtoken'
 import { prisma } from '../lib/prisma.js'
 
-// CRITICAL: JWT_SECRET must be set in production
-const JWT_SECRET = process.env.JWT_SECRET
-if (!JWT_SECRET || JWT_SECRET.length < 32) {
-  console.error('FATAL: JWT_SECRET environment variable must be set and at least 32 characters long')
+// CRITICAL: Must match Vercel's SESSION_SECRET for JWT verification
+// Vercel signs tokens with SESSION_SECRET, so Railway must verify with same secret
+const SESSION_SECRET = process.env.SESSION_SECRET || process.env.JWT_SECRET
+if (!SESSION_SECRET || SESSION_SECRET.length < 32) {
+  console.error('FATAL: SESSION_SECRET environment variable must be set and at least 32 characters long')
   console.error('Generate one with: openssl rand -base64 64')
   process.exit(1)
 }
@@ -30,7 +31,7 @@ export async function withAuth(request: FastifyRequest, reply: FastifyReply) {
     const authHeader = request.headers.authorization
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7)
-      const decoded = jwt.verify(token, JWT_SECRET!) as JWTPayload
+      const decoded = jwt.verify(token, SESSION_SECRET!) as JWTPayload
 
       // Check if session is revoked
       const revoked = await prisma.revokedSession.findUnique({
