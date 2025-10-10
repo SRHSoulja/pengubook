@@ -247,9 +247,6 @@ const NFTCollections = React.memo(function NFTCollections({
         </div>
         <div className="text-center py-8">
           <p className="text-red-400">{error}</p>
-          <p className="text-gray-400 text-sm mt-2">
-            NFT indexing requires integration with Alchemy, Moralis, or The Graph
-          </p>
         </div>
       </div>
     )
@@ -408,10 +405,7 @@ const NFTCollections = React.memo(function NFTCollections({
           </div>
         ) : collections.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-400 mb-2">No NFT collections found</p>
-            <p className="text-gray-500 text-sm">
-              NFT indexing requires integration with Alchemy, Moralis, or The Graph
-            </p>
+            <p className="text-gray-400">No NFT collections found</p>
           </div>
         ) : (
           <div className="space-y-4">
