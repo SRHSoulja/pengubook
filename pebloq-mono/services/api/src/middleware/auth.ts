@@ -30,7 +30,7 @@ export async function withAuth(request: FastifyRequest, reply: FastifyReply) {
     const authHeader = request.headers.authorization
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7)
-      const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload
+      const decoded = jwt.verify(token, JWT_SECRET!) as JWTPayload
 
       // Check if session is revoked
       const revoked = await prisma.revokedSession.findUnique({

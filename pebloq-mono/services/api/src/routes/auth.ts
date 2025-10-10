@@ -114,7 +114,7 @@ export default async function authRoutes(app: FastifyInstance) {
           userId: user.id,
           walletAddress: user.walletAddress
         },
-        JWT_SECRET,
+        JWT_SECRET!,
         { expiresIn: '7d' }
       )
 
@@ -146,7 +146,7 @@ export default async function authRoutes(app: FastifyInstance) {
       }
 
       const token = authHeader.substring(7)
-      const decoded = jwt.verify(token, JWT_SECRET) as any
+      const decoded = jwt.verify(token, JWT_SECRET!) as any
 
       // Check if session is revoked
       const revoked = await prisma.revokedSession.findUnique({
@@ -184,7 +184,7 @@ export default async function authRoutes(app: FastifyInstance) {
       }
 
       const token = authHeader.substring(7)
-      const decoded = jwt.verify(token, JWT_SECRET) as any
+      const decoded = jwt.verify(token, JWT_SECRET!) as any
 
       // Add token to revoked sessions
       const expiresAt = new Date(decoded.exp * 1000)
@@ -213,7 +213,7 @@ export default async function authRoutes(app: FastifyInstance) {
       }
 
       const token = authHeader.substring(7)
-      const decoded = jwt.verify(token, JWT_SECRET) as any
+      const decoded = jwt.verify(token, JWT_SECRET!) as any
 
       const {
         provider,
@@ -265,7 +265,7 @@ export default async function authRoutes(app: FastifyInstance) {
       }
 
       const token = authHeader.substring(7)
-      const decoded = jwt.verify(token, JWT_SECRET) as any
+      const decoded = jwt.verify(token, JWT_SECRET!) as any
 
       const { provider } = request.body as any
 
