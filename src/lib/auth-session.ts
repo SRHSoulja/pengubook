@@ -80,8 +80,11 @@ if (SESSION_SECRET.length < minLength) {
   }
 }
 
-// CRITICAL: Entropy check (minimum 4.0 bits per character for hex strings)
-const minEntropy = 4.0
+// CRITICAL: Entropy check
+// Hex strings have entropy ≈ 3.85 bits/char (log2(16) = 4.0, but natural variation brings it down)
+// Base64 has entropy ≈ 5.95 bits/char
+// Mixed alphanumeric+special has entropy ≈ 6+ bits/char
+const minEntropy = 3.5  // Allow cryptographically secure hex strings
 if (entropy < minEntropy) {
   console.warn(`[SECURITY WARNING] SESSION_SECRET has low entropy (${entropy.toFixed(2)} bits/char).`)
   console.warn('This indicates a weak or predictable secret.')

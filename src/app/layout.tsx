@@ -18,6 +18,13 @@ const inter = Inter({ subsets: ['latin'] })
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://pebloq.gmgnrepeat.com'
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+}
+
 export const metadata = {
   metadataBase: new URL(baseUrl),
   title: {
@@ -27,12 +34,6 @@ export const metadata = {
   description: 'Decentralized social platform powered by Abstract Global Wallet with token tipping, communities, and encrypted messaging',
   keywords: ['web3', 'social', 'abstract', 'blockchain', 'crypto', 'pengu', 'tipping', 'AGW'],
   authors: [{ name: 'PeBloq Team' }],
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
